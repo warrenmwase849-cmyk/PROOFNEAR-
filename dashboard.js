@@ -65,29 +65,8 @@ function showSection(section) {
   const email = currentUser.email || "";
 
   if (section === "overview") {
-    dashboardContent.innerHTML = `
-      <h2>Welcome, ${escapeHTML(name)}!</h2>
-      <p>Welcome to your PROOFNEAR account dashboard.</p>
-
-      <div class="dashboard-card">
-        <h3>👤 Account</h3>
-        <p>${escapeHTML(email)}</p>
-        <p>Account type: ${
-          escapeHTML(currentUser.user_metadata.account_type || "both")
-        }</p>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>💼 My Opportunities</h3>
-        <p>Manage your posted opportunities here.</p>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>🚀 Get Started</h3>
-        <p>Share opportunities and connect with people.</p>
-      </div>
-    `;
-  }
+  loadDashboardOverview();
+}
 
   else if (section === "profile") {
   loadMyProfile();
