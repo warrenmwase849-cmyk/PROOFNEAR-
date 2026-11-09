@@ -1,0 +1,594 @@
+    <!doctype html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#087f5b">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PROOFNEAR connects people looking for work with employers and customers who need reliable workers and services.">
+  <meta name="theme-color" content="#102a43">
+  <title>PROOFNEAR — Find work. Find workers.</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<!-- PROOF HELPER ICON ONLY -->
+
+<style>
+/* =================================
+   PROOF HELPER — PREMIUM ROBOT UI
+================================= */
+
+#proofBtn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #087c6b, #06483f);
+  color: #ffd166;
+  border: 3px solid #f5b544;
+  font-size: 34px;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0,0,0,.3);
+  touch-action: none;
+  user-select: none;
+  transition: .25s ease;
+}
+
+#proofBtn:hover {
+  transform: scale(1.09);
+  box-shadow: 0 8px 28px rgba(7,94,84,.4);
+}
+
+#proofBox {
+  position: fixed;
+  right: 20px;
+  bottom: 98px;
+  z-index: 9998;
+  width: 360px;
+  max-width: calc(100vw - 30px);
+  background: #fff;
+  border: 1px solid #dce9e4;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.24);
+  display: none;
+  overflow: hidden;
+  font-family: "Segoe UI", Arial, sans-serif;
+  animation: proofAppear .25s ease;
+}
+
+@keyframes proofAppear {
+  from {opacity:0; transform:translateY(12px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+#proofHead {
+  background: linear-gradient(135deg, #075e54, #063f39);
+  color: #fff;
+  padding: 19px 16px;
+  font-size: 16px;
+  font-weight: 750;
+  border-bottom: 3px solid #f5b544;
+}
+
+#proofHead::before {
+  content: "🤖";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.14);
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  margin-right: 10px;
+  font-size: 24px;
+  vertical-align: middle;
+}
+
+#proofMsgs {
+  height: 290px;
+  overflow-y: auto;
+  padding: 14px;
+  background: #f4f8f6;
+}
+
+.msg {
+  margin: 9px 0;
+  padding: 11px 13px;
+  border-radius: 14px;
+  max-width: 85%;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.bot {
+  background: #fff;
+  color: #23443d;
+  border: 1px solid #e0eae5;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 7px rgba(0,0,0,.04);
+}
+
+.user {
+  background: #075e54;
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+#proofBox > div[style] {
+  background: #fff !important;
+  padding: 10px !important;
+  border-top: 1px solid #edf1ef;
+}
+
+.quick {
+  margin: 4px 3px;
+  padding: 8px 12px;
+  border-radius: 22px;
+  border: 1px solid #087466;
+  background: #fff;
+  color: #075e54;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.quick:hover {
+  background: #075e54;
+  color: #fff;
+}
+
+#proofInputRow {
+  display: flex;
+  background: #fff;
+  border-top: 1px solid #e5ece9;
+  padding: 9px;
+  gap: 7px;
+}
+
+#proofInput {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #e1eae5;
+  border-radius: 22px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 14px;
+}
+
+#proofInput:focus {
+  border-color: #087466;
+}
+
+#proofSend {
+  background: #075e54;
+  color: #fff;
+  border: none;
+  border-radius: 22px;
+  padding: 0 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#proofSend:hover {
+  background: #063f39;
+}
+
+@media(max-width:480px) {
+  #proofBox {
+    right: 12px;
+    bottom: 88px;
+    width: calc(100vw - 24px);
+  }
+
+  #proofMsgs {
+    height: 260px;
+  }
+
+  #proofBtn {
+    right: 15px;
+    bottom: 15px;
+  }
+}
+</style>
+
+
+<button id="proofBtn">🤖</button>
+
+<div id="proofBox">
+  <div id="proofHead">Proof Helper - Ask me anything</div>
+  <div id="proofMsgs"></div>
+  <div style="padding:6px 10px;background:#fff">
+    <button class="quick" onclick="askQuick('How to post a job?')">Post a Job</button>
+    <button class="quick" onclick="askQuick('Find a plumber')">Find Plumber</button>
+    <button class="quick" onclick="askQuick('How to login?')">Login</button>
+  </div>
+  <div id="proofInputRow">
+    <input id="proofInput" placeholder="Type here..." onkeypress="if(event.key==='Enter')sendProof()">
+    <button id="proofSend" onclick="sendProof()">Send</button>
+  </div>
+</div>
+
+<script>
+let proofOpened=false;
+let btn=document.getElementById('proofBtn');
+let box=document.getElementById('proofBox');
+let isDown=false, startX=0, startY=0, origL=0, origB=0, moved=false;
+btn.addEventListener('pointerdown', e=>{
+  isDown=true; moved=false; startX=e.clientX; startY=e.clientY;
+  let r=btn.getBoundingClientRect(); origL=r.left; origB=window.innerHeight-r.bottom;
+  btn.setPointerCapture(e.pointerId);
+});
+btn.addEventListener('pointermove', e=>{
+  if(!isDown) return;
+  let dx=e.clientX-startX, dy=e.clientY-startY;
+  if(Math.abs(dx)>5||Math.abs(dy)>5) moved=true;
+  if(moved){
+    btn.style.left=(origL+dx)+'px'; btn.style.bottom=(origB-dy)+'px'; btn.style.right='auto';
+    box.style.left=(origL+dx)+'px'; box.style.bottom=(origB-dy+64)+'px';
+  }
+});
+btn.addEventListener('pointerup', ()=>{ isDown=false; if(!moved) toggleProof(); });
+function toggleProof(){
+  box.style.display=box.style.display==='block'?'none':'block';
+  if(!proofOpened){ addMsg('bot','Hi! I am Proof Helper. I can help you Post a Job, Find a Worker, or Login.'); proofOpened=true; }
+}
+function addMsg(who,text){ let m=document.getElementById('proofMsgs'); let d=document.createElement('div'); d.className='msg '+who; d.innerHTML=text; m.appendChild(d); m.scrollTop=m.scrollHeight; }
+function askQuick(t){ document.getElementById('proofInput').value=t; sendProof(); }
+function sendProof(){
+  let inp=document.getElementById('proofInput'); let text=inp.value.trim().toLowerCase(); if(!text) return;
+  addMsg('user',inp.value); inp.value=''; setTimeout(()=>{ addMsg('bot',getAnswer(text)); },600);
+}
+
+function getAnswer(t) {
+  const jobs = '<a href="#jobs">Find jobs</a>';
+  const workers = '<a href="#jobs">Find workers</a>';
+  const how = '<a href="#how">How it works</a>';
+  const login = '<a href="#" onclick="openAccount();return false;">Sign in / Create account</a>';
+  const post = '<a href="#" onclick="document.querySelector(\'[data-open=post]\')?.click();return false;">Post an opportunity</a>';
+
+  if (/\b(hi|hello|hey|good morning|good afternoon|good evening)\b/.test(t)) {
+    return 'Hello! 🤖 Welcome to <b>PROOFNEAR</b>! I can help you with ' + jobs + ', ' + workers + ', or ' + login + '.';
+  }
+
+  if (t.includes('find job') || t.includes('looking for work') || t.includes('employment') || t.includes('vacancy') || t.includes('apply')) {
+    return '💼 Explore available opportunities here: ' + jobs + '.';
+  }
+
+  if (t.includes('find worker') || t.includes('need a worker') || t.includes('hire') || t.includes('plumber') || t.includes('electrician') || t.includes('mechanic') || t.includes('cleaner')) {
+    return '🔧 Find workers and service providers here: ' + workers + '.';
+  }
+
+  if (t.includes('post') || t.includes('advertise') || t.includes('publish')) {
+    return '📢 Ready to publish? ' + login + ' first, then choose Post Opportunity in your dashboard. ' + post;
+  }
+
+  if (t.includes('login') || t.includes('log in') || t.includes('sign in') || t.includes('register') || t.includes('create account') || t.includes('password')) {
+    return '🔐 Click here to access your PROOFNEAR account: ' + login + '.';
+  }
+
+  if (t.includes('payment') || t.includes('pay') || t.includes('5000') || t.includes('mobile money') || t.includes('mtn') || t.includes('airtel')) {
+    return '💳 PROOFNEAR charges UGX 5,000 to publish an opportunity and UGX 5,000 to unlock contact details. Follow the official payment instructions displayed on the platform. ' + how + '.';
+  }
+
+  if (t.includes('verify') || t.includes('verification') || t.includes('genuine') || t.includes('fake') || t.includes('scam') || t.includes('safe')) {
+    return '🛡️ Opportunities are reviewed before approval. Always check details carefully. Learn more: ' + how + '.';
+  }
+
+  if (t.includes('whatsapp') || t.includes('contact') || t.includes('call') || t.includes('phone')) {
+    return '📱 Open an opportunity to see its contact instructions. Contact details may require a verified unlock payment. ' + jobs + '.';
+  }
+
+  if (t.includes('dashboard') || t.includes('my opportunities') || t.includes('my account') || t.includes('profile')) {
+    return '👤 Sign in to access your dashboard: ' + login + '.';
+  }
+
+  if (t.includes('thank')) {
+    return 'You are most welcome! ❤️ PROOF HELPER is always ready to assist.';
+  }
+
+  return '🤖 I am here to help! Try asking:<br><br>💼 ' + jobs + '<br>🔧 ' + workers + '<br>📢 How do I post an opportunity?<br>🔐 ' + login + '<br>💳 How do payments work?';
+}
+
+</script>
+  <body>
+  <header>
+  <div class="logo">Proof<span>Near</span></div>
+    
+  <nav>
+  <a href="#jobs">Find worker</a>
+  <a href="#jobs">Find jobs</a>
+  <a href="#about">🏢 About Us</a>
+  <a href="#how">How it works</a>
+</nav>
+
+  <div style="display:flex;gap:8px;align-items:center">
+    <button
+      class="btn btn-primary"
+      id="accountBtn"
+      onclick="openAccount()">
+      Sign in / Create account
+    </button>
+  </div>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <a href="#jobs">Find worker</a>
+    <a href="#jobs">Find jobs</a>
+    <a href="#about">
+  <span>🏢</span> About Us
+</a>
+    <a href="#how">How it works</a>
+
+    <button
+      class="btn btn-primary"
+      id="mobileAccountBtn"
+      style="width:100%;margin-top:10px"
+      onclick="openAccount()">
+      Sign in / Create account
+    </button>
+  </div>
+
+</header>
+
+  <main>
+    
+
+   </main>
+
+    <!-- PROOFNEAR COMPANY MARQUEE -->
+<section class="company-marquee">
+  <div class="marquee-topline">
+    <span class="marquee-brand">PROOFNEAR</span>
+    <span class="marquee-label">WHO WE ARE</span>
+  </div>
+
+  <div class="marquee-viewport">
+    <div class="marquee-track">
+
+      <div class="marquee-group">
+        <span>CONNECTING PEOPLE. CREATING OPPORTUNITIES.</span>
+        <span>OUR MISSION: Making opportunities easier to discover.</span>
+        <span>OUR VISION: A trusted global opportunities platform.</span>
+        <span>OUR COMMUNITY: People, businesses and skilled workers.</span>
+        <span>OUR VALUES: Trust, transparency, fairness and innovation.</span>
+      </div>
+
+      <div class="marquee-group" aria-hidden="true">
+        <span>CONNECTING PEOPLE. CREATING OPPORTUNITIES.</span>
+        <span>OUR MISSION: Making opportunities easier to discover.</span>
+        <span>OUR VISION: A trusted global opportunities platform.</span>
+        <span>OUR COMMUNITY: People, businesses and skilled workers.</span>
+        <span>OUR VALUES: Trust, transparency, fairness and innovation.</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- END PROOFNEAR COMPANY MARQUEE -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow"><span class="pulse"></span> OPPORTUNITY IS CLOSER THAN YOU THINK</div>
+        <h1>Find work.<br><span>Find workers.</span></h1>
+        <p class="hero-copy">Discover genuine opportunities, connect with skilled people and build your future with PROOFNEAR.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-large" href="#jobs">I'm looking for work <span>→</span></a>
+          <button class="btn btn-light btn-large" data-open="post">I need a worker <span>＋</span></button>
+        </div>
+        <div class="hero-note"><span>✓</span> Free for job seekers to search and apply</div>
+      </div>
+     <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80" style="width:100%;border-radius:16px;margin:16px 0;object-fit:cover;height:220px">
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="hero-card card-top"><span class="mini-icon blue">✦</span><div><b>New opportunity</b><small>Shop attendant · Kampala</small></div><span class="live-dot"></span></div>
+        <div class="hero-illustration">
+          <div class="person person-one"><div class="head"></div><div class="body"></div></div>
+          <div class="person person-two"><div class="head"></div><div class="body"></div></div>
+          <div class="connect-line"></div><div class="center-symbol">P</div>
+        </div>
+        <div class="hero-card card-bottom"><span class="mini-icon green">✓</span><div><b>Connection made</b><small>People. Skills. Opportunity.</small></div></div>
+      </div>
+    </section>
+
+    <section class="search-panel" aria-label="Search opportunities">
+      <div class="search-heading"><div><span class="eyebrow dark-eyebrow">START HERE</span><h2>What are you looking for?</h2></div><span class="free-tag">Job seekers search free</span></div>
+      <form id="searchForm" class="search-grid">
+        <label class="search-field"><span>KEYWORD OR SKILL</span><input id="keyword" type="search" placeholder="e.g. plumber, waiter, driver"></label>
+        <label class="search-field"><span>LOCATION</span><input id="location" placeholder="Type your town e.g. Gulu" style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px"></label>
+        <label class="search-field"><span>OPPORTUNITY TYPE</span><select id="type"><option value="">All opportunities</option><option value="job">Employment</option><option value="service">Services</option></select></label>
+        <button class="btn btn-primary search-button" type="submit">Search opportunities <span>→</span></button>
+      </form>
+    </section>
+
+    <section class="section" id="categories">
+      <div class="section-heading"><div><span class="eyebrow dark-eyebrow">EXPLORE OPPORTUNITIES</span><h2>What can we help you find?</h2></div><p>From a full-time job to a trusted person for a one-day task.</p></div>
+      <div class="category-grid">
+        <button class="category-card" data-category="Employment"><span class="category-icon icon-blue">▣</span><b>Employment</b><small>Full-time, part-time & casual</small></button>
+        <button class="category-card" data-category="Home services"><span class="category-icon icon-green">⌂</span><b>Home services</b><small>Cleaning, cooking & gardening</small></button>
+        <button class="category-card" data-category="Skilled trades"><span class="category-icon icon-orange">⚒</span><b>Skilled trades</b><small>Plumbers, electricians & builders</small></button>
+        <button class="category-card" data-category="Transport"><span class="category-icon icon-purple">➜</span><b>Transport</b><small>Drivers & delivery workers</small></button>
+        <button class="category-card" data-category="Hospitality"><span class="category-icon icon-pink">✧</span><b>Hospitality</b><small>Waiters, cooks & hotel staff</small></button>
+        <button class="category-card" data-category="Mechanics"><span class="category-icon icon-teal">⚙</span><b>Mechanics</b><small>Vehicle & motorcycle repair</small></button>
+      </div>
+    </section>
+
+    
+<section class="section listings-section" id="jobs">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow dark-eyebrow">RECENT OPPORTUNITIES</span>
+      <h2>Explore what's available</h2>
+    </div>
+    <span class="demo-label">LIVE OPPORTUNITIES</span>
+  </div>
+
+  <div class="opportunity-count" id="opportunityCount">
+    Loading opportunities...
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-filter="all">All</button>
+    <button class="tab" data-filter="job">Jobs</button>
+    <button class="tab" data-filter="service">Services</button>
+  </div>
+
+  <div class="listing-grid" id="listingGrid"></div>
+
+  <div class="empty-state" id="emptyState" hidden>
+    No matching opportunities yet. Try another keyword or location.
+  </div>
+
+  <div class="load-more-wrap" id="loadMoreWrap" hidden>
+    <button class="btn btn-primary" id="loadMoreBtn">
+      Load More Opportunities
+    </button>
+  </div>
+</section>
+
+    
+<!-- PROOFNEAR TALENT ARENA -->
+<section class="talent-arena section" id="talentArena">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow dark-eyebrow">GO GLOBAL WITH YOUR TALENT</span>
+      <h2>PROOFNEAR Talent Arena</h2>
+      <p>Discover talent. Create challenges. Become number one.</p>
+    </div>
+    <span class="demo-label">WORLDWIDE</span>
+  </div>
+
+  <div class="talent-grid">
+    <div class="talent-card">
+      <span class="talent-icon">🎤</span>
+      <h3>Music & Artists</h3>
+      <p>Upload songs and let the world discover your music.</p>
+    </div>
+
+    <div class="talent-card">
+      <span class="talent-icon">🔥</span>
+      <h3>Challenges</h3>
+      <p>Create challenges and invite creators to participate.</p>
+    </div>
+
+    <div class="talent-card">
+      <span class="talent-icon">💃</span>
+      <h3>Dance & Comedy</h3>
+      <p>Show your creativity and compete with other talents.</p>
+    </div>
+
+    <div class="talent-card">
+      <span class="talent-icon">🏆</span>
+      <h3>Global Rankings</h3>
+      <p>Earn votes and climb the worldwide leaderboard.</p>
+    </div>
+  </div>
+
+  <div class="talent-action">
+    <p>Your talent deserves a worldwide audience.</p>
+    <button class="btn btn-primary" type="button"
+      onclick="alert('PROOFNEAR Talent Arena is coming soon!')">
+      Explore Talent Arena →
+    </button>
+  </div>
+</section>
+<!-- END TALENT ARENA -->
+
+    <section class="worker-cta" id="workers">
+      <div><span class="eyebrow">FOR SKILLED PEOPLE</span><h2>Your skills deserve<br>to be discovered.</h2><p>Create a simple profile and let employers and customers find the skills you offer. Creating a basic profile is free in our proposed model.</p><button class="btn btn-light" data-open="worker">Create a worker profile <span>→</span></button></div>
+      <div class="skills-cloud"><span>Plumbing</span><span>Cooking</span><span>Driving</span><span>Electrical</span><span>Cleaning</span><span>Mechanics</span><span>Carpentry</span><span>Hair styling</span></div>
+    </section>
+
+    <section class="section how-section" id="how">
+      <div class="section-heading"><div><span class="eyebrow dark-eyebrow">SIMPLE BY DESIGN</span><h2>How PROOFNEAR works</h2></div></div>
+      <div class="steps">
+        <div class="step"><span>01</span><h3>Search or post</h3><p>Find an opportunity or tell people exactly who you need.</p></div>
+        <div class="step"><span>02</span><h3>Connect directly</h3><p>Contact the employer or service provider to discuss the details.</p></div>
+        <div class="step"><span>03</span><h3>Make it happen</h3><p>Agree on the work, payment and timing directly with the other party.</p></div>
+      </div>
+      <p class="disclaimer">PROOFNEAR is an early prototype. Sample listings are for demonstration only. Always verify people and job offers before sharing money or sensitive information.</p>
+    </section>
+  
+  <footer class="footer"><a class="brand footer-brand" href="#"><span class="brand-mark">P</span><span>PROOF<span class="brand-accent">NEAR</span><small>WORK • SKILLS • SERVICES</small></span></a><p>Bringing opportunity closer.</p><div><a href="#how">How it works</a><a href="mailto:hello@proofnear.example">Contact (demo)</a></div><small>© <span id="year"></span> PROOFNEAR · Prototype</small></footer>
+
+  
+<!-- PROOFNEAR Welcome Screen -->
+<div id="welcomeScreen" class="welcome-screen">
+  <div class="welcome-content">
+    <div class="welcome-logo">P</div>
+    <p class="welcome-eyebrow">WELCOME TO</p>
+    <h1>PROOF<span>NEAR</span></h1>
+    <p class="welcome-message">
+      Your opportunities. Your connections. Your future.
+    </p>
+    <script>
+(function () {
+  const screen = document.getElementById("welcomeScreen");
+
+  if (!screen) return;
+
+  setTimeout(function () {
+    screen.classList.add("welcome-hide");
+  }, 3000);
+})();
+</script>
+  </div>
+</div>
+<!-- End PROOFNEAR Welcome Screen -->
+
+    <dialog id="actionDialog" class="modal">
+    <form method="dialog" class="modal-close"><button aria-label="Close">×</button></form>
+    <div id="modalContent"></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+    <script>
+(function () {
+  const screen = document.getElementById("welcomeScreen");
+  const voiceBtn = document.getElementById("welcomeVoiceBtn");
+
+  if (!screen) {
+    console.error("PROOFNEAR welcome screen not found");
+    return;
+  }
+
+  const message =
+    "Welcome to PROOFNEAR. Your opportunities, your connections, your future.";
+
+  if (voiceBtn) {
+    voiceBtn.addEventListener("click", function () {
+      if (!window.speechSynthesis) {
+        alert("Voice is not supported by this browser.");
+        return;
+      }
+
+      const speech = new SpeechSynthesisUtterance(message);
+      speech.lang = "en-US";
+      speechSynthesis.cancel();
+      speechSynthesis.speak(speech);
+    });
+  }
+
+  setTimeout(function () {
+    screen.classList.add("welcome-hide");
+  }, 6000);
+})();
+</script>
+</body>
+  <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(() => {
+        console.log("PROOFNEAR app service worker registered");
+      })
+      .catch(error => {
+        console.error("Service worker registration failed:", error);
+      });
+  });
+}
+  </script>
+</html>

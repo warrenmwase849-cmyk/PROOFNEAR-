@@ -1,0 +1,1102 @@
+const SUPABASE_URL = "https://rmprzvgxuwtkyfhrevki.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Z_6UK4b8hG3u3sGdV2BFKA_bjd0eYoD";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const sampleListings = [
+  {
+    id: 1,
+    type: "job",
+    title: "Part-time Sales Assistant",
+    workType: "PART-TIME",
+    category: "Sales",
+    location: "Kampala",
+    pay: "UGX 250,000 / month",
+    description: "Assist customers, arrange products and support daily shop operations. Good communication skills are important.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 2,
+    type: "job",
+    title: "Remote Data Entry Assistant",
+    workType: "REMOTE",
+    category: "Online work",
+    location: "Work from home",
+    pay: "UGX 300,000 / month",
+    description: "A sample remote opportunity involving data entry, organising information and basic computer tasks.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 3,
+    type: "job",
+    title: "Restaurant Service Assistant",
+    workType: "PART-TIME",
+    category: "Hospitality",
+    location: "Entebbe",
+    pay: "UGX 15,000 / day",
+    description: "Support restaurant operations, serve customers and help maintain a clean working environment.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 4,
+    type: "job",
+    title: "Graduate Trainee",
+    workType: "INTERNSHIP",
+    category: "Career development",
+    location: "Kampala",
+    pay: "Allowance to be agreed",
+    description: "A sample entry-level opportunity for someone interested in gaining workplace experience.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 5,
+    type: "job",
+    title: "Delivery Rider",
+    workType: "FULL-TIME",
+    category: "Transport",
+    location: "Wakiso",
+    pay: "UGX 500,000 / month",
+    description: "Assist with local deliveries, handle packages carefully and communicate with customers.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 6,
+    type: "service",
+    title: "Home Cleaning Service",
+    workType: "SERVICE REQUEST",
+    category: "Home services",
+    location: "Kampala",
+    pay: "UGX 30,000 / visit",
+    description: "A sample request for someone experienced in cleaning and maintaining a home.",
+    posted: "Sample preview",
+    isPreview: true
+  }
+];
+
+let activeFilter = "all";
+
+const grid = document.getElementById("listingGrid");
+const empty = document.getElementById("emptyState");
+const dialog = document.getElementById("actionDialog");
+const modalContent = document.getElementById("modalContent");
+const toast = document.getElementById("toast");
+
+document.getElementById("year").textContent =
+  new Date().getFullYear();
+
+
+
+let approvedListings = [];
+let currentListings = sampleListings;
+let filteredListings = sampleListings;
+
+const LISTINGS_PER_PAGE = 8;
+let visibleListingsCount = 8;
+
+async function loadApprovedOpportunities() {
+  const { data: jobs, error } = await supabaseClient
+    .from("jobs")
+    .select("id, title, category, location, description, pay, created_at, status, availability_status")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Could not load opportunities:", error.message);
+    approvedListings = [];
+  } else {
+    approvedListings = (jobs || []).map(job => ({
+      id: job.id,
+      type: "job",
+      title: job.title,
+      category: job.category || "General",
+      workType: job.category || "OPPORTUNITY",
+      location: job.location || "Location not specified",
+      pay: job.pay ? "UGX " + job.pay : "Contact publisher for details",
+      description: job.description || "",
+      availability_status: job.availability_status || "OPEN",
+      isPreview: false
+    }));
+  }
+
+  currentListings = [
+    ...approvedListings,
+    ...sampleListings
+  ];
+
+  searchListings();
+}
+
+function renderListings(items = currentListings, reset = true) {
+  if (reset) {
+    visibleListingsCount = LISTINGS_PER_PAGE;
+  }
+
+  filteredListings = items;
+  grid.innerHTML = "";
+
+  const visibleItems = items.slice(0, visibleListingsCount);
+
+  const countElement = document.getElementById("opportunityCount");
+
+  if (countElement) {
+    countElement.textContent =
+      `Showing ${visibleItems.length} of ${items.length} displayed listings · ${approvedListings.length} approved opportunities`;
+  }
+
+  empty.hidden = items.length > 0;
+
+  visibleItems.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "listing-card";
+
+    const typeLabel = item.type === "job"
+      ? "JOB OPPORTUNITY"
+      : "SERVICE REQUEST";
+
+    card.innerHTML = `
+      <div class="listing-top">
+        <span class="listing-type ${item.type === "service" ? "service" : ""}">
+          ${typeLabel}
+        </span>
+        ${item.workType ? `
+          <span class="work-type-badge">
+            ${escapeHTML(item.workType)}
+          </span>
+        ` : ""}
+        ${!item.isPreview ? `
+          <span class="availability-badge">
+            ${escapeHTML(item.availability_status || "OPEN")}
+          </span>
+        ` : ""}
+      </div>
+
+      <h3>${escapeHTML(item.title)}</h3>
+
+      <p>${escapeHTML(item.description)}</p>
+
+      <div class="listing-meta">
+        <span>⌖ ${escapeHTML(item.location)}</span>
+      </div>
+
+      <div class="listing-bottom">
+        <strong>${escapeHTML(item.pay)}</strong>
+        <button class="text-button" data-detail="${item.id}">
+          View details →
+        </button>
+      </div>
+
+      ${item.isPreview ? `
+        <p class="preview-note">PROOFNEAR SAMPLE PREVIEW</p>
+      ` : ""}
+    `;
+
+    grid.appendChild(card);
+  });
+
+  const loadMoreWrap = document.getElementById("loadMoreWrap");
+
+  if (loadMoreWrap) {
+    loadMoreWrap.hidden = visibleItems.length >= items.length;
+  }
+}
+
+document.getElementById("loadMoreBtn").addEventListener("click", () => {
+  visibleListingsCount += LISTINGS_PER_PAGE;
+  renderListings(filteredListings, false);
+});
+
+loadApprovedOpportunities();
+// PROOFNEAR ACCOUNT REGISTRATION
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function searchListings() {
+  const keyword = document.getElementById("keyword").value.trim().toLowerCase();
+const location = document.getElementById("location").value.trim().toLowerCase();
+  const type = document.getElementById("type").value || activeFilter;
+
+  const results = currentListings.filter(item => {
+    const text = `${item.title} ${item.category} ${item.description} ${item.location}`.toLowerCase();
+
+    return (
+      (!keyword || text.includes(keyword)) &&
+      (!location || String(item.location || "").trim().toLowerCase().includes(location)) &&
+      (type === "all" || !type || item.type === type)
+    );
+  });
+
+  renderListings(results);
+}
+
+document.getElementById("searchForm").addEventListener("submit", e => { e.preventDefault(); searchListings(); document.getElementById("jobs").scrollIntoView({behavior:"smooth"}); });
+document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active"); activeFilter = tab.dataset.filter; searchListings();
+}));
+document.querySelectorAll(".category-card").forEach(card => card.addEventListener("click", () => {
+  document.getElementById("keyword").value = card.dataset.category;
+  document.getElementById("type").value = "";
+  activeFilter = "all"; document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
+  searchListings(); document.getElementById("jobs").scrollIntoView({behavior:"smooth"});
+}));
+function showToast(message) {
+  toast.textContent = message; toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
+function openModal(kind) {
+  const forms = {
+    post: `<h2>Post an opportunity</h2><p>Submit your opportunity for review. It will appear publicly after approval.</p><form class="form-stack" id="postForm">
+      <label>What are you posting?
+  <select name="type" id="postType">
+    <option value="job">A job vacancy</option>
+    <option value="service">A request for a service provider</option>
+  </select>
+</label>
+      <label>Title<input name="title" required placeholder="e.g. Need an electrician"></label>
+      <label>Location
+  <input name="location" type="text" required
+  placeholder="Enter your district, town or area"
+  list="ugandaLocations">
+  <datalist id="ugandaLocations">
+    <option value="Kampala">
+    <option value="Wakiso">
+    <option value="Entebbe">
+    <option value="Jinja">
+    <option value="Mbarara">
+    <option value="Gulu">
+    <option value="Mbale">
+  </datalist>
+</label>
+      <div class="payment-instructions">
+  <h4>Payment Instructions</h4>
+
+  <p id="postAirtelDetails">
+  <strong>Airtel Money</strong><br>
+  Merchant Code: 7292108<br>
+  Merchant Name: PROOFNEAR
+</p>
+
+  <p id="postMtnDetails">
+  <strong>MTN Mobile Money</strong><br>
+  Number: 0760299148<br>
+  Recipient: Malinzi John
+</p>
+
+  <p><strong>Need help?</strong><br>
+  WhatsApp Support: 0749383502</p>
+
+  <p>After paying, enter your transaction reference below.</p>
+</div>
+
+<label>Payment method
+  <select name="payment_method" id="postPaymentMethod" required>
+    <option value="">Choose payment method</option>
+    <option value="MTN">MTN Mobile Money</option>
+    <option value="AIRTEL">Airtel Money</option>
+  </select>
+</label>
+
+<label>Transaction reference
+  <input
+    name="transaction_reference"
+    required
+    placeholder="Enter payment transaction ID">
+</label>
+      <label>Description<textarea name="description" required placeholder="Describe the work, skills needed and timing"></textarea></label>
+      <label>Contact phone<input name="phone" required type="tel" placeholder="e.g. 07..."></label>
+      <button class="btn btn-primary" type="submit">Post my advert</button></form>`,
+    worker: `<h2>Create a worker profile</h2><p>Introduce your skills so people can discover the work you offer.</p><form class="form-stack" id="workerForm">
+      <label>Your name<input required name="name" placeholder="Your name"></label><label>Main skill<input required name="skill" placeholder="e.g. Electrician"></label>
+      <label>Location
+  <input name="location" type="text" required
+  placeholder="Enter your district, town or area"
+  list="workerLocations">
+  <datalist id="workerLocations">
+    <option value="Kampala">
+    <option value="Wakiso">
+    <option value="Entebbe">
+    <option value="Jinja">
+    <option value="Mbarara">
+    <option value="Gulu">
+    <option value="Mbale">
+  </datalist>
+</label>
+      <label>Phone number<input required name="phone" type="tel" placeholder="Your contact number"></label>
+      <button class="btn btn-primary" type="submit">Preview my profile</button></form>`,
+    signin: `
+<h2>Welcome to PROOFNEAR</h2>
+
+<div class="form-stack">
+  <label>Full name
+    <input id="authName" placeholder="Your full name">
+  </label>
+
+  <label>Email address
+    <input id="authEmail" type="email"
+      placeholder="Enter your email" required>
+  </label>
+
+  <label>Password
+    <input id="authPassword" type="password"
+      placeholder="At least 6 characters" required>
+  </label>
+
+  <label>Account type
+    <select id="authType">
+      <option value="seeker">Seeker</option>
+      <option value="provider">Provider</option>
+      <option value="both">Both</option>
+    </select>
+  </label>
+
+  <button class="btn btn-primary" id="registerBtn" type="button">
+    Create account
+  </button>
+
+  <button class="btn" id="loginBtn" type="button">
+    Already registered? Log in
+  </button>
+
+  <p id="authMessage" class="form-hint"></p>
+</div>`
+  };
+  modalContent.innerHTML = forms[kind] || forms.post;
+  const postTypeSelect = document.getElementById("postType");
+const postingFee = document.getElementById("postingFee");
+
+if (postTypeSelect && postingFee) {
+  postTypeSelect.addEventListener("change", () => {
+    postingFee.textContent =
+      postTypeSelect.value === "job"
+        ? "Posting fee: UGX 1,000"
+        : "Posting fee: UGX 5,000";
+  });
+}
+  if (postTypeSelect && postingFee) {
+  postTypeSelect.addEventListener("change", () => {
+    postingFee.textContent =
+      postTypeSelect.value === "job"
+        ? "Posting fee: UGX 1,000"
+        : "Posting fee: UGX 5,000";
+  });
+}
+  const postPaymentMethod = document.getElementById("postPaymentMethod");
+const postAirtelDetails = document.getElementById("postAirtelDetails");
+const postMtnDetails = document.getElementById("postMtnDetails");
+
+if (postPaymentMethod && postAirtelDetails && postMtnDetails) {
+  function updatePostPaymentDisplay() {
+    postAirtelDetails.style.border =
+      postPaymentMethod.value === "AIRTEL"
+        ? "2px solid #16a34a"
+        : "1px solid #ddd";
+
+    postMtnDetails.style.border =
+      postPaymentMethod.value === "MTN"
+        ? "2px solid #16a34a"
+        : "1px solid #ddd";
+
+    postAirtelDetails.style.padding = "10px";
+    postMtnDetails.style.padding = "10px";
+  }
+
+  postPaymentMethod.addEventListener("change", updatePostPaymentDisplay);
+  updatePostPaymentDisplay();
+}
+  dialog.showModal();
+  const registerBtn = document.getElementById("registerBtn");
+if (registerBtn) registerBtn.onclick = registerUser;
+
+const loginBtn = document.getElementById("loginBtn");
+if (loginBtn) loginBtn.onclick = loginUser;
+  const postForm = document.getElementById("postForm");
+  if (postForm) postForm.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const data = Object.fromEntries(
+    new FormData(postForm).entries()
+  );
+
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    showToast("Please sign in before posting.");
+    dialog.close();
+    openModal("signin");
+    return;
+  }
+
+  const category = data.type === "job"
+    ? "Employment"
+    : "Home services";
+
+  const { data: newJobId, error } = await supabaseClient.rpc(
+    "submit_proofnear_job",
+    {
+      target_title: data.title,
+      target_location: data.location,
+      target_description: data.description,
+      target_category: category,
+      target_phone: data.phone,
+      target_pay: data.pay || "Pay to be agreed"
+    }
+  );
+
+  if (error) {
+    console.error("Posting failed:", error.message);
+    showToast("Submission failed: " + error.message);
+    return;
+  }
+    const { data: paymentId, error: paymentError } =
+  await supabaseClient.rpc(
+    "submit_proofnear_payment",
+    {
+      target_job_id: newJobId,
+      target_payment_method: data.payment_method,
+      target_transaction_reference: data.transaction_reference
+    }
+  );
+
+if (paymentError) {
+  console.error("Payment submission failed:", paymentError.message);
+
+  showToast(
+    "Opportunity saved, but payment details failed: " +
+    paymentError.message
+  );
+  return;
+}
+
+console.log("Payment submitted:", paymentId);
+
+  postForm.reset();
+  dialog.close();
+
+  showToast("Submitted successfully! Awaiting admin approval.");
+
+  console.log("Submitted opportunity:", newJobId);
+});
+    
+  const workerForm = document.getElementById("workerForm");
+  if (workerForm) workerForm.addEventListener("submit", e => {
+    e.preventDefault(); const data = Object.fromEntries(new FormData(workerForm).entries());
+    modalContent.innerHTML = `<h2>Profile preview</h2><p><b>${escapeHTML(data.name)}</b> · ${escapeHTML(data.skill)}</p><p>${escapeHTML(data.location)} · ${escapeHTML(data.phone)}</p><button class="btn btn-primary" id="done">Close preview</button>`;
+    document.getElementById("done").onclick = () => dialog.close();
+  });
+  const closeInfo = document.getElementById("closeInfo");
+  if (closeInfo) closeInfo.onclick = () => dialog.close();
+}
+function saveLogin(){ var n=document.getElementById("authName").value; var p=document.getElementById("authPhone").value; if(!n||!p){alert("Type name and phone dear");return;} localStorage.setItem("user",n); document.getElementById("authBtn").innerText="My Account: "+n; document.getElementById("signin").close(); showToast("Welcome "+n+"! Account saved."); }
+
+async function openListingDetails(item) {
+  const isRealJob = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(item.id));
+
+  modalContent.innerHTML = `
+    <h2>${escapeHTML(item.title)}</h2>
+    <p>${escapeHTML(item.description || "")}</p>
+    <p>
+      <b>Location:</b> ${escapeHTML(item.location || "")}<br>
+      <b>Pay:</b> ${escapeHTML(item.pay || "To be agreed")}
+    </p>
+    <div id="contactUnlockArea">
+      <p>Checking contact access...</p>
+    </div>
+    <button class="btn btn-primary" id="detailClose">Close</button>
+  `;
+
+  if (!dialog.open) dialog.showModal();
+
+  document.getElementById("detailClose").onclick = () => dialog.close();
+
+  const area = document.getElementById("contactUnlockArea");
+
+  if (!isRealJob) {
+  area.innerHTML = `
+    <div class="sample-details">
+      <p><strong>PROOFNEAR SAMPLE PREVIEW</strong></p>
+
+      <p><strong>Work type:</strong> ${escapeHTML(item.workType || "Not specified")}</p>
+
+      <p><strong>Category:</strong> ${escapeHTML(item.category || "General")}</p>
+
+      <p><strong>Availability:</strong> ${escapeHTML(item.posted || "Sample opportunity")}</p>
+
+      <p>These are example opportunities demonstrating what you can discover on PROOFNEAR. They are not confirmed vacancies.</p>
+
+      <button class="btn btn-primary" id="sampleSignIn">
+        Sign in to PROOFNEAR
+      </button>
+    </div>
+  `;
+
+  document.getElementById("sampleSignIn").onclick = () => {
+    dialog.close();
+    openModal("signin");
+  };
+
+  return;
+}
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+    area.innerHTML = `
+      <p>Sign in to unlock this opportunity's contact.</p>
+      <button class="btn btn-primary" id="unlockSignIn">Sign in</button>
+    `;
+    document.getElementById("unlockSignIn").onclick = () => {
+      dialog.close();
+      openModal("signin");
+    };
+    return;
+  }
+
+  if (item.user_id === user.id) {
+    area.innerHTML = `<p>This is your own opportunity.</p>`;
+    return;
+  }
+
+  const { data: status, error } = await supabaseClient.rpc(
+    "get_proofnear_contact_unlock_status",
+    { target_job_id: item.id }
+  );
+
+  if (error) {
+    area.innerHTML = `<p>Could not check payment: ${escapeHTML(error.message)}</p>`;
+    return;
+  }
+
+  if (status === "verified") {
+    const { data: phone, error: phoneError } = await supabaseClient.rpc(
+      "get_proofnear_unlocked_contact",
+      { target_job_id: item.id }
+    );
+
+    if (phoneError) {
+      area.innerHTML = `<p>${escapeHTML(phoneError.message)}</p>`;
+      return;
+    }
+
+    const cleanPhone = String(phone || "").replace(/\D/g, "");
+    const whatsappNumber = cleanPhone.startsWith("0")
+      ? "256" + cleanPhone.slice(1)
+      : cleanPhone;
+
+    area.innerHTML = `
+      <p>Payment verified. Contact unlocked!</p>
+      <a class="btn btn-primary"
+         href="https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Hello, I saw your opportunity: " + item.title + " on PROOFNEAR. I am interested.")}"
+         target="_blank" rel="noopener"
+         style="display:block;text-align:center;text-decoration:none;">
+         Contact on WhatsApp
+      </a>
+    `;
+    return;
+  }
+
+  if (status === "pending") {
+    innerHTML = `<p>Your UGX 500 payment is awaiting administrator verification.</p>`;
+    return;
+  }
+
+  showContactUnlockForm(item, status === "rejected"
+    ? "Your previous payment was rejected. You may submit a new payment."
+    : "");
+}
+
+function showContactUnlockForm(item, message = "") {
+  const area = document.getElementById("contactUnlockArea");
+
+  area.innerHTML = `
+    <h3>Unlock Contact – UGX 500</h3>
+    <p>${escapeHTML(message)}</p>
+    <div class="payment-instructions">
+  <h4>Payment Instructions</h4>
+
+  <p><strong>Amount to pay: UGX 500</strong></p>
+
+  <p id="unlockAirtelDetails">
+  <strong>Airtel Money:</strong><br>
+  Merchant Code: 7292108<br>
+  Merchant Name: PROOFNEAR
+</p>
+
+  <p id="unlockMtnDetails">
+  <strong>MTN Mobile Money:</strong><br>
+  Number: 0760299148<br>
+  Recipient: Malinzi John
+</p>
+
+  <p>After payment, enter your transaction reference below.</p>
+
+  <p><strong>Need help?</strong><br>
+  WhatsApp Support: 0749383502</p>
+</div>
+
+    <label>Payment method</label>
+    <select id="unlockPaymentMethod" required>
+      <option value="MTN">MTN Mobile Money</option>
+      <option value="AIRTEL">Airtel Money</option>
+    </select>
+
+    <label>Transaction reference</label>
+    <input id="unlockTransactionReference"
+      type="text" placeholder="Enter transaction reference" required>
+
+    <button class="btn btn-primary" id="submitUnlockPayment">
+      Submit Payment Details
+    </button>
+  `;
+
+  const unlockMethod = document.getElementById("unlockPaymentMethod");
+const airtelDetails = document.getElementById("unlockAirtelDetails");
+const mtnDetails = document.getElementById("unlockMtnDetails");
+
+function updateUnlockPaymentDisplay() {
+  airtelDetails.style.border =
+    unlockMethod.value === "AIRTEL" ? "2px solid #16a34a" : "1px solid #ddd";
+
+  mtnDetails.style.border =
+    unlockMethod.value === "MTN" ? "2px solid #16a34a" : "1px solid #ddd";
+
+  airtelDetails.style.padding = "10px";
+  mtnDetails.style.padding = "10px";
+}
+
+unlockMethod.addEventListener("change", updateUnlockPaymentDisplay);
+updateUnlockPaymentDisplay();
+  document.getElementById("submitUnlockPayment").onclick = async () => {
+    const method = document.getElementById("unlockPaymentMethod").value;
+    const reference = document.getElementById("unlockTransactionReference").value.trim();
+    const button = document.getElementById("submitUnlockPayment");
+
+    if (!reference) {
+      alert("Please enter your transaction reference.");
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Submitting...";
+
+    const { data, error } = await supabaseClient.rpc(
+      "submit_proofnear_contact_unlock",
+      {
+        target_job_id: item.id,
+        target_payment_method: method,
+        target_transaction_reference: reference
+      }
+    );
+
+    if (error) {
+      alert("Payment submission failed: " + error.message);
+      button.disabled = false;
+      button.textContent = "Submit Payment Details";
+      return;
+    }
+
+    area.innerHTML = `
+      <p>Payment details submitted successfully.</p>
+      <p>Your contact will unlock after administrator verification.</p>
+    `;
+  };
+}
+
+document.addEventListener("click", e => {
+  const opener = e.target.closest("[data-open]");
+  if (opener) openModal(opener.dataset.open);
+
+  const detail = e.target.closest("[data-detail]");
+  if (detail) {
+    const item = currentListings.find(
+      x => String(x.id) === String(detail.dataset.detail)
+    );
+
+    if (item) openListingDetails(item);
+  }
+});
+
+document.getElementById("menuToggle").addEventListener("click", () => {
+  const nav = document.querySelector(".desktop-nav");
+  const visible = nav.style.display === "flex";
+  nav.style.display = visible ? "none" : "flex";
+  nav.style.position = visible ? "" : "absolute";
+  nav.style.top = "68px"; nav.style.left = "0"; nav.style.right = "0";
+  nav.style.padding = "18px 24px"; nav.style.background = "#fff"; nav.style.flexDirection = "column";
+});
+renderListings();
+// PROOFNEAR ACCOUNT REGISTRATION
+
+async function registerUser() {
+  const name = document.getElementById("authName").value.trim();
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const accountType = document.getElementById("authType").value;
+  const message = document.getElementById("authMessage");
+
+  if (!name || !email || password.length < 6) {
+    message.textContent = "Enter your name, email and a password of at least 6 characters.";
+    return;
+  }
+
+  message.textContent = "Creating your account...";
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: name,
+        account_type: accountType
+      }
+    }
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  message.textContent = data.session
+    ? "Account created successfully! Welcome to PROOFNEAR."
+    : "Account created! Check your email to confirm your account.";
+}
+
+
+// PROOFNEAR LOGIN
+
+async function loginUser() {
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const message = document.getElementById("authMessage");
+
+  if (!email || !password) {
+    message.textContent = "Enter your email and password.";
+    return;
+  }
+
+  message.textContent = "Logging in...";
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  const name =
+    data.user.user_metadata.full_name || email.split("@")[0];
+
+  const accountBtn = document.getElementById("accountBtn");
+  const mobileBtn = document.getElementById("mobileAccountBtn");
+
+  if (accountBtn) accountBtn.textContent = name;
+  if (mobileBtn) mobileBtn.textContent = name;
+
+  message.textContent = "Welcome back, " + name + "!";
+
+  showToast("Welcome back, " + name + "!");
+}
+// RESTORE LOGGED-IN USER
+
+async function restoreUserSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error("Session error:", error.message);
+    return;
+  }
+
+  const user = data.session?.user;
+
+  const accountBtn = document.getElementById("accountBtn");
+  const mobileBtn = document.getElementById("mobileAccountBtn");
+
+  if (user) {
+    const name =
+      user.user_metadata.full_name || user.email.split("@")[0];
+
+    if (accountBtn) accountBtn.textContent = name;
+    if (mobileBtn) mobileBtn.textContent = name;
+  }
+}
+
+restoreUserSession();
+// PROOFNEAR MY ACCOUNT DASHBOARD
+
+
+
+async function openAccount() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.error("Account error:", error);
+      alert("Unable to check your account. Please try again.");
+      return;
+    }
+
+    if (!data.session) {
+      openModal("signin");
+      return;
+    }
+
+    window.location.href = "dashboard.html";
+
+  } catch (err) {
+    console.error("Open account failed:", err);
+    alert("Something went wrong. Please try again.");
+  }
+}
+
+  const user = data.session.user;
+  const name = user.user_metadata.full_name || "PROOFNEAR User";
+  const email = user.email || "";
+  const accountType = user.user_metadata.account_type || "both";
+
+  function showDashboard() {
+    modalContent.innerHTML = `
+      <h2>My PROOFNEAR Dashboard</h2>
+      <p>Welcome back, ${escapeHTML(name)}!</p>
+
+      <div class="form-stack">
+        <button class="btn btn-primary" id="profileSection">
+          👤 My Profile
+        </button>
+
+        <button class="btn btn-primary" id="opportunitiesSection">
+          💼 My Opportunities
+        </button>
+
+        <button class="btn btn-primary" id="postSection">
+          ➕ Post an Opportunity
+        </button>
+
+        <button class="btn btn-primary" id="settingsSection">
+          ⚙️ Account Settings
+        </button>
+
+        <button class="btn" id="logoutBtn">
+          Log out
+        </button>
+
+        <button class="btn" id="closeAccountBtn">
+          Close Dashboard
+        </button>
+      </div>
+    `;
+
+    document.getElementById("profileSection").onclick =
+      showProfile;
+
+    document.getElementById("opportunitiesSection").onclick =
+      showOpportunities;
+
+    document.getElementById("postSection").onclick = () => {
+      dialog.close();
+      openModal("post");
+    };
+
+    document.getElementById("settingsSection").onclick =
+      showSettings;
+
+    document.getElementById("logoutBtn").onclick =
+      logoutUser;
+
+    document.getElementById("closeAccountBtn").onclick =
+      () => dialog.close();
+  }
+
+  function showProfile() {
+    modalContent.innerHTML = `
+      <h2>My Profile</h2>
+      <p><strong>Full name:</strong><br>${escapeHTML(name)}</p>
+      <p><strong>Email:</strong><br>${escapeHTML(email)}</p>
+      <p><strong>Account type:</strong><br>${escapeHTML(accountType)}</p>
+      <button class="btn btn-primary" id="profileBack">Back to Dashboard</button>
+    `;
+
+    document.getElementById("profileBack").onclick =
+      showDashboard;
+  }
+
+  function showOpportunities() {
+    modalContent.innerHTML = `
+      <h2>My Opportunities</h2>
+      <p>Your posted jobs, services and other opportunities will appear here.</p>
+      <p class="form-hint">
+        Your opportunity posts are not yet linked to individual accounts.
+        We will connect this section to the PROOFNEAR database next.
+      </p>
+      <button class="btn btn-primary" id="opportunitiesBack">
+        Back to Dashboard
+      </button>
+    `;
+
+    document.getElementById("opportunitiesBack").onclick =
+      showDashboard;
+  }
+
+  function showSettings() {
+    modalContent.innerHTML = `
+      <h2>Account Settings</h2>
+      <p><strong>Account:</strong> ${escapeHTML(email)}</p>
+      <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
+      <p>You can manage your account settings here.</p>
+      <button class="btn btn-primary" id="settingsBack">
+        Back to Dashboard
+      </button>
+    `;
+
+    document.getElementById("settingsBack").onclick =
+      showDashboard;
+  }
+
+  async function logoutUser() {
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+
+    dialog.close();
+
+    document.getElementById("accountBtn").textContent =
+      "Sign in / Create account";
+
+    document.getElementById("mobileAccountBtn").textContent =
+      "Sign in / Create account";
+
+    showToast("You have successfully logged out.");
+  }
+
+/* PROOFNEAR COMPANY SLIDER */
+
+let companySlideIndex = 0;
+let companySlideTimer;
+
+function showCompanySlide(index) {
+  const slides = document.querySelectorAll(".company-slide");
+  const dotsContainer = document.getElementById("companyDots");
+
+  if (!slides.length || !dotsContainer) return;
+
+  companySlideIndex = (index + slides.length) % slides.length;
+
+  slides.forEach((slide, i) => {
+    slide.classList.toggle("active", i === companySlideIndex);
+  });
+
+  dotsContainer.innerHTML = "";
+
+  slides.forEach((slide, i) => {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "company-dot" + (i === companySlideIndex ? " active" : "");
+    dot.setAttribute("aria-label", "Show slide " + (i + 1));
+
+    dot.addEventListener("click", () => {
+      showCompanySlide(i);
+      restartCompanySlideTimer();
+    });
+
+    dotsContainer.appendChild(dot);
+  });
+}
+
+function changeCompanySlide(direction) {
+  showCompanySlide(companySlideIndex + direction);
+  restartCompanySlideTimer();
+}
+
+function restartCompanySlideTimer() {
+  clearInterval(companySlideTimer);
+
+  companySlideTimer = setInterval(() => {
+    showCompanySlide(companySlideIndex + 1);
+  }, 5000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  showCompanySlide(0);
+  restartCompanySlideTimer();
+});
+/* PROOFNEAR MOBILE MENU */
+
+function toggleMobileMenu() {
+  const menu = document.getElementById("mobileMenu");
+  const button = document.getElementById("menuToggle");
+
+  if (!menu || !button) return;
+
+  menu.classList.toggle("open");
+
+  button.textContent = menu.classList.contains("open") ? "✕" : "☰";
+}
+
+
+/* =================================
+   PROOFNEAR WELCOME EXPERIENCE
+================================= */
+
+(function () {
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  alert("WELCOME CODE IS RUNNING");
+  const welcomeVoiceBtn = document.getElementById("welcomeVoiceBtn");
+
+  if (!welcomeScreen) {
+    console.error("PROOFNEAR: Welcome screen not found.");
+    return;
+  }
+
+  const welcomeMessage =
+    "Welcome to PROOFNEAR. Your opportunities, your connections, your future.";
+
+  if (welcomeVoiceBtn) {
+    welcomeVoiceBtn.onclick = function () {
+      if (!window.speechSynthesis) {
+        alert("Voice is not supported by this browser.");
+        return;
+      }
+
+      const speech = new SpeechSynthesisUtterance(welcomeMessage);
+      speech.lang = "en-US";
+      speechSynthesis.cancel();
+      speechSynthesis.speak(speech);
+    };
+  }
+
+  setTimeout(function () {
+  welcomeScreen.classList.add("welcome-hide");
+}, 6000);
+})();
+/* =================================
+   PROOFNEAR SERVICE WORKER
+================================= */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(registration => {
+        console.log("PROOFNEAR Service Worker registered", registration);
+      })
+      .catch(error => {
+        console.error("Service Worker error:", error);
+      });
+  });
+}
