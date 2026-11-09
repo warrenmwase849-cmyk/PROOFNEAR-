@@ -145,7 +145,98 @@ else if (section === "settings") {
     `;
   }
 }
+async function loadDashboardOverview() {
+  if (!currentUser) return;
 
+  const name =
+    currentUser.user_metadata.full_name ||
+    currentUser.email.split("@")[0];
+
+  dashboardContent.innerHTML = `
+    <h2>Welcome, ${escapeHTML(name)}! 👋</h2>
+    <p>Here's an overview of your PROOFNEAR account.</p>
+
+    <div class="dashboard-card">
+      <h3>👤 Account Information</h3>
+      <p><strong>Email:</strong> ${escapeHTML(currentUser.email)}</p>
+      <p><strong>Account type:</strong> ${
+        escapeHTML(currentUser.user_metadata.account_type || "both")
+      }</p>
+    </div>
+
+    <h3>📊 Your Activity</h3>
+
+    <div class="dashboard-card">
+      <h3>💼 Total Opportunities</h3>
+      <h2 id="totalOpportunities">Loading...</h2>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>⏳ Pending Opportunities</h3>
+      <h2 id="pendingOpportunities">Loading...</h2>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>✅ Approved Opportunities</h3>
+      <h2 id="approvedOpportunities">Loading...</h2>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>🚀 Quick Actions</h3>
+      <button class="btn btn-primary"
+        onclick="showSection('post')">
+        ➕ Post Opportunity
+      </button>
+
+      <button class="btn btn-primary"
+        onclick="showSection('opportunities')">
+        💼 My Opportunities
+      </button>
+
+      <button class="btn btn-primary"
+        onclick="showSection('profile')">
+        👤 Edit Profile
+      </button>
+    </div>
+  `;
+
+  const { count: total, error: totalError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id);
+
+  const { count: pending, error: pendingError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id)
+      .eq("status", "pending");
+
+  const { count: approved, error: approvedError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id)
+      .eq("status", "approved");
+
+  if (totalError || pendingError || approvedError) {
+    console.error(
+      "Dashboard statistics error:",
+      totalError || pendingError || approvedError
+    );
+    return;
+  }
+
+  document.getElementById("totalOpportunities").textContent =
+    total ?? 0;
+
+  document.getElementById("pendingOpportunities").textContent =
+    pending ?? 0;
+
+  document.getElementById("approvedOpportunities").textContent =
+    approved ?? 0;
+}
 
 async function loadMyPayments() {
   if (!currentUser) return;
