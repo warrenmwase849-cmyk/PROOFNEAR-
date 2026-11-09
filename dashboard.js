@@ -524,13 +524,12 @@ async function loadMyOpportunities() {
           <label>Description</label>
           <textarea name="description" required>${escapeHTML(job.description || "")}</textarea>
 
-          <label>Availability</label>
+          <<label>Availability</label>
 <select name="availability_status">
   <option value="OPEN" ${job.availability_status === "OPEN" ? "selected" : ""}>Open</option>
   <option value="FILLED" ${job.availability_status === "FILLED" ? "selected" : ""}>Filled</option>
   <option value="ON HOLD" ${job.availability_status === "ON HOLD" ? "selected" : ""}>On Hold</option>
 </select>
-
           <button class="btn btn-primary" type="submit">
             💾 Save Changes
           </button>
