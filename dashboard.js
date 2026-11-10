@@ -504,36 +504,40 @@ async function loadMyOpportunities() {
   });
 
   // DELETE OPPORTUNITY
-  dashboardContent.querySelectorAll(".delete-job-btn").forEach(button => {
-    button.addEventListener("click", async () => {
-      const card = button.closest("[data-job-id]");
-      const jobId = card.dataset.jobId;
+  
+dashboardContent.querySelectorAll(".delete-job-btn").forEach(button => {
+  button.addEventListener("click", async () => {
+    const card = button.closest("[data-job-id]");
+    const jobId = card?.dataset.jobId;
 
-      const confirmed = confirm(
-        "Are you sure you want to permanently delete this opportunity?"
-      );
+    if (!jobId || !currentUser) return;
 
-      if (!confirmed) return;
+    const confirmed = confirm(
+      "Are you sure you want to permanently delete this opportunity?"
+    );
 
-      button.disabled = true;
-      button.textContent = "Deleting...";
+    if (!confirmed) return;
 
+    button.disabled = true;
+    button.textContent = "Deleting...";
+
+    try {
       const { error } = await supabaseClient
         .from("jobs")
         .delete()
         .eq("id", jobId)
         .eq("user_id", currentUser.id);
 
-      if (error) {
-        alert("Could not delete opportunity: " + error.message);
-        button.disabled = false;
-        button.textContent = "🗑️ Delete";
-        return;
-      }
+      if (error) throw error;
 
       alert("Opportunity deleted successfully!");
-      loadMyOpportunities();
-    });
+      await loadMyOpportunities();
+
+    } catch (error) {
+      alert("Could not delete opportunity: " + error.message);
+      button.disabled = false;
+      button.textContent = "🗑️ Delete";
+    }
   });
 }
 
