@@ -1157,3 +1157,9 @@ if ("serviceWorker" in navigator) {
   showSlide(0);
   startSlider();
 })();
+// OPEN POSTING FORM WHEN COMING FROM DASHBOARD
+const pageParams = new URLSearchParams(window.location.search);
+
+if (pageParams.get("open") === "post") {
+  openModal("post");
+}
