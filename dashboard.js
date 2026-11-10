@@ -1297,6 +1297,7 @@ async function rejectJob(jobId) {
   }
 }
 async function loadApprovedJobs() {
+    alert("Approved Opportunities button is working!");
   if (!isProofnearAdmin) {
     alert("Administrator access required.");
     return;
