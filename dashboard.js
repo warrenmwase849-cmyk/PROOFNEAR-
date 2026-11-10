@@ -539,6 +539,7 @@ dashboardContent.querySelectorAll(".delete-job-btn").forEach(button => {
       button.textContent = "🗑️ Delete";
     }
   });
+});
 }
 
 
