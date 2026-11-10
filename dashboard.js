@@ -1,4 +1,4 @@
-
+alert("PROOFNEAR DASHBOARD JAVASCRIPT IS RUNNING");
 // PROOFNEAR DASHBOARD CONNECTION
 
 const SUPABASE_URL = "https://rmprzvgxuwtkyfhrevki.supabase.co";
