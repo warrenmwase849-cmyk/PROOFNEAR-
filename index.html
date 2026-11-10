@@ -370,30 +370,104 @@ function getAnswer(t) {
 </section>
 <!-- END PROOFNEAR COMPANY MARQUEE -->
     <section class="hero">
-      <div class="hero-content">
-        <div class="eyebrow"><span class="pulse"></span> OPPORTUNITY IS CLOSER THAN YOU THINK</div>
-        <h1>Find work.<br><span>Find workers.</span></h1>
-        <p class="hero-copy">Discover genuine opportunities, connect with skilled people and build your future with PROOFNEAR.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary btn-large" href="#jobs">I'm looking for work <span>→</span></a>
-          <button class="btn btn-light btn-large" data-open="post">I need a worker <span>＋</span></button>
-        </div>
-        <div class="hero-note"><span>✓</span> Free for job seekers to search and apply</div>
-      </div>
-     <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80" style="width:100%;border-radius:16px;margin:16px 0;object-fit:cover;height:220px">
-      <div class="hero-art" aria-hidden="true">
-        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-        <div class="hero-card card-top"><span class="mini-icon blue">✦</span><div><b>New opportunity</b><small>Shop attendant · Kampala</small></div><span class="live-dot"></span></div>
-        <div class="hero-illustration">
-          <div class="person person-one"><div class="head"></div><div class="body"></div></div>
-          <div class="person person-two"><div class="head"></div><div class="body"></div></div>
-          <div class="connect-line"></div><div class="center-symbol">P</div>
-        </div>
-        <div class="hero-card card-bottom"><span class="mini-icon green">✓</span><div><b>Connection made</b><small>People. Skills. Opportunity.</small></div></div>
-      </div>
-    </section>
+    
+<!-- PROOFNEAR ROTATING HOMEPAGE SLIDER -->
+<section class="hero-slider" id="homeSlider">
 
-    <section class="search-panel" aria-label="Search opportunities">
+  <!-- SLIDE 1 -->
+  <div class="hero-slide active">
+    <img
+      src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&q=85"
+      alt="People connecting and working together"
+    >
+
+    <div class="slide-overlay">
+      <span class="eyebrow">OPPORTUNITY IS CLOSER THAN YOU THINK</span>
+      <h1>Your Opportunity.<br><span>Your Connection.</span></h1>
+      <p>
+        Discover opportunities, meet employers and build your future
+        with PROOFNEAR.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-large" href="#jobs">
+          Find Opportunities →
+        </a>
+        <button class="btn btn-light btn-large" data-open="post">
+          Post an Opportunity ＋
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="hero-slide">
+    <img
+      src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&q=85"
+      alt="Skilled worker carrying out a job"
+    >
+
+    <div class="slide-overlay">
+      <span class="eyebrow">FOR EMPLOYERS AND BUSINESSES</span>
+      <h1>Find the Right People.<br><span>Get Work Done.</span></h1>
+      <p>
+        Post your job or service opportunity and connect
+        with people who have the skills you need.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-large" data-open="post">
+          Post a Job →
+        </button>
+        <a class="btn btn-light btn-large" href="#jobs">
+          Explore Workers
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="hero-slide">
+    <img
+      src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=85"
+      alt="Professional cleaning service"
+    >
+
+    <div class="slide-overlay">
+      <span class="eyebrow">YOUR SKILLS HAVE VALUE</span>
+      <h1>Show Your Skills.<br><span>Find Customers.</span></h1>
+      <p>
+        Whether you are a plumber, mechanic, cleaner,
+        driver or another skilled worker, let people discover you.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-large" data-open="worker">
+          Promote My Skills →
+        </button>
+        <a class="btn btn-light btn-large" href="#jobs">
+          Explore Opportunities
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDER CONTROLS -->
+  <button class="slider-arrow slider-prev"
+    type="button" aria-label="Previous slide">❮</button>
+
+  <button class="slider-arrow slider-next"
+    type="button" aria-label="Next slide">❯</button>
+
+  <div class="slider-dots">
+    <button class="slider-dot active" aria-label="Slide 1"></button>
+    <button class="slider-dot" aria-label="Slide 2"></button>
+    <button class="slider-dot" aria-label="Slide 3"></button>
+  </div>
+
+</section>
+<!-- END PROOFNEAR ROTATING HOMEPAGE SLIDER -->
+
       <div class="search-heading"><div><span class="eyebrow dark-eyebrow">START HERE</span><h2>What are you looking for?</h2></div><span class="free-tag">Job seekers search free</span></div>
       <form id="searchForm" class="search-grid">
         <label class="search-field"><span>KEYWORD OR SKILL</span><input id="keyword" type="search" placeholder="e.g. plumber, waiter, driver"></label>
