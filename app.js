@@ -1100,3 +1100,67 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+
+/* =====================================
+   PROOFNEAR AUTOMATIC HERO SLIDER
+===================================== */
+
+(function () {
+  const slider = document.getElementById("homeSlider");
+
+  if (!slider) return;
+
+  const slides = slider.querySelectorAll(".hero-slide");
+  const dots = slider.querySelectorAll(".slider-dot");
+  const previous = slider.querySelector(".slider-prev");
+  const next = slider.querySelector(".slider-next");
+
+  if (!slides.length) return;
+
+  let currentSlide = 0;
+  let slideTimer;
+
+  function showSlide(index) {
+    currentSlide = (index + slides.length) % slides.length;
+
+    slides.forEach((slide, i) => {
+      slide.classList.toggle("active", i === currentSlide);
+    });
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("active", i === currentSlide);
+    });
+  }
+
+  function startSlider() {
+    clearInterval(slideTimer);
+
+    slideTimer = setInterval(() => {
+      showSlide(currentSlide + 1);
+    }, 3000);
+  }
+
+  function restartSlider() {
+    startSlider();
+  }
+
+  previous.addEventListener("click", () => {
+    showSlide(currentSlide - 1);
+    restartSlider();
+  });
+
+  next.addEventListener("click", () => {
+    showSlide(currentSlide + 1);
+    restartSlider();
+  });
+
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+      showSlide(index);
+      restartSlider();
+    });
+  });
+
+  showSlide(0);
+  startSlider();
+})();
