@@ -1049,7 +1049,6 @@ function toggleMobileMenu() {
 
 (function () {
   const welcomeScreen = document.getElementById("welcomeScreen");
-  alert("WELCOME CODE IS RUNNING");
   const welcomeVoiceBtn = document.getElementById("welcomeVoiceBtn");
 
   if (!welcomeScreen) {
