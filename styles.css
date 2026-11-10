@@ -1448,3 +1448,24 @@ h1, h2, h3 {
     align-items: flex-start;
   }
 }
+/* FIX DASHBOARD SIDEBAR AND CONTENT ALIGNMENT */
+
+.dashboard-layout {
+  grid-template-columns: 75px minmax(0, 1fr) !important;
+}
+
+.dashboard-layout:has(.dashboard-sidebar.expanded) {
+  grid-template-columns: 250px minmax(0, 1fr) !important;
+}
+
+@media (max-width: 700px) {
+  .dashboard-layout,
+  .dashboard-layout:has(.dashboard-sidebar.expanded) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
