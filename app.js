@@ -958,32 +958,6 @@ async function openAccount() {
       <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
       <p>You can manage your account settings here.</p>
       <button class="btn btn-primary" id="settingsBack">
-        Back to Dashboard
-      </button>
-    `;
-
-    document.getElementById("settingsBack").onclick =
-      showDashboard;
-  }
-
-  async function logoutUser() {
-    const { error } = await supabaseClient.auth.signOut();
-
-    if (error) {
-      showToast(error.message);
-      return;
-    }
-
-    dialog.close();
-
-    document.getElementById("accountBtn").textContent =
-      "Sign in / Create account";
-
-    document.getElementById("mobileAccountBtn").textContent =
-      "Sign in / Create account";
-
-    showToast("You have successfully logged out.");
-  }
 
 /* PROOFNEAR COMPANY SLIDER */
 
