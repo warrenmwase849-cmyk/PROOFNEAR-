@@ -278,8 +278,9 @@ function openModal(kind) {
     <option value="Mbale">
   </datalist>
 </label>
-      <div class="payment-instructions">
-  <h4>Payment Instructions</h4>
+      <p style="font-size:20px; color:#16a34a;">
+  <strong>Amount to pay: UGX 1,000</strong>
+</p>
 
   <p id="postAirtelDetails">
   <strong>Airtel Money</strong><br>
