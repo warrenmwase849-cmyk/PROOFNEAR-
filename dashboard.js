@@ -51,7 +51,7 @@ if (adminError) {
     );
   }
 }
-
+console.log("PROOFNEAR: Initialization completed");
 showSection("overview");
 }
 
