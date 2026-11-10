@@ -420,11 +420,17 @@ async function loadMyOpportunities() {
     `).join("")}
   `;
 
+
   // EDIT OPPORTUNITY
   dashboardContent.querySelectorAll(".edit-job-btn").forEach(button => {
     button.addEventListener("click", () => {
       const card = button.closest("[data-job-id]");
-      const job = jobs.find(item => item.id === card.dataset.jobId);
+      const job = jobs.find(item => item.id === card?.dataset.jobId);
+
+      if (!job || !currentUser) {
+        alert("Could not find this opportunity.");
+        return;
+      }
 
       card.innerHTML = `
         <h3>✏️ Edit Opportunity</h3>
@@ -446,11 +452,12 @@ async function loadMyOpportunities() {
           <textarea name="description" required>${escapeHTML(job.description || "")}</textarea>
 
           <label>Availability</label>
-<select name="availability_status">
-  <option value="OPEN" ${job.availability_status === "OPEN" ? "selected" : ""}>Open</option>
-  <option value="FILLED" ${job.availability_status === "FILLED" ? "selected" : ""}>Filled</option>
-  <option value="ON HOLD" ${job.availability_status === "ON HOLD" ? "selected" : ""}>On Hold</option>
-</select>
+          <select name="availability_status">
+            <option value="OPEN" ${job.availability_status === "OPEN" ? "selected" : ""}>Open</option>
+            <option value="FILLED" ${job.availability_status === "FILLED" ? "selected" : ""}>Filled</option>
+            <option value="ON HOLD" ${job.availability_status === "ON HOLD" ? "selected" : ""}>On Hold</option>
+          </select>
+
           <button class="btn btn-primary" type="submit">
             💾 Save Changes
           </button>
@@ -484,24 +491,27 @@ async function loadMyOpportunities() {
         saveButton.disabled = true;
         saveButton.textContent = "Saving...";
 
-        const { error } = await supabaseClient
-          .from("jobs")
-          .update(updates)
-          .eq("id", job.id)
-          .eq("user_id", currentUser.id);
+        try {
+          const { error } = await supabaseClient
+            .from("jobs")
+            .update(updates)
+            .eq("id", job.id)
+            .eq("user_id", currentUser.id);
 
-        if (error) {
+          if (error) throw error;
+
+          alert("Opportunity updated successfully!");
+          await loadMyOpportunities();
+
+        } catch (error) {
           alert("Could not save changes: " + error.message);
           saveButton.disabled = false;
           saveButton.textContent = "💾 Save Changes";
-          return;
         }
-
-        alert("Opportunity updated successfully!");
-        loadMyOpportunities();
       });
     });
   });
+
 
   // DELETE OPPORTUNITY
   
