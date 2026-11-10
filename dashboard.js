@@ -79,12 +79,8 @@ function showSection(section) {
     }
 
   else if (section === "post") {
-    dashboardContent.innerHTML = `
-      <h2>Post an Opportunity</h2>
-      <p>Use the homepage to access the existing posting form.</p>
-      <a href="index.html">Go to Homepage</a>
-    `;
-  }
+  window.location.href = "index.html?open=post";
+}
 
   else if (section === "messages") {
     dashboardContent.innerHTML = `
