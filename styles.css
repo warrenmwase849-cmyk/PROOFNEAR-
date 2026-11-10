@@ -51,7 +51,7 @@
   font-size: 14px !important;
 }
 /* FINAL HEADER - 1 LINE */
-header {
+.site-header {
   display: flex !important;
   flex-wrap: nowrap !important;
   justify-content: space-between !important;
@@ -59,10 +59,10 @@ header {
   padding: 10px 14px !important;
   gap: 8px !important;
 }
-header nav {
+.site-header nav {
   display: none !important;
 }
-header nav.open, header .mobile-menu.open {
+.site-header nav.open, .site-header .mobile-menu.open {
   display: flex !important;
   position: absolute !important;
   top: 58px !important;
@@ -76,7 +76,7 @@ header nav.open, header .mobile-menu.open {
   z-index: 99 !important;
 }
 @media (min-width: 769px) {
-  header nav { display: flex !important; gap: 20px !important; }
+  .site-header nav { display: flex !important; gap: 20px !important; }
 }
 
 /* PROOFNEAR opportunity category badges */
