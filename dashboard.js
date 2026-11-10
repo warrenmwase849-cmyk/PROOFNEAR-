@@ -51,7 +51,6 @@ if (adminError) {
   }
 }
 console.log("PROOFNEAR: Initialization completed");
-alert("Dashboard initialization completed!");
 showSection("overview");
 }
 
