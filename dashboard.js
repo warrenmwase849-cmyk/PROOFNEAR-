@@ -1026,75 +1026,67 @@ async function loadMyNotifications() {
   }
 
   if (!notifications || notifications.length === 0) {
-  if (!notifications || notifications.length === 0) {
+    if (!notifications || notifications.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>🔔 My Notifications</h2>
+      <div class="dashboard-card">
+        <p>You have no notifications yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const hasUnread = notifications.some(
+    notification => !notification.is_read
+  );
+
   dashboardContent.innerHTML = `
     <h2>🔔 My Notifications</h2>
-    <div class="dashboard-card">
-      <p>You have no notifications yet.</p>
-    </div>
+
+    ${hasUnread ? `
+      <button class="btn btn-primary"
+        onclick="markAllNotificationsRead()">
+        ✓ Mark All as Read
+      </button>
+    ` : ""}
+
+    ${notifications.map(notification => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(notification.title)}</h3>
+        <p>${escapeHTML(notification.message)}</p>
+        <p><strong>Type:</strong>
+          ${escapeHTML(notification.notification_type)}
+        </p>
+        <p><strong>Status:</strong>
+          ${notification.is_read ? "Read" : "Unread"}
+        </p>
+        <p><strong>Date:</strong>
+          ${new Date(notification.created_at).toLocaleString()}
+        </p>
+
+        ${notification.related_job_id ? `
+          <button class="btn btn-primary"
+            onclick="openNotificationOpportunity('${notification.related_job_id}')">
+            View Opportunity
+          </button>
+        ` : ""}
+
+        ${notification.related_payment_id ? `
+          <button class="btn btn-primary"
+            onclick="openNotificationPayment('${notification.related_payment_id}')">
+            View Payment
+          </button>
+        ` : ""}
+
+        ${!notification.is_read ? `
+          <button class="btn btn-primary"
+            onclick="markNotificationRead('${notification.id}')">
+            Mark as Read
+          </button>
+        ` : ""}
+      </div>
+    `).join("")}
   `;
-  return;
-}
-
-const hasUnread = notifications.some(
-  notification => !notification.is_read
-);
-
-dashboardContent.innerHTML = `
-  <h2>🔔 My Notifications</h2>
-
-  ${hasUnread ? `
-    <button
-      class="btn btn-primary"
-      onclick="markAllNotificationsRead()">
-      ✓ Mark All as Read
-    </button>
-  ` : ""}
-
-  ${notifications.map(notification => `
-    <div class="dashboard-card">
-      <h3>${escapeHTML(notification.title)}</h3>
-
-      <p>${escapeHTML(notification.message)}</p>
-
-      <p><strong>Type:</strong>
-        ${escapeHTML(notification.notification_type)}
-      </p>
-
-      <p><strong>Status:</strong>
-        ${notification.is_read ? "Read" : "Unread"}
-      </p>
-
-      <p><strong>Date:</strong>
-        ${new Date(notification.created_at).toLocaleString()}
-      </p>
-
-      ${notification.related_job_id ? `
-        <button
-          class="btn btn-primary"
-          onclick="openNotificationOpportunity('${notification.related_job_id}')">
-          View Opportunity
-        </button>
-      ` : ""}
-
-      ${notification.related_payment_id ? `
-        <button
-          class="btn btn-primary"
-          onclick="openNotificationPayment('${notification.related_payment_id}')">
-          View Payment
-        </button>
-      ` : ""}
-
-      ${!notification.is_read ? `
-        <button
-          class="btn btn-primary"
-          onclick="markNotificationRead('${notification.id}')">
-          Mark as Read
-        </button>
-      ` : ""}
-    </div>
-  `).join("")}
-`;
 }
 
 
