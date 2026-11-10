@@ -1313,6 +1313,8 @@ async function loadApprovedJobs() {
     alert("Could not load approved opportunities.");
     return;
   }
+  console.log("APPROVED JOBS:", jobs);
+alert("Approved opportunities found: " + jobs.length);
 
   if (!jobs.length) {
     dashboardContent.innerHTML = `
