@@ -343,7 +343,7 @@ async function loadDashboardOverview() {
       <h3>👤 Account Information</h3>
       <p><strong>Email:</strong> ${escapeHTML(currentUser.email)}</p>
       <p><strong>Account type:</strong> ${
-        escapeHTML(currentUser.user_metadata.account_type || "both")
+        escapeHTML(accountType)
       }</p>
     </div>
 
