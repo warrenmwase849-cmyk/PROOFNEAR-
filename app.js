@@ -607,9 +607,9 @@ async function openListingDetails(item) {
   }
 
   if (status === "pending") {
-    area.innerHTML = `<p>Your UGX 500 payment is awaiting administrator verification.</p>`;
-    return;
-  }
+  area.innerHTML = `<p>Your UGX 500 payment is awaiting administrator verification.</p>`;
+  return;
+}
 
   showContactUnlockForm(item, status === "rejected"
     ? "Your previous payment was rejected. You may submit a new payment."
