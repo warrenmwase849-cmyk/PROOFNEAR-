@@ -607,7 +607,7 @@ async function openListingDetails(item) {
   }
 
   if (status === "pending") {
-    innerHTML = `<p>Your UGX 500 payment is awaiting administrator verification.</p>`;
+    area.innerHTML = `<p>Your UGX 500 payment is awaiting administrator verification.</p>`;
     return;
   }
 
