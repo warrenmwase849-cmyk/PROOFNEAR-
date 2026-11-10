@@ -144,12 +144,29 @@ else if (section === "settings") {
     `;
   }
 }
+
 async function loadDashboardOverview() {
   if (!currentUser) return;
 
   const name =
     currentUser.user_metadata.full_name ||
     currentUser.email.split("@")[0];
+
+  const { data: accountProfile, error: accountProfileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("account_type")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+  if (accountProfileError) {
+    console.error("Account type loading error:", accountProfileError);
+  }
+
+  const accountType =
+    accountProfile?.account_type ||
+    currentUser.user_metadata.account_type ||
+    "both";
 
   dashboardContent.innerHTML = `
     <h2>Welcome, ${escapeHTML(name)}! 👋</h2>
@@ -158,9 +175,7 @@ async function loadDashboardOverview() {
     <div class="dashboard-card">
       <h3>👤 Account Information</h3>
       <p><strong>Email:</strong> ${escapeHTML(currentUser.email)}</p>
-      <p><strong>Account type:</strong> ${
-        escapeHTML(currentUser.user_metadata.account_type || "both")
-      }</p>
+      <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
     </div>
 
     <h3>📊 Your Activity</h3>
@@ -182,6 +197,7 @@ async function loadDashboardOverview() {
 
     <div class="dashboard-card">
       <h3>🚀 Quick Actions</h3>
+
       <button class="btn btn-primary"
         onclick="showSection('post')">
         ➕ Post Opportunity
