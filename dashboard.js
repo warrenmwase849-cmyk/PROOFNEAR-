@@ -1234,7 +1234,6 @@ async function loadApprovedJobs() {
     return;
   }
   console.log("APPROVED JOBS:", jobs);
-alert("Approved opportunities found: " + jobs.length);
 
   if (!jobs.length) {
     dashboardContent.innerHTML = `
