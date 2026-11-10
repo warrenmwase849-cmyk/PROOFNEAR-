@@ -1086,22 +1086,30 @@ async function loadMyNotifications() {
 }
 
 
-async function markNotificationRead(notificationId) {
+async function markAllNotificationsRead() {
   if (!currentUser) return;
+
+  const confirmed = confirm(
+    "Mark all your notifications as read?"
+  );
+
+  if (!confirmed) return;
 
   const { error } = await supabaseClient
     .from("notifications")
     .update({ is_read: true })
-    .eq("id", notificationId)
-    .eq("user_id", currentUser.id);
+    .eq("user_id", currentUser.id)
+    .eq("is_read", false);
 
   if (error) {
-    alert("Could not update notification: " + error.message);
+    alert("Could not mark notifications as read: " + error.message);
     return;
   }
 
-  loadMyNotifications();
-updateNotificationBadge();
+  await loadMyNotifications();
+  await updateNotificationBadge();
+
+  alert("All notifications marked as read!");
 }
 
 
