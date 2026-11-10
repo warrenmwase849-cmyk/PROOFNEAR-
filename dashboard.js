@@ -524,7 +524,7 @@ async function loadMyOpportunities() {
           <label>Description</label>
           <textarea name="description" required>${escapeHTML(job.description || "")}</textarea>
 
-          <<label>Availability</label>
+          <label>Availability</label>
 <select name="availability_status">
   <option value="OPEN" ${job.availability_status === "OPEN" ? "selected" : ""}>Open</option>
   <option value="FILLED" ${job.availability_status === "FILLED" ? "selected" : ""}>Filled</option>
