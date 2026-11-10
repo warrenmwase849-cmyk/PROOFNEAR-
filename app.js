@@ -968,7 +968,15 @@ async function openAccount() {
       <p><strong>Account:</strong> ${escapeHTML(email)}</p>
       <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
       <p>You can manage your account settings here.</p>
-      <button class="btn btn-primary" id="settingsBack">
+      
+<button class="btn btn-primary" id="settingsBack">
+  Back to Dashboard
+</button>
+`;
+
+document.getElementById("settingsBack").onclick = showDashboard;
+  }
+
 
 /* PROOFNEAR COMPANY SLIDER */
 
