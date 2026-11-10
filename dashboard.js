@@ -1027,7 +1027,6 @@ async function loadMyNotifications() {
   }
 
   if (!notifications || notifications.length === 0) {
-    if (!notifications || notifications.length === 0) {
     dashboardContent.innerHTML = `
       <h2>🔔 My Notifications</h2>
       <div class="dashboard-card">
@@ -1055,12 +1054,15 @@ async function loadMyNotifications() {
       <div class="dashboard-card">
         <h3>${escapeHTML(notification.title)}</h3>
         <p>${escapeHTML(notification.message)}</p>
+
         <p><strong>Type:</strong>
           ${escapeHTML(notification.notification_type)}
         </p>
+
         <p><strong>Status:</strong>
           ${notification.is_read ? "Read" : "Unread"}
         </p>
+
         <p><strong>Date:</strong>
           ${new Date(notification.created_at).toLocaleString()}
         </p>
