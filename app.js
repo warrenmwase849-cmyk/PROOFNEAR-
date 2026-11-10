@@ -727,14 +727,25 @@ document.addEventListener("click", e => {
   }
 });
 
-document.getElementById("menuToggle").addEventListener("click", () => {
-  const nav = document.querySelector(".desktop-nav");
-  const visible = nav.style.display === "flex";
-  nav.style.display = visible ? "none" : "flex";
-  nav.style.position = visible ? "" : "absolute";
-  nav.style.top = "68px"; nav.style.left = "0"; nav.style.right = "0";
-  nav.style.padding = "18px 24px"; nav.style.background = "#fff"; nav.style.flexDirection = "column";
-});
+const menuToggle = document.getElementById("menuToggle");
+
+if (menuToggle) {
+  menuToggle.addEventListener("click", () => {
+    const nav = document.querySelector(".desktop-nav");
+    if (!nav) return;
+
+    const visible = nav.style.display === "flex";
+    nav.style.display = visible ? "none" : "flex";
+    nav.style.position = visible ? "" : "absolute";
+    nav.style.top = "68px";
+    nav.style.left = "0";
+    nav.style.right = "0";
+    nav.style.padding = "18px 24px";
+    nav.style.background = "#fff";
+    nav.style.flexDirection = "column";
+  });
+}
+
 renderListings();
 // PROOFNEAR ACCOUNT REGISTRATION
 
