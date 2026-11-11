@@ -1053,13 +1053,14 @@ console.log("PROOFNEAR SLIDER FOUND:", !!slider);
   const slides = slider.querySelectorAll(".hero-slide");
   const dots = slider.querySelectorAll(".slider-dot");
   const previous = slider.querySelector(".slider-prev");
-  console.log("PROOFNEAR SLIDER CHECK:", {
+  const next = slider.querySelector(".slider-next");
+
+console.log("PROOFNEAR SLIDER CHECK:", {
   slides: slides.length,
   dots: dots.length,
   previousArrow: !!previous,
   nextArrow: !!next
 });
-  const next = slider.querySelector(".slider-next");
 
   if (!slides.length) return;
 
