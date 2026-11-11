@@ -14,6 +14,7 @@ let currentUser = null;
 let isProofnearAdmin = false;
 let notificationChannel = null;
 
+
 async function initializeDashboard() {
   const { data, error } = await supabaseClient.auth.getSession();
 
@@ -24,36 +25,42 @@ async function initializeDashboard() {
 
   currentUser = data.session.user;
 
-showSection("overview");
+  showSection("overview");
 
-updateNotificationBadge();
-startNotificationListener();
+  updateNotificationBadge();
+  startNotificationListener();
 
-const { data: isAdmin, error: adminError } =
-  await supabaseClient.rpc("is_proofnear_admin");
+  const { data: isAdmin, error: adminError } =
+    await supabaseClient.rpc("is_proofnear_admin");
 
-if (adminError) {
-  console.error("Admin check failed:", adminError.message);
-} else {
-  isProofnearAdmin = isAdmin === true;
+  if (adminError) {
+    console.error("Admin check failed:", adminError.message);
+  } else {
+    isProofnearAdmin = isAdmin === true;
 
-  console.log("PROOFNEAR administrator:", isProofnearAdmin);
+    console.log("PROOFNEAR administrator:", isProofnearAdmin);
 
-  if (isProofnearAdmin) {
-    const sidebar = document.querySelector(".dashboard-sidebar");
+    if (isProofnearAdmin) {
+      const sidebar = document.querySelector(".dashboard-sidebar");
+      const menu = sidebar?.querySelector(".sidebar-menu-grid");
 
-    const adminButton = document.createElement("button");
+      if (menu && !menu.querySelector(".admin-panel-link")) {
+        const adminButton = document.createElement("button");
 
-adminButton.textContent = "🔐 Admin Panel";
-adminButton.className = "sidebar-link";
+        adminButton.textContent = "🔐 Admin Panel";
+        adminButton.className = "sidebar-link admin-panel-link";
+        adminButton.addEventListener("click", () => {
+          showSection("admin");
+        });
 
-adminButton.onclick = () => showSection("admin");
+        menu.insertBefore(adminButton, menu.firstElementChild);
+      }
+    }
+  }
 
-const menu = sidebar.querySelector(".sidebar-menu-grid");
-
-if (menu) {
-  menu.insertBefore(adminButton, menu.firstElementChild);
+  console.log("PROOFNEAR: Initialization completed");
 }
+
 
 function showSection(section) {
   if (!currentUser) return;
