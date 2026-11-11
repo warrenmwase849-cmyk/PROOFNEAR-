@@ -717,15 +717,50 @@ h1, h2, h3 {
 
 /* FOOTER */
 .footer {
-  background: #092f2b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+  background: linear-gradient(135deg, #092f2b, #104b3d);
   color: #ffffff;
-  padding: 40px 6%;
+  padding: 55px 6% 30px;
+  border-top: 3px solid #d6b45c;
 }
 
-.footer p,
-.footer a,
-.footer small {
+.footer-brand {
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.footer p {
   color: #d4e5e1;
+  font-size: 15px;
+  margin: 0;
+}
+
+.footer div {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin: 8px 0;
+}
+
+.footer a {
+  color: #e5c779;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
+  color: #ffffff;
+}
+
+.footer small {
+  color: #b9d0c9;
+  font-size: 12px;
 }
 
 /* MOBILE HOMEPAGE */
