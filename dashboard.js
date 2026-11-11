@@ -53,6 +53,8 @@ if (adminError) {
       adminButton,
       sidebar.querySelector("button")
     );
+    console.log("ADMIN BUTTON INSERTED:", adminButton);
+console.log("SIDEBAR:", sidebar);
   }
 }console.log("PROOFNEAR: Initialization completed");
 }
