@@ -1057,3 +1057,456 @@ const pageParams = new URLSearchParams(window.location.search);
 if (pageParams.get("open") === "post") {
   openModal("post");
 }
+
+/* =========================================
+   PROOFNEAR TALENT ARENA — SUPABASE
+========================================= */
+
+async function getTalentUser() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    openModal("signin");
+    return null;
+  }
+
+  return data.user;
+}
+
+function setTalentMessage(form, message, isError = false) {
+  let output = form.querySelector(".talent-form-status");
+
+  if (!output) {
+    output = document.createElement("p");
+    output.className = "talent-form-status";
+    output.setAttribute("role", "status");
+    form.appendChild(output);
+  }
+
+  output.textContent = message;
+  output.style.color = isError ? "#dc2626" : "#126044";
+}
+
+function setTalentButton(button, busy, originalText) {
+  button.disabled = busy;
+  button.textContent = busy ? "Submitting..." : originalText;
+}
+
+async function uploadTalentMedia(user, file, folder) {
+  const allowedTypes = [
+    "image/jpeg", "image/png", "image/webp",
+    "audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg",
+    "video/mp4", "video/webm", "video/quicktime"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error("This file type is not supported.");
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    throw new Error("Files must not exceed 50 MB.");
+  }
+
+  const extension = file.name.split(".").pop()
+    .toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+
+  const path =
+    `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+
+  const { error } = await supabaseClient.storage
+    .from("talent-media")
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) throw error;
+
+  const { data } = supabaseClient.storage
+    .from("talent-media")
+    .getPublicUrl(path);
+
+  return data.publicUrl;
+}
+
+/* SHOW AND HIDE TALENT FORMS */
+
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-arena-action]");
+  if (!button) return;
+
+  const action = button.dataset.arenaAction;
+
+  const forms = {
+    profile: "talentProfileForm",
+    post: "talentPostForm",
+    challenge: "talentChallengeForm"
+  };
+
+  const formId = forms[action];
+  if (!formId) return;
+
+  const form = document.getElementById(formId);
+  if (!form) return;
+
+  const user = await getTalentUser();
+  if (!user) return;
+
+  form.hidden = !form.hidden;
+
+  if (!form.hidden) {
+    form.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+});
+
+/* SAVE CREATOR PROFILE */
+
+const talentProfileForm =
+  document.getElementById("talentProfileForm");
+
+if (talentProfileForm) {
+  talentProfileForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const user = await getTalentUser();
+    if (!user) return;
+
+    const button = talentProfileForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const originalText = "Save Talent Profile";
+    setTalentButton(button, true, originalText);
+
+    try {
+      const username =
+        talentProfileForm.elements.username.value.trim().replace(/^@/, "");
+
+      if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+        throw new Error(
+          "Username must be 3–30 characters using letters, numbers or underscores."
+        );
+      }
+
+      const profile = {
+        user_id: user.id,
+        username,
+        display_name:
+          talentProfileForm.elements.display_name.value.trim(),
+        talent_category:
+          talentProfileForm.elements.talent_category.value,
+        bio: talentProfileForm.elements.bio.value.trim()
+      };
+
+      const avatar =
+        talentProfileForm.elements.avatar.files[0];
+
+      if (avatar) {
+        profile.avatar_url = await uploadTalentMedia(
+          user,
+          avatar,
+          "avatars"
+        );
+      }
+
+      const { error } = await supabaseClient
+        .from("talent_profiles")
+        .upsert(profile, { onConflict: "user_id" });
+
+      if (error) throw error;
+
+      setTalentMessage(
+        talentProfileForm,
+        "Your talent profile was saved successfully!"
+      );
+
+      await loadTalentProfiles();
+
+    } catch (error) {
+      setTalentMessage(
+        talentProfileForm,
+        error.message,
+        true
+      );
+    } finally {
+      setTalentButton(button, false, originalText);
+    }
+  });
+}
+
+/* LOAD PUBLIC CREATOR PROFILES */
+
+async function loadTalentProfiles() {
+  const container =
+    document.getElementById("talentCreatorList");
+
+  if (!container) return;
+
+  const { data, error } = await supabaseClient
+    .from("talent_profiles")
+    .select("user_id,username,display_name,bio,avatar_url,talent_category")
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (error) {
+    container.textContent = "Could not load creator profiles.";
+    console.error("Talent profiles:", error.message);
+    return;
+  }
+
+  if (!data.length) {
+    container.textContent =
+      "No creator profiles yet. Be the first to join!";
+    return;
+  }
+
+  container.innerHTML = data.map(profile => `
+    <article class="talent-creator-card">
+      ${profile.avatar_url
+        ? `<img src="${escapeHTML(profile.avatar_url)}"
+             alt="Creator profile"
+             style="width:75px;height:75px;object-fit:cover;border-radius:50%;">`
+        : ""}
+      <h4>${escapeHTML(profile.display_name)}</h4>
+      <p>@${escapeHTML(profile.username)}</p>
+      <p>${escapeHTML(profile.talent_category || "Other")}</p>
+      <p>${escapeHTML(profile.bio || "")}</p>
+    </article>
+  `).join("");
+}
+
+/* PUBLISH TALENT CONTENT */
+
+const talentPostForm =
+  document.getElementById("talentPostForm");
+
+if (talentPostForm) {
+  talentPostForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const user = await getTalentUser();
+    if (!user) return;
+
+    const button = talentPostForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const originalText = "Submit Content";
+    setTalentButton(button, true, originalText);
+
+    try {
+      const file =
+        talentPostForm.elements.media.files[0];
+
+      if (!file) throw new Error("Please select a media file.");
+
+      const mediaUrl = await uploadTalentMedia(
+        user,
+        file,
+        "posts"
+      );
+
+      const { error } = await supabaseClient
+        .from("talent_posts")
+        .insert({
+          creator_id: user.id,
+          title: talentPostForm.elements.title.value.trim(),
+          description:
+            talentPostForm.elements.description.value.trim(),
+          category: talentPostForm.elements.category.value,
+          media_type: talentPostForm.elements.media_type.value,
+          media_url: mediaUrl
+        });
+
+      if (error) throw error;
+
+      setTalentMessage(
+        talentPostForm,
+        "Your content has been submitted. It will appear publicly after approval."
+      );
+
+      talentPostForm.reset();
+
+    } catch (error) {
+      setTalentMessage(talentPostForm, error.message, true);
+    } finally {
+      setTalentButton(button, false, originalText);
+    }
+  });
+}
+
+/* LOAD APPROVED TALENT CONTENT */
+
+async function loadTalentPosts() {
+  const container =
+    document.getElementById("talentPostList");
+
+  if (!container) return;
+
+  const { data, error } = await supabaseClient
+    .from("talent_posts")
+    .select("id,title,description,category,media_type,media_url,created_at")
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (error) {
+    container.textContent = "Could not load talent posts.";
+    console.error("Talent posts:", error.message);
+    return;
+  }
+
+  if (!data.length) {
+    container.textContent =
+      "Creator content will appear here after approval.";
+    return;
+  }
+
+  container.innerHTML = data.map(post => {
+    const url = escapeHTML(post.media_url || "");
+    let media = "";
+
+    if (post.media_type === "image") {
+      media = `<img src="${url}" alt="Creator content"
+        style="width:100%;border-radius:12px;">`;
+    } else if (post.media_type === "audio") {
+      media = `<audio controls style="width:100%;">
+        <source src="${url}">
+      </audio>`;
+    } else if (post.media_type === "video") {
+      media = `<video controls playsinline
+        style="width:100%;border-radius:12px;">
+        <source src="${url}">
+      </video>`;
+    }
+
+    return `
+      <article class="talent-post-card">
+        ${media}
+        <h4>${escapeHTML(post.title)}</h4>
+        <p>${escapeHTML(post.description || "")}</p>
+        <span>${escapeHTML(post.category || "")}</span>
+      </article>
+    `;
+  }).join("");
+}
+
+/* CREATE TALENT CHALLENGE */
+
+const talentChallengeForm =
+  document.getElementById("talentChallengeForm");
+
+if (talentChallengeForm) {
+  talentChallengeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const user = await getTalentUser();
+    if (!user) return;
+
+    const button = talentChallengeForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const originalText = "Submit Challenge";
+    setTalentButton(button, true, originalText);
+
+    try {
+      const closingDate =
+        talentChallengeForm.elements.ends_at.value;
+
+      if (!closingDate ||
+          new Date(closingDate).getTime() <= Date.now()) {
+        throw new Error("Choose a future closing date.");
+      }
+
+      const { error } = await supabaseClient
+        .from("talent_challenges")
+        .insert({
+          creator_id: user.id,
+          title: talentChallengeForm.elements.title.value.trim(),
+          description:
+            talentChallengeForm.elements.description.value.trim(),
+          category: talentChallengeForm.elements.category.value,
+          rules: talentChallengeForm.elements.rules.value.trim(),
+          starts_at: new Date().toISOString(),
+          ends_at: new Date(closingDate).toISOString()
+        });
+
+      if (error) throw error;
+
+      setTalentMessage(
+        talentChallengeForm,
+        "Your challenge has been submitted for approval."
+      );
+
+      talentChallengeForm.reset();
+
+    } catch (error) {
+      setTalentMessage(
+        talentChallengeForm,
+        error.message,
+        true
+      );
+    } finally {
+      setTalentButton(button, false, originalText);
+    }
+  });
+}
+
+/* LOAD APPROVED CHALLENGES */
+
+async function loadTalentChallenges() {
+  const container =
+    document.getElementById("talentChallengeList");
+
+  if (!container) return;
+
+  const { data, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id,title,description,category,rules,ends_at")
+    .eq("status", "published")
+    .gt("ends_at", new Date().toISOString())
+    .order("ends_at", { ascending: true })
+    .limit(12);
+
+  if (error) {
+    container.textContent = "Could not load challenges.";
+    console.error("Talent challenges:", error.message);
+    return;
+  }
+
+  if (!data.length) {
+    container.textContent =
+      "Active challenges will appear here after approval.";
+    return;
+  }
+
+  container.innerHTML = data.map(challenge => `
+    <article class="talent-challenge-card">
+      <h4>${escapeHTML(challenge.title)}</h4>
+      <p>${escapeHTML(challenge.description)}</p>
+      <p><strong>Category:</strong>
+        ${escapeHTML(challenge.category || "")}</p>
+      <p><strong>Rules:</strong>
+        ${escapeHTML(challenge.rules || "See challenge description.")}</p>
+      <p><strong>Closes:</strong>
+        ${new Date(challenge.ends_at).toLocaleString()}</p>
+    </article>
+  `).join("");
+}
+
+/* INITIAL TALENT ARENA LOAD */
+
+async function loadTalentArena() {
+  await Promise.all([
+    loadTalentProfiles(),
+    loadTalentPosts(),
+    loadTalentChallenges()
+  ]);
+}
+
+loadTalentArena();
+                      
