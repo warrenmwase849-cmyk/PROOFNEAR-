@@ -576,21 +576,156 @@ h1, h2, h3 {
   color: #71817d;
 }
 
-/* OPPORTUNITY LISTINGS */
+
+/* =================================
+   PROOFNEAR PREMIUM OPPORTUNITY CARDS
+================================= */
+
 .listing-grid {
   gap: 20px;
 }
 
-.listing-grid > * {
-  border-radius: 17px;
+.listing-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 23px;
+  background: #ffffff;
   border: 1px solid #e5ece9;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.04);
-  transition: 0.2s ease;
+  border-radius: 18px;
+  box-shadow: 0 5px 20px rgba(16, 43, 67, 0.05);
+  transition: transform 0.25s ease,
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
 }
 
-.listing-grid > *:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+.listing-card:hover {
+  transform: translateY(-5px);
+  border-color: #d6b45c;
+  box-shadow: 0 13px 28px rgba(16, 43, 67, 0.10);
+}
+
+.listing-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 17px;
+}
+
+.listing-type,
+.work-type-badge,
+.availability-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.listing-type {
+  color: #075e54;
+  background: #eaf5ef;
+}
+
+.listing-type.service {
+  color: #925b16;
+  background: #fff4df;
+}
+
+.work-type-badge {
+  color: #315b83;
+  background: #edf4fa;
+}
+
+.availability-badge {
+  color: #16734b;
+  background: #edf7f0;
+}
+
+.listing-card h3 {
+  color: #102b43;
+  font-size: 19px;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+
+.listing-card > p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0 0 17px;
+}
+
+.listing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.listing-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid #edf1ef;
+}
+
+.listing-bottom strong {
+  color: #075e54;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.listing-card .text-button {
+  border: none;
+  background: #075e54;
+  color: #ffffff;
+  border-radius: 25px;
+  padding: 10px 15px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.listing-card .text-button:hover {
+  background: #063f39;
+}
+
+.preview-note {
+  color: #a0782c !important;
+  font-size: 10px !important;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  margin-top: 14px !important;
+}
+
+@media (max-width: 600px) {
+  .listing-grid {
+    gap: 14px;
+  }
+
+  .listing-card {
+    padding: 19px;
+    border-radius: 15px;
+  }
+
+  .listing-card h3 {
+    font-size: 17px;
+  }
+
+  .listing-bottom {
+    align-items: flex-start;
+  }
 }
 
 
