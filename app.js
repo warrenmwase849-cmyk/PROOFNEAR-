@@ -925,67 +925,6 @@ async function openAccount() {
     document.getElementById("opportunitiesSection").onclick =
       showOpportunities;
 
-    document.getElementById("postSection").onclick = () => {
-      dialog.close();
-      openModal("post");
-    };
-
-    document.getElementById("settingsSection").onclick =
-      showSettings;
-
-    document.getElementById("logoutBtn").onclick =
-      logoutUser;
-
-    document.getElementById("closeAccountBtn").onclick =
-      () => dialog.close();
-  }
-
-  function showProfile() {
-    modalContent.innerHTML = `
-      <h2>My Profile</h2>
-      <p><strong>Full name:</strong><br>${escapeHTML(name)}</p>
-      <p><strong>Email:</strong><br>${escapeHTML(email)}</p>
-      <p><strong>Account type:</strong><br>${escapeHTML(accountType)}</p>
-      <button class="btn btn-primary" id="profileBack">Back to Dashboard</button>
-    `;
-
-    document.getElementById("profileBack").onclick =
-      showDashboard;
-  }
-
-  function showOpportunities() {
-    modalContent.innerHTML = `
-      <h2>My Opportunities</h2>
-      <p>Your posted jobs, services and other opportunities will appear here.</p>
-      <p class="form-hint">
-        Your opportunity posts are not yet linked to individual accounts.
-        We will connect this section to the PROOFNEAR database next.
-      </p>
-      <button class="btn btn-primary" id="opportunitiesBack">
-        Back to Dashboard
-      </button>
-    `;
-
-    document.getElementById("opportunitiesBack").onclick =
-      showDashboard;
-  }
-
-  function showSettings() {
-    modalContent.innerHTML = `
-      <h2>Account Settings</h2>
-      <p><strong>Account:</strong> ${escapeHTML(email)}</p>
-      <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
-      <p>You can manage your account settings here.</p>
-      
-<button class="btn btn-primary" id="settingsBack">
-  Back to Dashboard
-</button>
-`;
-
-document.getElementById("settingsBack").onclick = showDashboard;
-  }
-
-
 /* PROOFNEAR COMPANY SLIDER */
 
 let companySlideIndex = 0;
