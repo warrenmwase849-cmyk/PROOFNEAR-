@@ -43,28 +43,16 @@ if (adminError) {
     const sidebar = document.querySelector(".dashboard-sidebar");
 
     const adminButton = document.createElement("button");
-    adminButton.textContent = "🔐 Admin Panel";
-    adminButton.style.background = "red";
-adminButton.style.color = "white";
-adminButton.style.padding = "15px";
-adminButton.style.display = "block";
-adminButton.style.width = "100%";
-adminButton.style.cursor = "pointer";
-    adminButton.addEventListener("click", function () {
-  dashboardContent.innerHTML = `
-    <h2>ADMIN BUTTON TEST</h2>
-    <p>The Admin Panel button is responding!</p>
-  `;
-});
 
-    sidebar.insertBefore(
-      adminButton,
-      sidebar.querySelector("button")
-    );
-    console.log("ADMIN BUTTON INSERTED:", adminButton);
-console.log("SIDEBAR:", sidebar);
-  }
-}console.log("PROOFNEAR: Initialization completed");
+adminButton.textContent = "🔐 Admin Panel";
+adminButton.className = "sidebar-link";
+
+adminButton.onclick = () => showSection("admin");
+
+const menu = sidebar.querySelector(".sidebar-menu-grid");
+
+if (menu) {
+  menu.insertBefore(adminButton, menu.firstElementChild);
 }
 
 function showSection(section) {
