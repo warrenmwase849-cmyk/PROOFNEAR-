@@ -532,60 +532,217 @@ function getAnswer(t) {
 
     
 
+
 <!-- PROOFNEAR TALENT ARENA -->
 <section class="talent-arena section" id="talentArena">
 
   <div class="section-heading">
     <div>
-      <span class="eyebrow dark-eyebrow">GO GLOBAL WITH YOUR TALENT</span>
+      <span class="eyebrow dark-eyebrow">DISCOVER • COMPETE • GET DISCOVERED</span>
       <h2>PROOFNEAR Talent Arena</h2>
-      <p>Discover talent. Showcase your creativity. Get discovered worldwide.</p>
+      <p>Showcase your talent, promote your work and compete with creators worldwide.</p>
     </div>
-    <span class="demo-label">WORLDWIDE</span>
+    <span class="demo-label">TALENT ARENA</span>
   </div>
 
-  <div class="talent-grid">
-
-    <div class="talent-card">
-      <div class="talent-icon">🎤</div>
-      <span class="talent-tag">MUSIC</span>
-      <h3>Music & Artists</h3>
-      <p>Discover singers, musicians and creative music talents from around the world.</p>
-    </div>
-
-    <div class="talent-card">
-      <div class="talent-icon">🔥</div>
-      <span class="talent-tag">COMPETITIONS</span>
-      <h3>Talent Challenges</h3>
-      <p>Join exciting challenges, showcase your abilities and compete with other creators.</p>
-    </div>
-
-    <div class="talent-card">
-      <div class="talent-icon">💃</div>
-      <span class="talent-tag">ENTERTAINMENT</span>
-      <h3>Dance & Comedy</h3>
-      <p>Share your performances, creativity and entertainment with a wider audience.</p>
-    </div>
-
-    <div class="talent-card">
-      <div class="talent-icon">🏆</div>
-      <span class="talent-tag">LEADERBOARD</span>
-      <h3>Global Rankings</h3>
-      <p>Discover outstanding creators and follow their journey to the top.</p>
-    </div>
-
+  <div class="talent-arena-nav">
+    <a href="#talentProfiles">Creators</a>
+    <a href="#talentPublish">Publish</a>
+    <a href="#talentChallenges">Challenges</a>
+    <a href="#talentRankings">Rankings</a>
   </div>
 
-  <div class="talent-action">
-    <div>
-      <h3>Your talent deserves to be seen.</h3>
-      <p>Get ready to share what makes you unique.</p>
+  <!-- CREATOR PROFILES -->
+  <div class="talent-arena-panel" id="talentProfiles">
+    <div class="talent-panel-heading">
+      <div>
+        <span class="talent-tag">CREATOR COMMUNITY</span>
+        <h3>Discover Creators</h3>
+        <p>Meet musicians, dancers, comedians and other talented people.</p>
+      </div>
+      <button type="button" class="btn btn-primary"
+        data-arena-action="profile">
+        Create My Profile
+      </button>
     </div>
 
-    <button class="btn btn-primary" type="button"
-      onclick="alert('PROOFNEAR Talent Arena is coming soon!')">
-      Explore Talent Arena →
+    <div id="talentCreatorList" class="talent-creator-grid">
+      <p>Creator profiles will appear here.</p>
+    </div>
+
+    <form id="talentProfileForm" class="talent-form" hidden>
+      <h3>Create Your Talent Profile</h3>
+
+      <label for="talentDisplayName">Display name</label>
+      <input id="talentDisplayName" name="display_name"
+        type="text" maxlength="80" required>
+
+      <label for="talentUsername">Username</label>
+      <input id="talentUsername" name="username"
+        type="text" maxlength="30" required>
+
+      <label for="talentCategory">Talent category</label>
+      <select id="talentCategory" name="talent_category" required>
+        <option value="">Choose a category</option>
+        <option value="Music">Music</option>
+        <option value="Dance">Dance</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Content Creator">Content Creator</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="talentBio">About you</label>
+      <textarea id="talentBio" name="bio"
+        maxlength="500" rows="4"></textarea>
+
+      <label for="talentAvatar">Profile picture</label>
+      <input id="talentAvatar" name="avatar"
+        type="file" accept="image/jpeg,image/png,image/webp">
+
+      <button class="btn btn-primary" type="submit">
+        Save Talent Profile
+      </button>
+    </form>
+  </div>
+
+  <!-- PUBLISH CONTENT -->
+  <div class="talent-arena-panel" id="talentPublish">
+    <span class="talent-tag">SHOWCASE YOUR WORK</span>
+    <h3>Publish Your Talent</h3>
+    <p>Share songs, performances, videos and creative work.</p>
+
+    <button type="button" class="btn btn-primary"
+      data-arena-action="post">
+      Publish Content
     </button>
+
+    <form id="talentPostForm" class="talent-form" hidden>
+      <h3>New Talent Post</h3>
+
+      <label for="talentPostTitle">Title</label>
+      <input id="talentPostTitle" name="title"
+        type="text" maxlength="120" required>
+
+      <label for="talentPostDescription">Description</label>
+      <textarea id="talentPostDescription" name="description"
+        maxlength="1000" rows="3"></textarea>
+
+      <label for="talentPostCategory">Category</label>
+      <select id="talentPostCategory" name="category" required>
+        <option value="">Choose a category</option>
+        <option value="Music">Music</option>
+        <option value="Dance">Dance</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Content Creator">Content Creator</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="talentMediaType">Content type</label>
+      <select id="talentMediaType" name="media_type" required>
+        <option value="">Choose content type</option>
+        <option value="image">Photo</option>
+        <option value="audio">Song or audio</option>
+        <option value="video">Video</option>
+      </select>
+
+      <label for="talentMediaFile">Choose your file</label>
+      <input id="talentMediaFile" name="media"
+        type="file" accept="image/jpeg,image/png,image/webp,audio/mpeg,audio/mp4,audio/wav,audio/ogg,video/mp4,video/webm,video/quicktime"
+        required>
+
+      <button class="btn btn-primary" type="submit">
+        Submit Content
+      </button>
+    </form>
+
+    <div id="talentPostList" class="talent-post-grid">
+      <p>Published creator content will appear here.</p>
+    </div>
+  </div>
+
+  <!-- CHALLENGES -->
+  <div class="talent-arena-panel" id="talentChallenges">
+    <span class="talent-tag">TAKE THE CHALLENGE</span>
+    <h3>Talent Challenges</h3>
+    <p>Create a competition or participate in another creator's challenge.</p>
+
+    <button type="button" class="btn btn-primary"
+      data-arena-action="challenge">
+      Create a Challenge
+    </button>
+
+    <form id="talentChallengeForm" class="talent-form" hidden>
+      <h3>Launch a Talent Challenge</h3>
+
+      <label for="talentChallengeTitle">Challenge title</label>
+      <input id="talentChallengeTitle" name="title"
+        type="text" maxlength="120" required>
+
+      <label for="talentChallengeDescription">Description</label>
+      <textarea id="talentChallengeDescription" name="description"
+        maxlength="1000" rows="3" required></textarea>
+
+      <label for="talentChallengeCategory">Category</label>
+      <select id="talentChallengeCategory" name="category" required>
+        <option value="">Choose a category</option>
+        <option value="Music">Music</option>
+        <option value="Dance">Dance</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Content Creator">Content Creator</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="talentChallengeRules">Challenge rules</label>
+      <textarea id="talentChallengeRules" name="rules"
+        maxlength="2000" rows="4"></textarea>
+
+      <label for="talentChallengeEnd">Challenge closing date</label>
+      <input id="talentChallengeEnd" name="ends_at"
+        type="datetime-local" required>
+
+      <button class="btn btn-primary" type="submit">
+        Submit Challenge
+      </button>
+    </form>
+
+    <div id="talentChallengeList" class="talent-challenge-grid">
+      <p>Active challenges will appear here.</p>
+    </div>
+  </div>
+
+  <!-- DAILY RANKINGS -->
+  <div class="talent-arena-panel" id="talentRankings">
+    <span class="talent-tag">DAILY OVERVIEW</span>
+    <h3>Talent Rankings</h3>
+    <p>Discover leading creators and outstanding challenges.</p>
+
+    <div class="talent-ranking-grid">
+      <div>
+        <h4>Best Music</h4>
+        <div id="rankingMusic">Rankings will appear here.</div>
+      </div>
+      <div>
+        <h4>Best TikTokers & Creators</h4>
+        <div id="rankingCreators">Rankings will appear here.</div>
+      </div>
+      <div>
+        <h4>Best Comedians</h4>
+        <div id="rankingComedy">Rankings will appear here.</div>
+      </div>
+      <div>
+        <h4>Best Dancers</h4>
+        <div id="rankingDance">Rankings will appear here.</div>
+      </div>
+      <div>
+        <h4>Top Challenges</h4>
+        <div id="rankingChallenges">Rankings will appear here.</div>
+      </div>
+    </div>
+
+    <p class="talent-ranking-note">
+      Rankings will be displayed after verified participation and
+      ranking rules are implemented.
+    </p>
   </div>
 
 </section>
