@@ -1098,6 +1098,7 @@ if ("serviceWorker" in navigator) {
 /* =====================================
    PROOFNEAR AUTOMATIC HERO SLIDER
 ===================================== */
+alert("HERO SLIDER SECTION REACHED");
 alert("HERO SLIDER SCRIPT IS RUNNING");
 (function () {
   const slider = document.getElementById("homeSlider");
