@@ -73,68 +73,75 @@
 <div class="dashboard-layout">
 
   
+
 <aside class="dashboard-sidebar" id="dashboardSidebar">
+
+  <h3 class="admin-heading">🔐 Admin<br>Panel</h3>
 
   <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Expand or collapse menu">
     ☰
   </button>
 
-  <h3>PROOFNEAR</h3>
+  <div class="sidebar-brand">
+    <h2>PROOFNEAR</h2>
+    <div class="sidebar-divider"></div>
+  </div>
 
-  <button class="sidebar-link" onclick="showSection('overview')" title="Overview">
-    <span class="sidebar-icon">🏠</span>
-    <span class="sidebar-label">Overview</span>
-  </button>
+  <div class="sidebar-menu-grid">
 
-  <button class="sidebar-link" onclick="showSection('profile')" title="My Profile">
-    <span class="sidebar-icon">👤</span>
-    <span class="sidebar-label">My Profile</span>
-  </button>
+    <button class="sidebar-link" onclick="showSection('overview')" title="Overview">
+      <span class="sidebar-icon">🏠</span>
+      <span class="sidebar-label">Overview</span>
+    </button>
 
-  <button class="sidebar-link" onclick="showSection('opportunities')" title="My Opportunities">
-    <span class="sidebar-icon">💼</span>
-    <span class="sidebar-label">My Opportunities</span>
-  </button>
-  <button class="sidebar-link" onclick="showSection('payments')" title="My Payments">
-  <span class="sidebar-icon">💰</span>
-  <span class="sidebar-label">My Payments</span>
-</button>
+    <button class="sidebar-link" onclick="showSection('profile')" title="My Profile">
+      <span class="sidebar-icon">👤</span>
+      <span class="sidebar-label">My Profile</span>
+    </button>
 
-  <button class="sidebar-link" onclick="showSection('post')" title="Post Opportunity">
-    <span class="sidebar-icon">➕</span>
-    <span class="sidebar-label">Post Opportunity</span>
-  </button>
+    <button class="sidebar-link" onclick="showSection('opportunities')" title="My Opportunities">
+      <span class="sidebar-icon">💼</span>
+      <span class="sidebar-label">My Opportunities</span>
+    </button>
 
-  <button class="sidebar-link" onclick="showSection('messages')" title="Messages">
-    <span class="sidebar-icon">✉️</span>
-    <span class="sidebar-label">Messages</span>
-  </button>
+    <button class="sidebar-link" onclick="showSection('payments')" title="My Payments">
+      <span class="sidebar-icon">💰</span>
+      <span class="sidebar-label">My Payments</span>
+    </button>
 
+    <button class="sidebar-link" onclick="showSection('post')" title="Post Opportunity">
+      <span class="sidebar-icon">➕</span>
+      <span class="sidebar-label">Post Opportunity</span>
+    </button>
 
-<button class="sidebar-link" onclick="showSection('notifications')" title="Notifications">
-  <span class="sidebar-icon">🔔</span>
-  <span class="sidebar-label">Notifications</span>
-  <span id="notificationBadge" class="notification-badge" style="display:none;">0</span>
-</button>
+    <button class="sidebar-link" onclick="showSection('messages')" title="Messages">
+      <span class="sidebar-icon">✉️</span>
+      <span class="sidebar-label">Messages</span>
+    </button>
 
+    <button class="sidebar-link" onclick="showSection('notifications')" title="Notifications">
+      <span class="sidebar-icon">🔔</span>
+      <span class="sidebar-label">Notifications</span>
+      <span id="notificationBadge" class="notification-badge" style="display:none;">0</span>
+    </button>
 
-  <button class="sidebar-link" onclick="showSection('settings')" title="Settings">
-    <span class="sidebar-icon">⚙️</span>
-    <span class="sidebar-label">Settings</span>
-  </button>
+    <button class="sidebar-link" onclick="showSection('settings')" title="Settings">
+      <span class="sidebar-icon">⚙️</span>
+      <span class="sidebar-label">Settings</span>
+    </button>
 
-  <button class="sidebar-link" onclick="logoutUser()" title="Log Out">
-    <span class="sidebar-icon">🚪</span>
-    <span class="sidebar-label">Log Out</span>
-  </button>
+    <button class="sidebar-link" onclick="logoutUser()" title="Log Out">
+      <span class="sidebar-icon">🚪</span>
+      <span class="sidebar-label">Log Out</span>
+    </button>
 
-  <button class="sidebar-link" onclick="location.href='index.html'" title="Homepage">
-    <span class="sidebar-icon">←</span>
-    <span class="sidebar-label">Homepage</span>
-  </button>
+    <button class="sidebar-link" onclick="location.href='index.html'" title="Homepage">
+      <span class="sidebar-icon">←</span>
+      <span class="sidebar-label">Homepage</span>
+    </button>
 
+  </div>
 </aside>
-
 
   <main class="dashboard-main" id="dashboardContent">
     <h2>Welcome to PROOFNEAR</h2>
