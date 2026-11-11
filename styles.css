@@ -660,18 +660,59 @@ h1, h2, h3 {
 }
 
 /* HOW IT WORKS */
+.how-section {
+  margin-top: 78px;
+  margin-bottom: 70px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+}
+
 .step {
   background: #ffffff;
   border: 1px solid #e5ece9;
+  border-top: 3px solid #d6b45c;
   border-radius: 17px;
   padding: 25px;
-  box-shadow: 0 5px 18px rgba(0,0,0,0.04);
+  min-width: 0;
+  box-shadow: 0 6px 22px rgba(16, 43, 67, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(16, 43, 67, 0.09);
 }
 
 .step > span {
-  color: #e5a52f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #edf7f0;
+  color: #16734b;
+  font-size: 16px;
   font-weight: 800;
-  font-size: 24px;
+}
+
+.step h3 {
+  color: #102b43;
+  font-size: 17px;
+  margin: 17px 0 9px;
+}
+
+.step p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: none;
+  margin: 0;
 }
 
 /* FOOTER */
