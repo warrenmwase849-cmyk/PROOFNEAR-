@@ -640,33 +640,6 @@ h1, h2, h3 {
   }
 }
 
-
-/* CATEGORY CARDS */
-.category-card {
-  background: #ffffff;
-  border: 1px solid #e5ece9;
-  border-radius: 17px;
-  padding: 23px;
-  text-align: left;
-  transition: 0.25s ease;
-  cursor: pointer;
-}
-
-.category-card:hover {
-  border-color: #075e54;
-  transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(7,94,84,0.10);
-}
-
-.category-card b {
-  color: #173c35;
-}
-
-.category-card small {
-  color: #71817d;
-}
-
-
 /* =================================
    PROOFNEAR PREMIUM OPPORTUNITY CARDS
 ================================= */
