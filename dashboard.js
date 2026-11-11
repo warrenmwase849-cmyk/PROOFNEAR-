@@ -50,10 +50,12 @@ adminButton.style.padding = "15px";
 adminButton.style.display = "block";
 adminButton.style.width = "100%";
 adminButton.style.cursor = "pointer";
-    adminButton.onclick = () => {
-  alert("Admin button clicked. Admin access: " + isProofnearAdmin);
-  showSection("admin");
-};
+    adminButton.addEventListener("click", function () {
+  dashboardContent.innerHTML = `
+    <h2>ADMIN BUTTON TEST</h2>
+    <p>The Admin Panel button is responding!</p>
+  `;
+});
 
     sidebar.insertBefore(
       adminButton,
