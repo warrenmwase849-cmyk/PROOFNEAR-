@@ -791,7 +791,22 @@ function getAnswer(t) {
 </div>
 <!-- End PROOFNEAR Welcome Screen -->
 
-    <dialog id="actionDialog" class="modal">
+    
+<dialog id="actionDialog" class="modal">
+  <form method="dialog" class="modal-close">
+    <button aria-label="Close">×</button>
+  </form>
+  <div id="modalContent"></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
+
     <form method="dialog" class="modal-close"><button aria-label="Close">×</button></form>
     <div id="modalContent"></div>
   </dialog>
