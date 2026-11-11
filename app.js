@@ -882,49 +882,6 @@ async function openAccount() {
   }
 }
 
-  const user = data.session.user;
-  const name = user.user_metadata.full_name || "PROOFNEAR User";
-  const email = user.email || "";
-  const accountType = user.user_metadata.account_type || "both";
-
-  function showDashboard() {
-    modalContent.innerHTML = `
-      <h2>My PROOFNEAR Dashboard</h2>
-      <p>Welcome back, ${escapeHTML(name)}!</p>
-
-      <div class="form-stack">
-        <button class="btn btn-primary" id="profileSection">
-          👤 My Profile
-        </button>
-
-        <button class="btn btn-primary" id="opportunitiesSection">
-          💼 My Opportunities
-        </button>
-
-        <button class="btn btn-primary" id="postSection">
-          ➕ Post an Opportunity
-        </button>
-
-        <button class="btn btn-primary" id="settingsSection">
-          ⚙️ Account Settings
-        </button>
-
-        <button class="btn" id="logoutBtn">
-          Log out
-        </button>
-
-        <button class="btn" id="closeAccountBtn">
-          Close Dashboard
-        </button>
-      </div>
-    `;
-
-    document.getElementById("profileSection").onclick =
-      showProfile;
-
-    document.getElementById("opportunitiesSection").onclick =
-      showOpportunities;
-
 /* PROOFNEAR COMPANY SLIDER */
 
 let companySlideIndex = 0;
