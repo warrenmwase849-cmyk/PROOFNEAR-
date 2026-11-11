@@ -1100,7 +1100,7 @@ if ("serviceWorker" in navigator) {
 
 (function () {
   const slider = document.getElementById("homeSlider");
-
+console.log("PROOFNEAR SLIDER FOUND:", !!slider);
   if (!slider) return;
 
   const slides = slider.querySelectorAll(".hero-slide");
