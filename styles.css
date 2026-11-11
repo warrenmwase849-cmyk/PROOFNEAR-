@@ -534,22 +534,112 @@ h1, h2, h3 {
 }
 
 /* SEARCH PANEL */
+
+/* =================================
+   PROOFNEAR PREMIUM SEARCH PANEL
+================================= */
+
 .search-panel {
-  background: #ffffff;
-  border: 1px solid #e5ece9;
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 12px 35px rgba(0,0,0,0.07);
-  margin-top: -20px;
   position: relative;
   z-index: 2;
+  background: #ffffff;
+  border: 1px solid #e2ebe6;
+  border-radius: 22px;
+  padding: 30px;
+  margin-top: -20px;
+  box-shadow: 0 14px 38px rgba(16, 43, 67, 0.07);
 }
 
-.search-heading h2,
-.section-heading h2 {
+.search-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 23px;
+}
+
+.search-heading h2 {
   color: #075e54;
+  font-size: 25px;
+  font-weight: 800;
+  margin: 7px 0 0;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.search-field > span {
+  color: #315b4e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
+
+.search-field input,
+.search-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #dce7e1;
+  border-radius: 11px;
+  background: #fbfdfb;
+  color: #173c35;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.search-field input:focus,
+.search-field select:focus {
+  border-color: #087c6b;
+  box-shadow: 0 0 0 3px rgba(8, 124, 107, 0.10);
+}
+
+.search-button {
+  min-height: 48px;
+  align-self: end;
+  border-radius: 11px;
   font-weight: 750;
 }
+
+.free-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 13px;
+  border-radius: 30px;
+  background: #edf7f0;
+  color: #16734b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .search-panel {
+    padding: 21px 17px;
+    margin: 15px;
+    border-radius: 17px;
+  }
+
+  .search-heading {
+    align-items: flex-start;
+  }
+
+  .search-heading h2 {
+    font-size: 21px;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+}
+
 
 /* CATEGORY CARDS */
 .category-card {
