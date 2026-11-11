@@ -211,7 +211,177 @@
   background: #ffffff;
 }
 
+/* PROOFNEAR DASHBOARD LAYOUT */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 85vh;
+  padding: 0 16px 24px;
+  box-sizing: border-box;
+}
+
+/* GREEN ADMIN CARD */
+.dashboard-sidebar {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 620px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 26px 24px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #075e54, #06483f);
+  color: #ffffff;
+  border: 0;
+  box-shadow: 0 12px 30px rgba(0, 50, 42, 0.18);
+  overflow: hidden;
+}
+
+/* ADMIN TITLE AND MENU BUTTON */
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.admin-heading {
+  color: #ffffff;
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 0;
+  font-weight: 800;
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 50px;
+  width: 50px;
+  height: 46px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #08745f;
+  font-size: 27px;
+  cursor: pointer;
+}
+
+/* PROOFNEAR BRAND */
+.sidebar-brand {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 24px;
+}
+
+.sidebar-brand h2 {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color: #ffffff;
+  font-size: 23px !important;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: visible;
+  margin: 0 0 12px !important;
+}
+
+.sidebar-divider {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background: #d6a84b;
+  border-radius: 3px;
+}
+
+/* MENU */
+.sidebar-menu-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 20px;
+}
+
+#dashboardSidebar .sidebar-link {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 10px 4px !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  text-align: left !important;
+}
+
+#dashboardSidebar .sidebar-icon {
+  flex: 0 0 24px !important;
+  width: 24px !important;
+  text-align: center !important;
+}
+
+#dashboardSidebar .sidebar-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+#dashboardSidebar .notification-badge {
+  flex: 0 0 19px !important;
+  margin-left: 2px !important;
+}
+
+/* MAIN DASHBOARD CONTENT */
+.dashboard-main {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  background: var(--card, #ffffff);
+  border: 1px solid #dddddd;
+  min-width: 0;
+}
+
+.dashboard-card {
+  padding: 18px;
+  margin: 12px 0;
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+}
+
+/* WHITE TOP HEADER */
+.dashboard-header {
+  display: block !important;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-header-empty {
+  height: 85px;
+  width: 100%;
+  background: #ffffff;
+}
+
 .dashboard-header-gold-line {
+  display: block;
   width: 100%;
   height: 3px;
   background: #d6a84b;
@@ -226,30 +396,31 @@
   white-space: nowrap;
 }
 
-.sidebar-brand {
-  width: 100%;
-  min-width: 0;
-}
+/* MOBILE */
+@media (max-width: 700px) {
+  .dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 12px 20px;
+    gap: 18px;
+  }
 
+  .dashboard-sidebar {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 22px 16px;
+    margin: 0 auto;
+  }
 
-.sidebar-brand h2 {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  color: #ffffff;
-  font-size: 23px !important;
-  font-weight: 800;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: visible;
-  margin: 0 0 12px 0 !important;
-}
-
-
-.sidebar-divider {
-  width: 100% !important;
-  height: 3px;
-  background: #d6a84b;
+  .dashboard-main {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 18px;
+  }
 }
   
   </style>
