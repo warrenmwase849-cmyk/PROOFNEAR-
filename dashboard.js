@@ -44,6 +44,12 @@ if (adminError) {
 
     const adminButton = document.createElement("button");
     adminButton.textContent = "🔐 Admin Panel";
+    adminButton.style.background = "red";
+adminButton.style.color = "white";
+adminButton.style.padding = "15px";
+adminButton.style.display = "block";
+adminButton.style.width = "100%";
+adminButton.style.cursor = "pointer";
     adminButton.onclick = () => {
   alert("Admin button clicked. Admin access: " + isProofnearAdmin);
   showSection("admin");
