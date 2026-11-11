@@ -1000,14 +1000,7 @@ if ("serviceWorker" in navigator) {
   const slides = slider.querySelectorAll(".hero-slide");
   const dots = slider.querySelectorAll(".slider-dot");
   const previous = slider.querySelector(".slider-prev");
-  const next = slider.querySelector(".slider-next");
-
-  slides: slides.length,
-  dots: dots.length,
-  previousArrow: !!previous,
-  nextArrow: !!next
-});
-
+  
   if (!slides.length) return;
 
   let currentSlide = 0;
