@@ -24,6 +24,8 @@ async function initializeDashboard() {
 
   currentUser = data.session.user;
 
+showSection("overview");
+
 updateNotificationBadge();
 startNotificationListener();
 
