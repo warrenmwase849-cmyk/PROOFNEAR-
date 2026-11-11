@@ -973,10 +973,10 @@ h1, h2, h3 {
   }
 
   .search-panel {
-    padding: 19px;
-    margin: 15px;
-  }
-
+  width: calc(100% - 30px);
+  padding: 19px;
+  margin: 15px auto;
+}
   .worker-cta {
   flex-direction: column;
   align-items: stretch;
