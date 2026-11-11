@@ -1,4 +1,5 @@
 alert("PROOFNEAR APP.JS IS LOADING");
+alert("PROOFNEAR APP.JS IS LOADING");
 window.addEventListener("error", function(event) {
   alert(
     "PROOFNEAR ERROR: " + event.message +
