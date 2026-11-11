@@ -1553,3 +1553,35 @@ h1, h2, h3 {
     display: flex !important;
   }
 }
+/* PROOFNEAR MOBILE HOMEPAGE POLISH */
+
+/* Give the mission text breathing room */
+.marquee-group {
+  padding-left: 18px;
+}
+
+@media (max-width: 600px) {
+  .marquee-group {
+    padding-left: 14px;
+  }
+
+  /* Keep the hero headline clearly separated */
+  .slide-overlay h1 span {
+    display: block;
+  }
+
+  /* Move slider arrows away from the paragraph */
+  .slider-arrow {
+    top: 14px !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+
+  .slider-prev {
+    left: 14px !important;
+  }
+
+  .slider-next {
+    right: 14px !important;
+  }
+}
