@@ -704,8 +704,21 @@ h1, h2, h3 {
   }
 
   .worker-cta {
-    padding: 25px 20px;
-  }
+  flex-direction: column;
+  align-items: stretch;
+  gap: 25px;
+  padding: 30px 22px;
+}
+
+.skills-cloud {
+  justify-content: flex-start;
+  gap: 9px;
+}
+
+.skills-cloud span {
+  padding: 9px 13px;
+  font-size: 12px;
+}
 
   .category-card {
     padding: 16px;
