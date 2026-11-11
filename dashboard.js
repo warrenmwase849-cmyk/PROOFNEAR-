@@ -51,9 +51,7 @@ if (adminError) {
       sidebar.querySelector("button")
     );
   }
-}
-console.log("PROOFNEAR: Initialization completed");
-showSection("overview");
+}console.log("PROOFNEAR: Initialization completed");
 }
 
 function showSection(section) {
