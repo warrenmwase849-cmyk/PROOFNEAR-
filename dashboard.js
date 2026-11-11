@@ -142,8 +142,6 @@ else if (section === "settings") {
 }
 
 async function loadDashboardOverview() {
-
-async function loadDashboardOverview() {
   if (!currentUser) return;
 
   const name =
