@@ -1257,7 +1257,7 @@ h1, h2, h3 {
   height: 100%;
   object-fit: contain;
 background: #102a43;
-filter: brightness(1.12) contrast(1.05);
+filter: brightness(1.22) contrast(1.08) saturate(1.08);
   display: block;
   transform: scale(1.04);
   transition: transform 5s ease;
