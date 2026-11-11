@@ -44,7 +44,10 @@ if (adminError) {
 
     const adminButton = document.createElement("button");
     adminButton.textContent = "🔐 Admin Panel";
-    adminButton.onclick = () => showSection("admin");
+    adminButton.onclick = () => {
+  alert("Admin button clicked. Admin access: " + isProofnearAdmin);
+  showSection("admin");
+};
 
     sidebar.insertBefore(
       adminButton,
