@@ -142,6 +142,8 @@ else if (section === "settings") {
 }
 
 async function loadDashboardOverview() {
+
+async function loadDashboardOverview() {
   if (!currentUser) return;
 
   const name =
@@ -165,8 +167,14 @@ async function loadDashboardOverview() {
     "both";
 
   dashboardContent.innerHTML = `
-    <h2>Welcome, ${escapeHTML(name)}! 👋</h2>
-    <p>Here's an overview of your PROOFNEAR account.</p>
+    <div style="margin-bottom:24px;">
+      <h2 style="margin-bottom:6px;">
+        Welcome back, ${escapeHTML(name)}! 👋
+      </h2>
+      <p style="color:#71817d;margin:0;">
+        Here's an overview of your PROOFNEAR account.
+      </p>
+    </div>
 
     <div class="dashboard-card">
       <h3>👤 Account Information</h3>
@@ -174,40 +182,72 @@ async function loadDashboardOverview() {
       <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
     </div>
 
-    <h3>📊 Your Activity</h3>
+    <h3 style="margin:24px 0 14px;">📊 Your Activity</h3>
 
-    <div class="dashboard-card">
-      <h3>💼 Total Opportunities</h3>
-      <h2 id="totalOpportunities">Loading...</h2>
-    </div>
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:14px;
+      margin-bottom:24px;
+    ">
 
-    <div class="dashboard-card">
-      <h3>⏳ Pending Opportunities</h3>
-      <h2 id="pendingOpportunities">Loading...</h2>
-    </div>
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #087f70;">
+        <p style="margin:0;color:#71817d;">💼 Total Opportunities</p>
+        <h2 id="totalOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
 
-    <div class="dashboard-card">
-      <h3>✅ Approved Opportunities</h3>
-      <h2 id="approvedOpportunities">Loading...</h2>
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #d6a84b;">
+        <p style="margin:0;color:#71817d;">⏳ Pending</p>
+        <h2 id="pendingOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
+        <p style="margin:0;color:#71817d;">✅ Approved</p>
+        <h2 id="approvedOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
     </div>
 
     <div class="dashboard-card">
       <h3>🚀 Quick Actions</h3>
 
-      <button class="btn btn-primary"
-        onclick="showSection('post')">
-        ➕ Post Opportunity
-      </button>
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+        gap:10px;
+      ">
 
-      <button class="btn btn-primary"
-        onclick="showSection('opportunities')">
-        💼 My Opportunities
-      </button>
+        <button class="btn btn-primary"
+          onclick="showSection('post')">
+          ➕ Post Opportunity
+        </button>
 
-      <button class="btn btn-primary"
-        onclick="showSection('profile')">
-        👤 Edit Profile
-      </button>
+        <button class="btn btn-primary"
+          onclick="showSection('opportunities')">
+          💼 My Opportunities
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('payments')">
+          💰 My Payments
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('notifications')">
+          🔔 Notifications
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('messages')">
+          ✉️ Messages
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('profile')">
+          👤 Edit Profile
+        </button>
+
+      </div>
     </div>
   `;
 
@@ -236,6 +276,11 @@ async function loadDashboardOverview() {
       "Dashboard statistics error:",
       totalError || pendingError || approvedError
     );
+
+    document.getElementById("totalOpportunities").textContent = "—";
+    document.getElementById("pendingOpportunities").textContent = "—";
+    document.getElementById("approvedOpportunities").textContent = "—";
+
     return;
   }
 
