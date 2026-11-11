@@ -1114,7 +1114,7 @@ async function updateNotificationBadge() {
     return;
   }
 
-  badge.textContent = count > 99 ? "99+" : count;
+  badge.textContent = (count ?? 0) > 99 ? "99+" : (count ?? 0);
   badge.style.display = count > 0 ? "inline-flex" : "none";
 }
 function startNotificationListener() {
