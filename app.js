@@ -995,7 +995,6 @@ if ("serviceWorker" in navigator) {
 ===================================== */
 (function () {
   const slider = document.getElementById("homeSlider");
-console.log("PROOFNEAR SLIDER FOUND:", !!slider);
   if (!slider) return;
 
   const slides = slider.querySelectorAll(".hero-slide");
@@ -1003,7 +1002,6 @@ console.log("PROOFNEAR SLIDER FOUND:", !!slider);
   const previous = slider.querySelector(".slider-prev");
   const next = slider.querySelector(".slider-next");
 
-console.log("PROOFNEAR SLIDER CHECK:", {
   slides: slides.length,
   dots: dots.length,
   previousArrow: !!previous,
