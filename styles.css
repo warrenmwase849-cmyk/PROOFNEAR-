@@ -2188,3 +2188,119 @@ background: linear-gradient(
     padding: 17px;
   }
 }
+
+/* =================================
+   PROOFNEAR TALENT FOR YOU FEED
+================================= */
+
+.talent-for-you-feed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  padding: 15px 0;
+}
+
+.talent-video-card {
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  background: #102a43;
+  color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.16);
+}
+
+.talent-feed-creator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+
+.talent-creator-avatar,
+.talent-creator-avatar-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  color: #102a43;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talent-feed-creator strong,
+.talent-feed-creator small {
+  display: block;
+}
+
+.talent-feed-creator small {
+  color: #cbd5e1;
+  margin-top: 3px;
+}
+
+.talent-feed-content {
+  width: 100%;
+  background: #000000;
+}
+
+.talent-feed-media {
+  display: block;
+  width: 100%;
+  max-height: 650px;
+  object-fit: contain;
+  background: #000000;
+}
+
+.talent-audio-player {
+  padding: 30px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 25px;
+}
+
+.talent-audio-player audio {
+  width: 100%;
+}
+
+.talent-feed-details {
+  padding: 16px;
+}
+
+.talent-feed-details h3 {
+  margin: 0 0 8px;
+  color: #ffffff;
+}
+
+.talent-feed-details p {
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+.talent-feed-category {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #2368d8;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .talent-for-you-feed {
+    padding: 10px 0;
+    gap: 18px;
+  }
+
+  .talent-video-card {
+    border-radius: 12px;
+  }
+
+  .talent-feed-media {
+    max-height: 75vh;
+  }
+}
