@@ -1421,7 +1421,124 @@ async function rejectTalentPost(postId) {
     alert("This submission is no longer pending.");
   }
 }
+/* TALENT ARENA CHALLENGE MODERATION */
 
+async function loadPendingTalentChallenges() {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const { data: challenges, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id, title, description, category, rules, ends_at, created_at, status")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Pending challenges:", error);
+    alert("Could not load pending challenges.");
+    return;
+  }
+
+  if (!challenges.length) {
+    dashboardContent.innerHTML = `
+      <h2>🏆 Pending Talent Challenges</h2>
+      <p>There are currently no pending challenges.</p>
+      <button onclick="showSection('admin')">Back to Admin Panel</button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🏆 Pending Talent Challenges</h2>
+
+    ${challenges.map(challenge => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(challenge.title)}</h3>
+
+        <p><strong>Category:</strong>
+          ${escapeHTML(challenge.category || "Not specified")}</p>
+
+        <p>${escapeHTML(challenge.description || "")}</p>
+
+        <p><strong>Rules:</strong>
+          ${escapeHTML(challenge.rules || "No rules provided")}</p>
+
+        <p><strong>Closing date:</strong>
+          ${challenge.ends_at
+            ? new Date(challenge.ends_at).toLocaleString()
+            : "Not specified"}</p>
+
+        <p><strong>Status:</strong> Pending approval</p>
+
+        <button class="btn btn-primary"
+          onclick="approveTalentChallenge('${challenge.id}')">
+          Approve Challenge
+        </button>
+
+        <button class="btn btn-danger"
+          onclick="rejectTalentChallenge('${challenge.id}')">
+          Reject Challenge
+        </button>
+      </div>
+    `).join("")}
+
+    <button onclick="showSection('admin')">Back to Admin Panel</button>
+  `;
+}
+
+async function approveTalentChallenge(challengeId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  if (!confirm("Approve this talent challenge?")) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "approve_talent_challenge",
+    { target_challenge_id: challengeId }
+  );
+
+  if (error) {
+    alert("Approval failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Talent challenge approved successfully!");
+    await loadPendingTalentChallenges();
+  } else {
+    alert("This challenge is no longer pending.");
+  }
+}
+
+async function rejectTalentChallenge(challengeId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  if (!confirm("Reject this talent challenge?")) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "reject_talent_challenge",
+    { target_challenge_id: challengeId }
+  );
+
+  if (error) {
+    alert("Rejection failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Talent challenge rejected.");
+    await loadPendingTalentChallenges();
+  } else {
+    alert("This challenge is no longer pending.");
+  }
+}
 async function loadApprovedJobs() {
   if (!isProofnearAdmin) {
     alert("Administrator access required.");
