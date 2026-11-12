@@ -1433,7 +1433,8 @@ if (talentChallengeForm) {
           category: talentChallengeForm.elements.category.value,
           rules: talentChallengeForm.elements.rules.value.trim(),
           starts_at: new Date().toISOString(),
-          ends_at: new Date(closingDate).toISOString()
+          ends_at: new Date(closingDate).toISOString(),
+status: "pending"
         });
 
       if (error) throw error;
