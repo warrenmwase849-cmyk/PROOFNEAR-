@@ -1701,6 +1701,83 @@ async function loadTalentPosts() {
   }).join("");
 }
 
+/* ==========================================
+   LIKE OR UNLIKE TALENT POSTS
+========================================== */
+
+async function toggleTalentPostLike(postId) {
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    alert("Please sign in to like creator posts.");
+    return;
+  }
+
+  try {
+    // Check the post and its creator
+    const { data: post, error: postError } =
+      await supabaseClient
+        .from("talent_posts")
+        .select("id,creator_id,status")
+        .eq("id", postId)
+        .single();
+
+    if (postError || !post) {
+      throw new Error("Could not find this post.");
+    }
+
+    if (post.status !== "published") {
+      throw new Error("This post is not published.");
+    }
+
+    if (post.creator_id === user.id) {
+      throw new Error("You cannot like your own post.");
+    }
+
+    // Check whether this user already liked this post
+    const { data: existingLike, error: checkError } =
+      await supabaseClient
+        .from("talent_post_likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+    if (checkError) throw checkError;
+
+    if (existingLike) {
+      // Remove existing like
+      const { error } = await supabaseClient
+        .from("talent_post_likes")
+        .delete()
+        .eq("id", existingLike.id);
+
+      if (error) throw error;
+
+    } else {
+      // Add new like
+      const { error } = await supabaseClient
+        .from("talent_post_likes")
+        .insert({
+          post_id: postId,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+    }
+
+    // Refresh the feed and like counts
+    await loadTalentPosts();
+
+  } catch (error) {
+    console.error("Talent like:", error.message);
+    alert(error.message || "Could not update your like.");
+  }
+}
+
 
 /* ==========================================
    CREATE TALENT CHALLENGE
