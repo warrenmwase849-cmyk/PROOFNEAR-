@@ -1735,51 +1735,6 @@ if (talentChallengeForm) {
   });
 }
 
-
-/* LOAD VIDEOS ONLY - FOR YOU FEED */
-
-async function loadTalentPosts() {
-  const container = document.getElementById("talentPostList");
-  if (!container) return;
-
-  container.innerHTML = "<p>Loading videos...</p>";
-
-  const { data, error } = await supabaseClient
-    .from("talent_posts")
-    .select("id,creator_id,title,description,category,media_type,media_url,created_at")
-    .eq("status", "published")
-    .eq("media_type", "video")
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  if (error) {
-    container.textContent = "Could not load videos.";
-    console.error("Talent videos:", error.message);
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    container.innerHTML = "<p>No videos yet. Be the first to share your talent!</p>";
-    return;
-  }
-
-  const creatorIds = [
-    ...new Set(data.map(post => post.creator_id).filter(Boolean))
-  ];
-
-  let creatorProfiles = {};
-
-  if (creatorIds.length) {
-    const { data: profiles, error: profileError } =
-      await supabaseClient
-        .from("talent_profiles")
-        .select("user_id,username,display_name,avatar_url")
-        .in("user_id", creatorIds);
-
-    if (profileError) {
-      
-
-
 /* LOAD APPROVED CHALLENGES */
 
                       <h5>${escapeHTML(entry.title)}</h5>
