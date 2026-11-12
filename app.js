@@ -1496,6 +1496,11 @@ async function loadTalentChallenges() {
         ${escapeHTML(challenge.rules || "See challenge description.")}</p>
       <p><strong>Closes:</strong>
         ${new Date(challenge.ends_at).toLocaleString()}</p>
+              <button
+        class="btn btn-primary"
+        onclick="openChallengeEntry('${challenge.id}')">
+        Join Challenge
+      </button>
     </article>
   `).join("");
 }
@@ -1510,9 +1515,4 @@ async function loadTalentArena() {
   ]);
 }
 
-loadTalentArena();
-      <button
-        class="btn btn-primary"
-        onclick="openChallengeEntry('${challenge.id}')">
-        Join Challenge
-      </button>                      
+loadTalentArena();                  
