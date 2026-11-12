@@ -1196,16 +1196,19 @@ if ("serviceWorker" in navigator) {
     startSlider();
   }
 
+  if (previous) {
   previous.addEventListener("click", () => {
     showSlide(currentSlide - 1);
     restartSlider();
   });
+}
 
+if (next) {
   next.addEventListener("click", () => {
     showSlide(currentSlide + 1);
     restartSlider();
   });
-
+}
   dots.forEach((dot, index) => {
     dot.addEventListener("click", () => {
       showSlide(index);
