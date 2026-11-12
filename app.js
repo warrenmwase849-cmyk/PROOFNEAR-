@@ -1686,7 +1686,15 @@ async function loadTalentPosts() {
           <span class="talent-feed-category">
             ${escapeHTML(post.category || "Talent")}
           </span>
-        </div>
+                    <div
+              class="talent-post-actions">
+            <button
+              class="btn btn-primary"
+              onclick="toggleTalentPostLike('${post.id}')">
+              ${myLikedPosts.has(post.id) ? "❤️ Liked" : "🤍 Like"}
+              (${likeCounts[post.id] || 0})
+            </button>
+          </div>
 
       </article>
     `;
