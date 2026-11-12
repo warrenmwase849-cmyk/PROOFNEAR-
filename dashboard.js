@@ -159,6 +159,14 @@ else if (section === "settings") {
     Review Challenges
   </button>
 </div>
+<div class="dashboard-card">
+  <h3>🎬 Pending Challenge Entries</h3>
+  <p>Review photos, videos and other entries submitted by challenge participants.</p>
+  <button class="btn btn-primary"
+    onclick="loadPendingChallengeEntries()">
+    Review Challenge Entries
+  </button>
+</div>
     `;
   }
 }
