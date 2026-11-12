@@ -489,7 +489,7 @@ console.log("Payment submitted:", paymentId);
 
   console.log("Submitted opportunity:", newJobId);
 });
-}
+
     /* OPEN TALENT CHALLENGE ENTRY FORM */
 
   const workerForm = document.getElementById("workerForm");
