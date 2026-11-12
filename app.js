@@ -489,7 +489,71 @@ console.log("Payment submitted:", paymentId);
 
   console.log("Submitted opportunity:", newJobId);
 });
-    
+}
+    /* OPEN TALENT CHALLENGE ENTRY FORM */
+
+async function openChallengeEntry(challengeId) {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    showToast("Please sign in to join this challenge.");
+    openModal("signin");
+    return;
+  }
+
+  const { data: challenge, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id, title, description, rules, ends_at, status")
+    .eq("id", challengeId)
+    .eq("status", "published")
+    .single();
+
+  if (error || !challenge) {
+    showToast("This challenge is unavailable.");
+    return;
+  }
+
+  modalContent.innerHTML = `
+    <h2>Join Challenge</h2>
+
+    <h3>${escapeHTML(challenge.title)}</h3>
+
+    <p>${escapeHTML(challenge.description || "")}</p>
+
+    <p><strong>Rules:</strong>
+      ${escapeHTML(challenge.rules || "Follow the challenge instructions.")}
+    </p>
+
+    <form id="challengeEntryForm" class="form-stack">
+
+      <label>Entry title
+        <input name="title" required
+          placeholder="Give your entry a title">
+      </label>
+
+      <label>Describe your entry
+        <textarea name="description" required
+          placeholder="Tell us about your entry"></textarea>
+      </label>
+
+      <label>Upload your entry
+        <input name="media" type="file" required
+          accept="image/jpeg,image/png,image/webp,audio/mpeg,audio/mp4,audio/wav,audio/ogg,video/mp4,video/webm,video/quicktime">
+      </label>
+
+      <button class="btn btn-primary" type="submit">
+        Submit Entry
+      </button>
+
+      <p id="challengeEntryMessage" class="form-hint"></p>
+    </form>
+  `;
+
+  dialog.showModal();
+
+  // Submission code will be connected in the next step.
+}
   const workerForm = document.getElementById("workerForm");
   if (workerForm) workerForm.addEventListener("submit", e => {
     e.preventDefault(); const data = Object.fromEntries(new FormData(workerForm).entries());
