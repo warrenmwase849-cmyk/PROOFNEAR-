@@ -552,7 +552,108 @@ async function openChallengeEntry(challengeId) {
 
   dialog.showModal();
 
-  // Submission code will be connected in the next step.
+    const entryForm = document.getElementById("challengeEntryForm");
+
+  entryForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const submitButton = entryForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const message = document.getElementById(
+      "challengeEntryMessage"
+    );
+
+    const user = sessionData.session.user;
+    const formData = new FormData(entryForm);
+
+    const title = formData.get("title").trim();
+    const description = formData.get("description").trim();
+    const file = formData.get("media");
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "audio/mpeg",
+      "audio/mp4",
+      "audio/wav",
+      "audio/ogg",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime"
+    ];
+
+    if (!file || !allowedTypes.includes(file.type)) {
+      message.textContent = "Please select a supported photo, audio or video file.";
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      message.textContent = "Your file must not exceed 50 MB.";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Uploading entry...";
+
+    try {
+      const extension = file.name
+        .split(".")
+        .pop()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+      const filePath =
+        `${user.id}/challenge-entries/${Date.now()}.${extension}`;
+
+      const { error: uploadError } = await supabaseClient
+        .storage
+        .from("talent-media")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabaseClient
+        .storage
+        .from("talent-media")
+        .getPublicUrl(filePath);
+
+      const { error: insertError } = await supabaseClient
+        .from("challenge_entries")
+        .insert({
+          challenge_id: challengeId,
+          creator_id: user.id,
+          title: title,
+          description: description,
+          media_url: publicData.publicUrl,
+          status: "pending"
+        });
+
+      if (insertError) throw insertError;
+
+      message.textContent = "Your challenge entry was submitted successfully!";
+      entryForm.reset();
+
+      submitButton.textContent = "Submitted successfully";
+
+      showToast("Your entry is awaiting approval.");
+
+    } catch (error) {
+      console.error("Challenge entry submission:", error);
+
+      message.textContent =
+        "Submission failed: " + error.message;
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Submit Entry";
+    }
+  });
 }
   const workerForm = document.getElementById("workerForm");
   if (workerForm) workerForm.addEventListener("submit", e => {
