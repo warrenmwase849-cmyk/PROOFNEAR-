@@ -1511,4 +1511,8 @@ async function loadTalentArena() {
 }
 
 loadTalentArena();
-                      
+      <button
+        class="btn btn-primary"
+        onclick="openChallengeEntry('${challenge.id}')">
+        Join Challenge
+      </button>                      
