@@ -1,1 +1,297 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#075e54">
+  <title>PROOFNEAR | My Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f7f6;
+      color: #20332e;
+    }
+
+    .user-header {
+      padding: 22px 20px;
+      background: white;
+      border-bottom: 3px solid #d6a84b;
+    }
+
+    .user-header h1 {
+      margin: 0;
+      color: #075e54;
+      font-size: 25px;
+    }
+
+    .user-header p {
+      margin: 6px 0 0;
+      color: #71817d;
+      font-size: 13px;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 22px;
+      max-width: 1250px;
+      min-height: 85vh;
+      margin: 25px auto;
+      padding: 0 18px 25px;
+    }
+
+    .dashboard-sidebar {
+      padding: 23px 17px;
+      background: linear-gradient(145deg, #075e54, #06483f);
+      color: white;
+      border-radius: 18px;
+      height: fit-content;
+      box-shadow: 0 10px 25px rgba(0,50,42,.12);
+    }
+
+    .sidebar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .admin-heading {
+      margin: 0;
+      color: white;
+      font-size: 18px;
+    }
+
+    .sidebar-toggle {
+      width: 42px;
+      height: 40px;
+      border: 0;
+      border-radius: 8px;
+      background: white;
+      color: #075e54;
+      font-size: 23px;
+      cursor: pointer;
+    }
+
+    .sidebar-brand {
+      margin: 22px 0;
+    }
+
+    .sidebar-brand h2 {
+      margin: 0 0 12px;
+      color: white;
+      font-size: 25px;
+    }
+
+    .sidebar-divider {
+      height: 3px;
+      background: #d6a84b;
+      border-radius: 5px;
+    }
+
+    .sidebar-menu-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 10px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: white;
+      text-align: left;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .sidebar-link:hover {
+      background: rgba(255,255,255,.13);
+    }
+
+    .sidebar-icon {
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidebar-label {
+      flex: 1;
+    }
+
+    .notification-badge {
+      background: #d6a84b;
+      color: #173b32;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    .dashboard-main {
+      min-width: 0;
+      padding: 25px;
+      background: white;
+      border: 1px solid #e0e7e4;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.035);
+    }
+
+    .dashboard-card {
+      padding: 18px;
+      margin: 13px 0;
+      border: 1px solid #e0e7e4;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .user-footer {
+      padding: 20px;
+      text-align: center;
+      color: #71817d;
+      font-size: 12px;
+    }
+
+    @media(max-width: 760px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin: 17px auto;
+        padding: 0 12px 20px;
+      }
+
+      .dashboard-sidebar {
+        padding: 19px 15px;
+      }
+
+      .sidebar-menu-grid {
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+      }
+
+      .dashboard-sidebar.expanded .sidebar-menu-grid {
+        display: grid;
+      }
+
+      .dashboard-main {
+        padding: 17px;
+      }
+
+      .user-header h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="user-header">
+  <h1>PROOFNEAR</h1>
+  <p>Your opportunities. Your progress.</p>
+</header>
+
+<div class="dashboard-layout">
+
+  <aside class="dashboard-sidebar" id="dashboardSidebar">
+
+    <div class="sidebar-top">
+      <h3 class="admin-heading">👤 My Account</h3>
+
+      <button class="sidebar-toggle"
+        onclick="toggleSidebar()"
+        aria-label="Open menu">
+        ☰
+      </button>
+    </div>
+
+    <div class="sidebar-brand">
+      <h2>MY DASHBOARD</h2>
+      <div class="sidebar-divider"></div>
+    </div>
+
+    <div class="sidebar-menu-grid">
+
+      <button class="sidebar-link" onclick="showSection('overview')">
+        <span class="sidebar-icon">🏠</span>
+        <span class="sidebar-label">Overview</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('opportunities')">
+        <span class="sidebar-icon">💼</span>
+        <span class="sidebar-label">My Opportunities</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('post')">
+        <span class="sidebar-icon">➕</span>
+        <span class="sidebar-label">Post Opportunity</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('profile')">
+        <span class="sidebar-icon">👤</span>
+        <span class="sidebar-label">My Profile</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('payments')">
+        <span class="sidebar-icon">💰</span>
+        <span class="sidebar-label">My Payments</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('notifications')">
+        <span class="sidebar-icon">🔔</span>
+        <span class="sidebar-label">Notifications</span>
+        <span id="notificationBadge"
+          class="notification-badge"
+          style="display:none;">0</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('messages')">
+        <span class="sidebar-icon">✉️</span>
+        <span class="sidebar-label">Messages</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showSection('settings')">
+        <span class="sidebar-icon">⚙️</span>
+        <span class="sidebar-label">Settings</span>
+      </button>
+
+      <button class="sidebar-link" onclick="location.href='index.html'">
+        <span class="sidebar-icon">←</span>
+        <span class="sidebar-label">Homepage</span>
+      </button>
+
+      <button class="sidebar-link" onclick="logoutUser()">
+        <span class="sidebar-icon">🚪</span>
+        <span class="sidebar-label">Log Out</span>
+      </button>
+
+    </div>
+  </aside>
+
+  <main class="dashboard-main" id="dashboardContent">
+    <h2>Welcome to PROOFNEAR</h2>
+    <p>Your dashboard is loading...</p>
+  </main>
+
+</div>
+
+<footer class="user-footer">
+  © 2026 PROOFNEAR. Connecting people to opportunities.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="dashboard.js"></script>
+
+</body>
+</html>
+
