@@ -1841,6 +1841,24 @@ async function loadTalentPosts() {
 
 /* LOAD APPROVED CHALLENGES */
 
+                      <h5>${escapeHTML(entry.title)}</h5>
+                      <p>${escapeHTML(entry.description || "")}</p>
+                      ${mediaDisplay}
+                    </div>
+                  `;
+                }).join("")
+              : "<p>No approved entries yet. Be the first to participate!</p>"
+          }
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+
+
+/* LOAD APPROVED CHALLENGES WITH VOTING AND RANKINGS */
+
 async function loadTalentChallenges() {
   const container = document.getElementById("talentChallengeList");
   if (!container) return;
@@ -1865,20 +1883,72 @@ async function loadTalentChallenges() {
     return;
   }
 
+  // Get the signed-in user
+  const { data: authData } =
+    await supabaseClient.auth.getUser();
+
+  const currentUserId = authData?.user?.id || null;
+
   const challengeIds = data.map(challenge => challenge.id);
 
+  // Load approved entries
   const { data: entries, error: entriesError } =
     await supabaseClient
       .from("challenge_entries")
-      .select("id,challenge_id,title,description,media_url,created_at")
+      .select("id,challenge_id,creator_id,title,description,media_url,created_at")
       .in("challenge_id", challengeIds)
       .eq("status", "approved")
       .order("created_at", { ascending: false });
 
   if (entriesError) {
+    container.textContent = "Could not load challenge entries.";
     console.error("Challenge entries:", entriesError.message);
+    return;
   }
 
+  // Load vote totals for each challenge
+  const voteResults = await Promise.all(
+    challengeIds.map(challengeId =>
+      supabaseClient.rpc(
+        "get_challenge_entry_vote_counts",
+        { p_challenge_id: challengeId }
+      )
+    )
+  );
+
+  const voteCounts = {};
+
+  voteResults.forEach((result, index) => {
+    if (result.error) {
+      console.error("Vote counts:", result.error.message);
+      return;
+    }
+
+    (result.data || []).forEach(item => {
+      voteCounts[item.entry_id] = Number(item.vote_count);
+    });
+  });
+
+  // Find entries already voted for by this user
+  const votedEntries = new Set();
+
+  if (currentUserId) {
+    const { data: myVotes, error: votesError } =
+      await supabaseClient
+        .from("challenge_votes")
+        .select("entry_id")
+        .eq("voter_id", currentUserId);
+
+    if (votesError) {
+      console.error("My votes:", votesError.message);
+    } else {
+      (myVotes || []).forEach(vote => {
+        votedEntries.add(vote.entry_id);
+      });
+    }
+  }
+
+  // Group entries by challenge
   const entriesByChallenge = {};
 
   (entries || []).forEach(entry => {
@@ -1889,12 +1959,24 @@ async function loadTalentChallenges() {
     entriesByChallenge[entry.challenge_id].push(entry);
   });
 
+  // Display challenges and ranked entries
   container.innerHTML = data.map(challenge => {
     const approvedEntries =
       entriesByChallenge[challenge.id] || [];
 
+    // Highest votes appear first
+    approvedEntries.sort((a, b) => {
+      const voteDifference =
+        (voteCounts[b.id] || 0) - (voteCounts[a.id] || 0);
+
+      if (voteDifference !== 0) return voteDifference;
+
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+
     return `
       <article class="talent-challenge-card">
+
         <h4>${escapeHTML(challenge.title)}</h4>
 
         <p>${escapeHTML(challenge.description || "")}</p>
@@ -1917,11 +1999,13 @@ async function loadTalentChallenges() {
         </button>
 
         <div class="approved-challenge-entries">
-          <h4>🏆 Approved Entries (${approvedEntries.length})</h4>
+
+          <h4>🏆 Challenge Rankings (${approvedEntries.length})</h4>
 
           ${
             approvedEntries.length
-              ? approvedEntries.map(entry => {
+              ? approvedEntries.map((entry, index) => {
+
                   const mediaUrl = String(entry.media_url || "");
                   const mediaPath = mediaUrl.split("?")[0].toLowerCase();
 
@@ -1930,7 +2014,7 @@ async function loadTalentChallenges() {
                   if (/\.(jpg|jpeg|png|webp|gif)$/i.test(mediaPath)) {
                     mediaDisplay = `
                       <img src="${escapeHTML(mediaUrl)}"
-                        alt="${escapeHTML(entry.title)}"
+                        alt="${escapeHTML(entry.title || "Challenge entry")}"
                         loading="lazy"
                         style="max-width:100%;border-radius:12px;">
                     `;
@@ -1956,20 +2040,137 @@ async function loadTalentChallenges() {
                     `;
                   }
 
+                  const votes = voteCounts[entry.id] || 0;
+
+                  const isOwnEntry =
+                    currentUserId === entry.creator_id;
+
+                  const hasVoted =
+                    votedEntries.has(entry.id);
+
+                  let voteButton = "";
+
+                  if (!currentUserId) {
+                    voteButton = `
+                      <button class="btn btn-primary" disabled>
+                        Sign in to vote
+                      </button>
+                    `;
+                  } else if (isOwnEntry) {
+                    voteButton = `
+                      <button class="btn" disabled>
+                        Your entry
+                      </button>
+                    `;
+                  } else if (hasVoted) {
+                    voteButton = `
+                      <button class="btn" disabled>
+                        ✓ Voted
+                      </button>
+                    `;
+                  } else {
+                    voteButton = `
+                      <button class="btn btn-primary"
+                        onclick="voteForChallengeEntry('${entry.id}')">
+                        👍 Vote
+                      </button>
+                    `;
+                  }
+
                   return `
                     <div class="approved-entry-card">
-                      <h5>${escapeHTML(entry.title)}</h5>
+
+                      <h5>
+                        ${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "🏅"}
+                        Rank ${index + 1}
+                      </h5>
+
+                      <h4>${escapeHTML(entry.title || "Untitled entry")}</h4>
+
                       <p>${escapeHTML(entry.description || "")}</p>
+
                       ${mediaDisplay}
+
+                      <p>
+                        <strong>❤️ Votes:</strong> ${votes}
+                      </p>
+
+                      ${voteButton}
+
                     </div>
                   `;
                 }).join("")
               : "<p>No approved entries yet. Be the first to participate!</p>"
           }
+
         </div>
       </article>
     `;
   }).join("");
+}
+
+
+/* VOTE FOR A CHALLENGE ENTRY */
+
+async function voteForChallengeEntry(entryId) {
+
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    alert("Please sign in before voting.");
+    return;
+  }
+
+  // Confirm that the entry exists and is eligible
+  const { data: entry, error: entryError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,creator_id,status")
+      .eq("id", entryId)
+      .single();
+
+  if (entryError || !entry) {
+    alert("Could not find this challenge entry.");
+    return;
+  }
+
+  if (entry.status !== "approved") {
+    alert("You can only vote for approved entries.");
+    return;
+  }
+
+  if (entry.creator_id === user.id) {
+    alert("You cannot vote for your own entry.");
+    return;
+  }
+
+  // Save the vote
+  const { error: voteError } =
+    await supabaseClient
+      .from("challenge_votes")
+      .insert({
+        entry_id: entryId,
+        voter_id: user.id
+      });
+
+  if (voteError) {
+    if (voteError.code === "23505") {
+      alert("You have already voted for this entry.");
+    } else {
+      console.error("Voting error:", voteError.message);
+      alert("Your vote could not be saved. Please try again.");
+    }
+
+    return;
+  }
+
+  alert("Your vote has been recorded! ❤️");
+
+  // Refresh rankings and vote totals
+  await loadTalentChallenges();
 }
 
 
@@ -1984,3 +2185,5 @@ async function loadTalentArena() {
 }
 
 loadTalentArena();
+
+
