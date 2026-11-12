@@ -1625,6 +1625,7 @@ status: "pending"
 
 /* LOAD APPROVED CHALLENGES */
 
+
 async function loadTalentChallenges() {
   const container =
     document.getElementById("talentChallengeList");
@@ -1645,29 +1646,135 @@ async function loadTalentChallenges() {
     return;
   }
 
-  if (!data.length) {
+  if (!data || !data.length) {
     container.textContent =
       "Active challenges will appear here after approval.";
     return;
   }
 
-  container.innerHTML = data.map(challenge => `
-    <article class="talent-challenge-card">
-      <h4>${escapeHTML(challenge.title)}</h4>
-      <p>${escapeHTML(challenge.description)}</p>
-      <p><strong>Category:</strong>
-        ${escapeHTML(challenge.category || "")}</p>
-      <p><strong>Rules:</strong>
-        ${escapeHTML(challenge.rules || "See challenge description.")}</p>
-      <p><strong>Closes:</strong>
-        ${new Date(challenge.ends_at).toLocaleString()}</p>
-              <button
-        class="btn btn-primary"
-        onclick="openChallengeEntry('${challenge.id}')">
-        Join Challenge
-      </button>
-    </article>
-  `).join("");
+  // LOAD APPROVED ENTRIES FOR THESE CHALLENGES
+
+  const challengeIds = data.map(challenge => challenge.id);
+
+  const { data: entries, error: entriesError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,title,description,media_url,created_at")
+      .in("challenge_id", challengeIds)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+
+  if (entriesError) {
+    console.error("Challenge entries:", entriesError.message);
+  }
+
+  const entriesByChallenge = {};
+
+  (entries || []).forEach(entry => {
+    if (!entriesByChallenge[entry.challenge_id]) {
+      entriesByChallenge[entry.challenge_id] = [];
+    }
+
+    entriesByChallenge[entry.challenge_id].push(entry);
+  });
+
+  // DISPLAY CHALLENGES AND APPROVED ENTRIES
+
+  container.innerHTML = data.map(challenge => {
+
+    const approvedEntries =
+      entriesByChallenge[challenge.id] || [];
+
+    return `
+      <article class="talent-challenge-card">
+
+        <h4>${escapeHTML(challenge.title)}</h4>
+
+        <p>${escapeHTML(challenge.description)}</p>
+
+        <p><strong>Category:</strong>
+          ${escapeHTML(challenge.category || "")}
+        </p>
+
+        <p><strong>Rules:</strong>
+          ${escapeHTML(challenge.rules || "See challenge description.")}
+        </p>
+
+        <p><strong>Closes:</strong>
+          ${new Date(challenge.ends_at).toLocaleString()}
+        </p>
+
+        <button
+          class="btn btn-primary"
+          onclick="openChallengeEntry('${challenge.id}')">
+          Join Challenge
+        </button>
+
+        <div class="approved-challenge-entries">
+
+          <h4>🏆 Approved Entries (${approvedEntries.length})</h4>
+
+          ${
+            approvedEntries.length
+              ? approvedEntries.map(entry => {
+
+                  const mediaUrl = String(entry.media_url || "");
+                  const mediaPath = mediaUrl.split("?")[0].toLowerCase();
+
+                  let mediaDisplay = "";
+
+                  if (/\.(jpg|jpeg|png|webp|gif)$/i.test(mediaPath)) {
+                    mediaDisplay = `
+                      <img
+                        src="${escapeHTML(mediaUrl)}"
+                        alt="${escapeHTML(entry.title)}"
+                        loading="lazy"
+                        style="max-width:100%;border-radius:12px;"
+                      >
+                    `;
+                  } else if (/\.(mp3|wav|ogg|m4a)$/i.test(mediaPath)) {
+                    mediaDisplay = `
+                      <audio controls style="width:100%;">
+                        <source src="${escapeHTML(mediaUrl)}">
+                      </audio>
+                    `;
+                  } else if (/\.(mp4|webm|mov)$/i.test(mediaPath)) {
+                    mediaDisplay = `
+                      <video controls
+                        style="width:100%;max-height:350px;border-radius:12px;">
+                        <source src="${escapeHTML(mediaUrl)}">
+                      </video>
+                    `;
+                  } else if (mediaUrl) {
+                    mediaDisplay = `
+                      <a href="${escapeHTML(mediaUrl)}"
+                         target="_blank"
+                         rel="noopener noreferrer">
+                        View submitted entry
+                      </a>
+                    `;
+                  }
+
+                  return `
+                    <div class="approved-entry-card">
+
+                      <h5>${escapeHTML(entry.title)}</h5>
+
+                      <p>${escapeHTML(entry.description || "")}</p>
+
+                      ${mediaDisplay}
+
+                    </div>
+                  `;
+                }).join("")
+              : "<p>No approved entries yet. Be the first to participate!</p>"
+          }
+
+        </div>
+
+      </article>
+    `;
+  }).join("");
 }
 
 /* INITIAL TALENT ARENA LOAD */
