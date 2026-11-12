@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://rmprzvgxuwtkyfhrevki.supabase.co";
+youconst SUPABASE_URL = "https://rmprzvgxuwtkyfhrevki.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Z_6UK4b8hG3u3sGdV2BFKA_bjd0eYoD";
 
@@ -1734,24 +1734,6 @@ if (talentChallengeForm) {
     }
   });
 }
-
-/* LOAD APPROVED CHALLENGES */
-
-                      <h5>${escapeHTML(entry.title)}</h5>
-                      <p>${escapeHTML(entry.description || "")}</p>
-                      ${mediaDisplay}
-                    </div>
-                  `;
-                }).join("")
-              : "<p>No approved entries yet. Be the first to participate!</p>"
-          }
-        </div>
-      </article>
-    `;
-  }).join("");
-}
-
-
 
 /* LOAD APPROVED CHALLENGES WITH VOTING AND RANKINGS */
 
