@@ -1640,186 +1640,10 @@ status: "pending"
   });
 }
 
-/* LOAD APPROVED CHALLENGES */
-
-
-async function loadTalentChallenges() {
-
-async function loadTalentPosts() {
-  const container = document.getElementById("talentPostList");
-
-  if (!container) return;
-
-  container.innerHTML = "<p>Loading creator content...</p>";
-
-  const { data, error } = await supabaseClient
-    .from("talent_posts")
-    .select("id,creator_id,title,description,category,media_type,media_url,created_at")
-    .eq("status", "published")
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  if (error) {
-    container.textContent = "Could not load talent posts.";
-    console.error("Talent posts:", error.message);
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    container.textContent =
-      "Creator content will appear here after approval.";
-    return;
-  }
-
-  // LOAD CREATOR PROFILES
-
-  const creatorIds = [
-    ...new Set(data.map(post => post.creator_id).filter(Boolean))
-  ];
-
-  let creatorProfiles = {};
-
-  if (creatorIds.length) {
-    const { data: profiles, error: profileError } =
-      await supabaseClient
-        .from("talent_profiles")
-        .select("user_id,username,display_name,avatar_url")
-        .in("user_id", creatorIds);
-
-    if (profileError) {
-      console.error("Creator profiles:", profileError.message);
-    } else if (profiles) {
-      creatorProfiles = Object.fromEntries(
-        profiles.map(profile => [profile.user_id, profile])
-      );
-    }
-  }
-
-  // BUILD THE FOR YOU FEED
-
-  container.innerHTML = data.map(post => {
-    const profile = creatorProfiles[post.creator_id] || {};
-
-    const creatorName =
-      profile.display_name || profile.username || "PROOFNEAR Creator";
-
-    const username = profile.username
-      ? "@" + profile.username
-      : "@creator";
-
-    const avatar = profile.avatar_url
-      ? `<img class="talent-creator-avatar"
-          src="${escapeHTML(profile.avatar_url)}"
-          alt="Creator profile">`
-      : `<div class="talent-creator-avatar-placeholder">👤</div>`;
-
-    const url = escapeHTML(post.media_url || "");
-    let media = "";
-
-    if (post.media_type === "image") {
-      media = `
-        <img class="talent-feed-media"
-          src="${url}"
-          alt="${escapeHTML(post.title)}"
-          loading="lazy">
-      `;
-    } else if (post.media_type === "video") {
-      media = `
-        <video class="talent-feed-media"
-          controls
-          playsinline
-          preload="metadata">
-          <source src="${url}">
-          Your browser does not support video.
-        </video>
-      `;
-    } else if (post.media_type === "audio") {
-      media = `
-        <div class="talent-audio-player">
-          <span>🎵</span>
-          <audio controls preload="none">
-            <source src="${url}">
-          </audio>
-        </div>
-      `;
-    }
-
-    return `
-      <article class="talent-video-card">
-
-        <div class="talent-feed-creator">
-          ${avatar}
-          <div>
-            <strong>${escapeHTML(creatorName)}</strong>
-            <small>${escapeHTML(username)}</small>
-          </div>
-        </div>
-
-        <div class="talent-feed-content">
-          ${media}
-        </div>
-
-        <div class="talent-feed-details">
-          <h3>${escapeHTML(post.title)}</h3>
-
-          <p>${escapeHTML(post.description || "")}</p>
-
-          <span class="talent-feed-category">
-            ${escapeHTML(post.category || "Talent")}
-          </span>
-        </div>
-
-      </article>
-    `;
-  }).join("");
-}
-
-
-  // LOAD APPROVED ENTRIES FOR THESE CHALLENGES
-
-  const challengeIds = data.map(challenge => challenge.id);
-
-  const { data: entries, error: entriesError } =
-    await supabaseClient
-      .from("challenge_entries")
-      .select("id,challenge_id,title,description,media_url,created_at")
-      .in("challenge_id", challengeIds)
-      .eq("status", "approved")
-      .order("created_at", { ascending: false });
-
-  if (entriesError) {
-    console.error("Challenge entries:", entriesError.message);
-  }
-
-  const entriesByChallenge = {};
-
-  (entries || []).forEach(entry => {
-    if (!entriesByChallenge[entry.challenge_id]) {
-      entriesByChallenge[entry.challenge_id] = [];
-    }
-
-    entriesByChallenge[entry.challenge_id].push(entry);
-  });
-
-  // DISPLAY CHALLENGES AND APPROVED ENTRIES
-
-  container.innerHTML = data.map(challenge => {
-
-    const approvedEntries =
-      entriesByChallenge[challenge.id] || [];
-
-    return `
-      <article class="talent-challenge-card">
-
-        <h4>${escapeHTML(challenge.title)}</h4>
-
-        <p>${escapeHTML(challenge.description)}</p>
-
 /* LOAD VIDEOS ONLY - FOR YOU FEED */
 
 async function loadTalentPosts() {
   const container = document.getElementById("talentPostList");
-
   if (!container) return;
 
   container.innerHTML = "<p>Loading videos...</p>";
@@ -1881,11 +1705,8 @@ async function loadTalentPosts() {
           alt="Creator profile">`
       : `<div class="talent-creator-avatar-placeholder">👤</div>`;
 
-    const url = escapeHTML(post.media_url || "");
-
     return `
       <article class="talent-video-card">
-
         <div class="talent-feed-creator">
           ${avatar}
           <div>
@@ -1896,10 +1717,8 @@ async function loadTalentPosts() {
 
         <div class="talent-feed-content">
           <video class="talent-feed-media"
-            controls
-            playsinline
-            preload="metadata">
-            <source src="${url}" type="video/mp4">
+            controls playsinline preload="metadata">
+            <source src="${escapeHTML(post.media_url || "")}">
             Your browser does not support video.
           </video>
         </div>
@@ -1911,7 +1730,6 @@ async function loadTalentPosts() {
             ${escapeHTML(post.category || "Talent")}
           </span>
         </div>
-
       </article>
     `;
   }).join("");
@@ -1922,7 +1740,6 @@ async function loadTalentPosts() {
 
 async function loadTalentChallenges() {
   const container = document.getElementById("talentChallengeList");
-
   if (!container) return;
 
   container.innerHTML = "<p>Loading challenges...</p>";
@@ -1975,7 +1792,6 @@ async function loadTalentChallenges() {
 
     return `
       <article class="talent-challenge-card">
-
         <h4>${escapeHTML(challenge.title)}</h4>
 
         <p>${escapeHTML(challenge.description || "")}</p>
@@ -1992,14 +1808,12 @@ async function loadTalentChallenges() {
           ${new Date(challenge.ends_at).toLocaleString()}
         </p>
 
-        <button
-          class="btn btn-primary"
+        <button class="btn btn-primary"
           onclick="openChallengeEntry('${challenge.id}')">
           Join Challenge
         </button>
 
         <div class="approved-challenge-entries">
-
           <h4>🏆 Approved Entries (${approvedEntries.length})</h4>
 
           ${
@@ -2033,8 +1847,7 @@ async function loadTalentChallenges() {
                   } else if (mediaUrl) {
                     mediaDisplay = `
                       <a href="${escapeHTML(mediaUrl)}"
-                        target="_blank"
-                        rel="noopener noreferrer">
+                        target="_blank" rel="noopener noreferrer">
                         View submitted entry
                       </a>
                     `;
@@ -2050,9 +1863,7 @@ async function loadTalentChallenges() {
                 }).join("")
               : "<p>No approved entries yet. Be the first to participate!</p>"
           }
-
         </div>
-
       </article>
     `;
   }).join("");
@@ -2069,4 +1880,4 @@ async function loadTalentArena() {
   ]);
 }
 
-loadTalentArena();             
+loadTalentArena();
