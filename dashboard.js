@@ -116,35 +116,49 @@ else if (section === "settings") {
 
     dashboardContent.innerHTML = `
       <h2>🔐 PROOFNEAR Admin Panel</h2>
-      <p>Manage and supervise platform activities.</p>
+      
+<h2>🔐 PROOFNEAR Admin Panel</h2>
+<p>Manage and supervise platform activities.</p>
 
-      <div class="dashboard-card">
-        <h3>⏳ Pending Opportunities</h3>
-        <p>Review new opportunities awaiting approval.</p>
-        <button class="btn btn-primary" onclick="loadPendingJobs()">
-          Review Pending Jobs
-        </button>
-      </div>
+<div class="dashboard-card">
+  <h3>⏳ Pending Opportunities</h3>
+  <p>Review new opportunities awaiting approval.</p>
+  <button class="btn btn-primary" onclick="loadPendingJobs()">
+    Review Pending Jobs
+  </button>
+</div>
 
-      <div class="dashboard-card">
+<div class="dashboard-card">
   <h3>✅ Approved Opportunities</h3>
   <p>Manage opportunities already published.</p>
-  <button
-    class="btn btn-primary"
-    onclick="loadApprovedJobs()">
+  <button class="btn btn-primary" onclick="loadApprovedJobs()">
     View Approved Opportunities
   </button>
 </div>
 
-      <div class="dashboard-card">
-        <h3>💰 Payment Verification</h3>
-<p>Review MTN and Airtel payments before approving opportunities.</p>
-<button
-  class="btn btn-primary"
-  onclick="loadPendingPayments()">
-  Manage Payments
-</button>
-      </div>
+<div class="dashboard-card">
+  <h3>💰 Payment Verification</h3>
+  <p>Review MTN and Airtel payments before approving opportunities.</p>
+  <button class="btn btn-primary" onclick="loadPendingPayments()">
+    Manage Payments
+  </button>
+</div>
+
+<div class="dashboard-card">
+  <h3>🎤 Pending Talent Content</h3>
+  <p>Review music, videos, photos and other creator submissions.</p>
+  <button class="btn btn-primary" onclick="loadPendingTalentPosts()">
+    Review Talent Content
+  </button>
+</div>
+
+<div class="dashboard-card">
+  <h3>🏆 Pending Talent Challenges</h3>
+  <p>Review creator challenges before they become public.</p>
+  <button class="btn btn-primary" onclick="loadPendingTalentChallenges()">
+    Review Challenges
+  </button>
+</div>
     `;
   }
 }
