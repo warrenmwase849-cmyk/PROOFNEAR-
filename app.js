@@ -1032,7 +1032,7 @@ async function openAccount() {
       return;
     }
 
-    window.location.href = "dashboard.html";
+    window.location.href = "user-dashboard.html";
 
   } catch (err) {
     console.error("Open account failed:", err);
