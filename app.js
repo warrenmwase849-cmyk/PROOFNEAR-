@@ -1318,7 +1318,8 @@ if (talentPostForm) {
             talentPostForm.elements.description.value.trim(),
           category: talentPostForm.elements.category.value,
           media_type: talentPostForm.elements.media_type.value,
-          media_url: mediaUrl
+          media_url: mediaUrl,
+status: "pending"
         });
 
       if (error) throw error;
