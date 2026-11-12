@@ -1578,7 +1578,36 @@ async function loadTalentPosts() {
       );
     }
   }
+  /* LOAD POST LIKES */
 
+  const postIds = data.map(post => post.id);
+
+  const { data: likes, error: likesError } =
+    await supabaseClient
+      .from("talent_post_likes")
+      .select("post_id,user_id")
+      .in("post_id", postIds);
+
+  if (likesError) {
+    console.error("Post likes:", likesError.message);
+  }
+
+  const likeCounts = {};
+  const myLikedPosts = new Set();
+
+  const { data: authResult } =
+    await supabaseClient.auth.getUser();
+
+  const currentUserId = authResult?.user?.id || null;
+
+  (likes || []).forEach(like => {
+    likeCounts[like.post_id] =
+      (likeCounts[like.post_id] || 0) + 1;
+
+    if (like.user_id === currentUserId) {
+      myLikedPosts.add(like.post_id);
+    }
+  });
   /* DISPLAY CREATOR CONTENT */
 
   container.innerHTML = data.map(post => {
