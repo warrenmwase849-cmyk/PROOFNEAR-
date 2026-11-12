@@ -1547,6 +1547,162 @@ async function rejectTalentChallenge(challengeId) {
     alert("This challenge is no longer pending.");
   }
 }
+/* =====================================
+   PENDING CHALLENGE ENTRIES
+===================================== */
+
+function escapeAdminText(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+async function loadPendingChallengeEntries() {
+  const { data: entries, error } = await supabaseClient
+    .from("challenge_entries")
+    .select("id,challenge_id,title,description,media_url,created_at")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML =
+      "<p>Could not load pending challenge entries.</p>";
+    console.error(error);
+    return;
+  }
+
+  if (!entries || entries.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>🎬 Pending Challenge Entries</h2>
+      <p>There are currently no entries awaiting review.</p>
+      <button class="btn btn-primary" onclick="showSection('admin')">
+        Back to Admin Panel
+      </button>
+    `;
+    return;
+  }
+
+  const challengeIds = [
+    ...new Set(entries.map(entry => entry.challenge_id).filter(Boolean))
+  ];
+
+  let challengeTitles = {};
+
+  if (challengeIds.length) {
+    const { data: challenges, error: challengeError } =
+      await supabaseClient
+        .from("talent_challenges")
+        .select("id,title")
+        .in("id", challengeIds);
+
+    if (!challengeError && challenges) {
+      challengeTitles = Object.fromEntries(
+        challenges.map(challenge => [challenge.id, challenge.title])
+      );
+    }
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🎬 Pending Challenge Entries</h2>
+    <p>Review participants' submissions.</p>
+
+    ${entries.map(entry => `
+      <div class="dashboard-card">
+        <h3>${escapeAdminText(entry.title)}</h3>
+
+        <p><strong>Challenge:</strong>
+          ${escapeAdminText(challengeTitles[entry.challenge_id] || "Challenge")}
+        </p>
+
+        <p>${escapeAdminText(entry.description)}</p>
+
+        <p><strong>Submitted:</strong>
+          ${new Date(entry.created_at).toLocaleString()}
+        </p>
+
+        ${entry.media_url ? `
+          <p>
+            <a href="${escapeAdminText(entry.media_url)}"
+               target="_blank"
+               rel="noopener noreferrer">
+              View submitted file
+            </a>
+          </p>
+        ` : "<p>No media file attached.</p>"}
+
+        <button class="btn btn-primary"
+          onclick="approveChallengeEntry('${entry.id}')">
+          Approve
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="rejectChallengeEntry('${entry.id}')">
+          Reject
+        </button>
+      </div>
+    `).join("")}
+
+    <button class="btn btn-primary" onclick="showSection('admin')">
+      Back to Admin Panel
+    </button>
+  `;
+}
+
+
+/* APPROVE CHALLENGE ENTRY */
+
+async function approveChallengeEntry(entryId) {
+  const confirmed = confirm("Approve this challenge entry?");
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "admin_approve_challenge_entry",
+    { target_entry_id: entryId }
+  );
+
+  if (error) {
+    alert("Approval failed: " + error.message);
+    return;
+  }
+
+  if (data !== true) {
+    alert("This entry could not be approved.");
+    return;
+  }
+
+  alert("Challenge entry approved successfully!");
+  await loadPendingChallengeEntries();
+}
+
+
+/* REJECT CHALLENGE ENTRY */
+
+async function rejectChallengeEntry(entryId) {
+  const confirmed = confirm("Reject this challenge entry?");
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "admin_reject_challenge_entry",
+    { target_entry_id: entryId }
+  );
+
+  if (error) {
+    alert("Rejection failed: " + error.message);
+    return;
+  }
+
+  if (data !== true) {
+    alert("This entry could not be rejected.");
+    return;
+  }
+
+  alert("Challenge entry rejected.");
+  await loadPendingChallengeEntries();
+}
 async function loadApprovedJobs() {
   if (!isProofnearAdmin) {
     alert("Administrator access required.");
