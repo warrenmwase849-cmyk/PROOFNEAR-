@@ -1975,4 +1975,63 @@ function toggleSidebar() {
   );
 }
 
+// =================================
+// PROOFNEAR DASHBOARD CONTROLS
+// =================================
+
+function toggleSidebar() {
+  const menu = document.querySelector(".sidebar-menu-grid");
+
+  if (!menu) return;
+
+  menu.style.display =
+    menu.style.display === "none" ? "grid" : "none";
+}
+
+
+// MARK ONE NOTIFICATION AS READ
+async function markNotificationRead(notificationId) {
+  if (!currentUser || !notificationId) return;
+
+  const { error } = await supabaseClient
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("id", notificationId)
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    alert("Could not update notification: " + error.message);
+    return;
+  }
+
+  await loadMyNotifications();
+  await updateNotificationBadge();
+}
+
+
+// LOG OUT
+async function logoutUser() {
+  const confirmed = confirm("Are you sure you want to log out?");
+
+  if (!confirmed) return;
+
+  if (notificationChannel) {
+    await supabaseClient.removeChannel(notificationChannel);
+    notificationChannel = null;
+  }
+
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert("Logout failed: " + error.message);
+    return;
+  }
+
+  window.location.href = "index.html";
+}
+
+
+// START THE DASHBOARD
+initializeDashboard();
+
 
