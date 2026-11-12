@@ -2304,3 +2304,85 @@ background: linear-gradient(
     max-height: 75vh;
   }
 }
+
+/* =================================
+   PROOFNEAR DISCOVER CREATORS
+================================= */
+
+.talent-creator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-top: 22px;
+}
+
+.talent-creator-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 5px 16px rgba(16, 42, 67, 0.07);
+  min-width: 0;
+}
+
+.talent-profile-photo {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #eaf1ff;
+}
+
+.talent-profile-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eaf1ff;
+  font-size: 27px;
+}
+
+.talent-creator-info {
+  min-width: 0;
+}
+
+.talent-creator-info h4 {
+  margin: 3px 0 4px;
+  color: #102a43;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.talent-username {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.talent-profile-category {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #eaf1ff;
+  color: #2368d8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.talent-creator-info > p:last-child {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .talent-creator-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
