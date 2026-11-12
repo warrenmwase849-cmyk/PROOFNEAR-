@@ -1815,6 +1815,171 @@ async function loadTalentPosts() {
 
         <p>${escapeHTML(challenge.description)}</p>
 
+/* LOAD VIDEOS ONLY - FOR YOU FEED */
+
+async function loadTalentPosts() {
+  const container = document.getElementById("talentPostList");
+
+  if (!container) return;
+
+  container.innerHTML = "<p>Loading videos...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("talent_posts")
+    .select("id,creator_id,title,description,category,media_type,media_url,created_at")
+    .eq("status", "published")
+    .eq("media_type", "video")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    container.textContent = "Could not load videos.";
+    console.error("Talent videos:", error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>No videos yet. Be the first to share your talent!</p>";
+    return;
+  }
+
+  const creatorIds = [
+    ...new Set(data.map(post => post.creator_id).filter(Boolean))
+  ];
+
+  let creatorProfiles = {};
+
+  if (creatorIds.length) {
+    const { data: profiles, error: profileError } =
+      await supabaseClient
+        .from("talent_profiles")
+        .select("user_id,username,display_name,avatar_url")
+        .in("user_id", creatorIds);
+
+    if (profileError) {
+      console.error("Creator profiles:", profileError.message);
+    } else if (profiles) {
+      creatorProfiles = Object.fromEntries(
+        profiles.map(profile => [profile.user_id, profile])
+      );
+    }
+  }
+
+  container.innerHTML = data.map(post => {
+    const profile = creatorProfiles[post.creator_id] || {};
+
+    const creatorName =
+      profile.display_name || profile.username || "PROOFNEAR Creator";
+
+    const username = profile.username
+      ? "@" + profile.username
+      : "@creator";
+
+    const avatar = profile.avatar_url
+      ? `<img class="talent-creator-avatar"
+          src="${escapeHTML(profile.avatar_url)}"
+          alt="Creator profile">`
+      : `<div class="talent-creator-avatar-placeholder">👤</div>`;
+
+    const url = escapeHTML(post.media_url || "");
+
+    return `
+      <article class="talent-video-card">
+
+        <div class="talent-feed-creator">
+          ${avatar}
+          <div>
+            <strong>${escapeHTML(creatorName)}</strong>
+            <small>${escapeHTML(username)}</small>
+          </div>
+        </div>
+
+        <div class="talent-feed-content">
+          <video class="talent-feed-media"
+            controls
+            playsinline
+            preload="metadata">
+            <source src="${url}" type="video/mp4">
+            Your browser does not support video.
+          </video>
+        </div>
+
+        <div class="talent-feed-details">
+          <h3>${escapeHTML(post.title || "Untitled video")}</h3>
+          <p>${escapeHTML(post.description || "")}</p>
+          <span class="talent-feed-category">
+            ${escapeHTML(post.category || "Talent")}
+          </span>
+        </div>
+
+      </article>
+    `;
+  }).join("");
+}
+
+
+/* LOAD APPROVED CHALLENGES */
+
+async function loadTalentChallenges() {
+  const container = document.getElementById("talentChallengeList");
+
+  if (!container) return;
+
+  container.innerHTML = "<p>Loading challenges...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id,title,description,category,rules,ends_at")
+    .eq("status", "published")
+    .gt("ends_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    container.textContent = "Could not load challenges.";
+    console.error("Talent challenges:", error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>No active challenges at the moment.</p>";
+    return;
+  }
+
+  const challengeIds = data.map(challenge => challenge.id);
+
+  const { data: entries, error: entriesError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,title,description,media_url,created_at")
+      .in("challenge_id", challengeIds)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+
+  if (entriesError) {
+    console.error("Challenge entries:", entriesError.message);
+  }
+
+  const entriesByChallenge = {};
+
+  (entries || []).forEach(entry => {
+    if (!entriesByChallenge[entry.challenge_id]) {
+      entriesByChallenge[entry.challenge_id] = [];
+    }
+
+    entriesByChallenge[entry.challenge_id].push(entry);
+  });
+
+  container.innerHTML = data.map(challenge => {
+    const approvedEntries =
+      entriesByChallenge[challenge.id] || [];
+
+    return `
+      <article class="talent-challenge-card">
+
+        <h4>${escapeHTML(challenge.title)}</h4>
+
+        <p>${escapeHTML(challenge.description || "")}</p>
+
         <p><strong>Category:</strong>
           ${escapeHTML(challenge.category || "")}
         </p>
@@ -1840,7 +2005,6 @@ async function loadTalentPosts() {
           ${
             approvedEntries.length
               ? approvedEntries.map(entry => {
-
                   const mediaUrl = String(entry.media_url || "");
                   const mediaPath = mediaUrl.split("?")[0].toLowerCase();
 
@@ -1848,12 +2012,10 @@ async function loadTalentPosts() {
 
                   if (/\.(jpg|jpeg|png|webp|gif)$/i.test(mediaPath)) {
                     mediaDisplay = `
-                      <img
-                        src="${escapeHTML(mediaUrl)}"
+                      <img src="${escapeHTML(mediaUrl)}"
                         alt="${escapeHTML(entry.title)}"
                         loading="lazy"
-                        style="max-width:100%;border-radius:12px;"
-                      >
+                        style="max-width:100%;border-radius:12px;">
                     `;
                   } else if (/\.(mp3|wav|ogg|m4a)$/i.test(mediaPath)) {
                     mediaDisplay = `
@@ -1863,7 +2025,7 @@ async function loadTalentPosts() {
                     `;
                   } else if (/\.(mp4|webm|mov)$/i.test(mediaPath)) {
                     mediaDisplay = `
-                      <video controls
+                      <video controls playsinline
                         style="width:100%;max-height:350px;border-radius:12px;">
                         <source src="${escapeHTML(mediaUrl)}">
                       </video>
@@ -1871,8 +2033,8 @@ async function loadTalentPosts() {
                   } else if (mediaUrl) {
                     mediaDisplay = `
                       <a href="${escapeHTML(mediaUrl)}"
-                         target="_blank"
-                         rel="noopener noreferrer">
+                        target="_blank"
+                        rel="noopener noreferrer">
                         View submitted entry
                       </a>
                     `;
@@ -1880,13 +2042,9 @@ async function loadTalentPosts() {
 
                   return `
                     <div class="approved-entry-card">
-
                       <h5>${escapeHTML(entry.title)}</h5>
-
                       <p>${escapeHTML(entry.description || "")}</p>
-
                       ${mediaDisplay}
-
                     </div>
                   `;
                 }).join("")
@@ -1900,6 +2058,7 @@ async function loadTalentPosts() {
   }).join("");
 }
 
+
 /* INITIAL TALENT ARENA LOAD */
 
 async function loadTalentArena() {
@@ -1910,4 +2069,4 @@ async function loadTalentArena() {
   ]);
 }
 
-loadTalentArena();                  
+loadTalentArena();             
