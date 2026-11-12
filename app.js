@@ -501,6 +501,169 @@ console.log("Payment submitted:", paymentId);
   const closeInfo = document.getElementById("closeInfo");
   if (closeInfo) closeInfo.onclick = () => dialog.close();
 }
+
+async function openChallengeEntry(challengeId) {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    showToast("Please sign in to join this challenge.");
+    openModal("signin");
+    return;
+  }
+
+  const { data: challenge, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id, title, description, rules, ends_at, status")
+    .eq("id", challengeId)
+    .eq("status", "published")
+    .single();
+
+  if (error || !challenge) {
+    showToast("This challenge is unavailable.");
+    return;
+  }
+
+  modalContent.innerHTML = `
+    <h2>Join Challenge</h2>
+    <h3>${escapeHTML(challenge.title)}</h3>
+    <p>${escapeHTML(challenge.description || "")}</p>
+    <p><strong>Rules:</strong>
+      ${escapeHTML(challenge.rules || "Follow the challenge instructions.")}
+    </p>
+
+    <form id="challengeEntryForm" class="form-stack">
+      <label>Entry title
+        <input name="title" required
+          placeholder="Give your entry a title">
+      </label>
+
+      <label>Describe your entry
+        <textarea name="description" required
+          placeholder="Tell us about your entry"></textarea>
+      </label>
+
+      <label>Upload your entry
+        <input name="media" type="file" required
+          accept="image/jpeg,image/png,image/webp,audio/mpeg,audio/mp4,audio/wav,audio/ogg,video/mp4,video/webm,video/quicktime">
+      </label>
+
+      <button class="btn btn-primary" type="submit">
+        Submit Entry
+      </button>
+
+      <p id="challengeEntryMessage" class="form-hint"></p>
+    </form>
+  `;
+
+  dialog.showModal();
+
+  const entryForm = document.getElementById("challengeEntryForm");
+
+  entryForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const submitButton = entryForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const message = document.getElementById(
+      "challengeEntryMessage"
+    );
+
+    const user = sessionData.session.user;
+    const formData = new FormData(entryForm);
+
+    const title = formData.get("title").trim();
+    const description = formData.get("description").trim();
+    const file = formData.get("media");
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "audio/mpeg",
+      "audio/mp4",
+      "audio/wav",
+      "audio/ogg",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime"
+    ];
+
+    if (!file || !allowedTypes.includes(file.type)) {
+      message.textContent =
+        "Please select a supported photo, audio or video file.";
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      message.textContent = "Your file must not exceed 50 MB.";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Uploading entry...";
+
+    try {
+      const extension = file.name
+        .split(".")
+        .pop()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+      const filePath =
+        `${user.id}/challenge-entries/${Date.now()}.${extension}`;
+
+      const { error: uploadError } = await supabaseClient
+        .storage
+        .from("talent-media")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabaseClient
+        .storage
+        .from("talent-media")
+        .getPublicUrl(filePath);
+
+      const { error: insertError } = await supabaseClient
+        .from("challenge_entries")
+        .insert({
+          challenge_id: challengeId,
+          creator_id: user.id,
+          title: title,
+          description: description,
+          media_url: publicData.publicUrl,
+          status: "pending"
+        });
+
+      if (insertError) throw insertError;
+
+      message.textContent =
+        "Your challenge entry was submitted successfully!";
+
+      entryForm.reset();
+      submitButton.textContent = "Submitted successfully";
+
+      showToast("Your entry is awaiting approval.");
+
+    } catch (error) {
+      console.error("Challenge entry submission:", error);
+
+      message.textContent =
+        "Submission failed: " + error.message;
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Submit Entry";
+    }
+  });
+}
+
 function saveLogin(){ var n=document.getElementById("authName").value; var p=document.getElementById("authPhone").value; if(!n||!p){alert("Type name and phone dear");return;} localStorage.setItem("user",n); document.getElementById("authBtn").innerText="My Account: "+n; document.getElementById("signin").close(); showToast("Welcome "+n+"! Account saved."); }
 
 async function openListingDetails(item) {
