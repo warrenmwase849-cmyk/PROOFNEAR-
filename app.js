@@ -1402,19 +1402,21 @@ if (talentProfileForm) {
   });
 }
 
+
 /* LOAD PUBLIC CREATOR PROFILES */
 
 async function loadTalentProfiles() {
-  const container =
-    document.getElementById("talentCreatorList");
+  const container = document.getElementById("talentCreatorList");
 
   if (!container) return;
+
+  container.innerHTML = "<p>Discovering creators...</p>";
 
   const { data, error } = await supabaseClient
     .from("talent_profiles")
     .select("user_id,username,display_name,bio,avatar_url,talent_category")
     .order("created_at", { ascending: false })
-    .limit(12);
+    .limit(30);
 
   if (error) {
     container.textContent = "Could not load creator profiles.";
@@ -1422,26 +1424,41 @@ async function loadTalentProfiles() {
     return;
   }
 
-  if (!data.length) {
-    container.textContent =
-      "No creator profiles yet. Be the first to join!";
+  if (!data || data.length === 0) {
+    container.innerHTML = `
+      <p>No creators yet. Be the first to join PROOFNEAR!</p>
+    `;
     return;
   }
 
-  container.innerHTML = data.map(profile => `
-    <article class="talent-creator-card">
-      ${profile.avatar_url
-        ? `<img src="${escapeHTML(profile.avatar_url)}"
-             alt="Creator profile"
-             style="width:75px;height:75px;object-fit:cover;border-radius:50%;">`
-        : ""}
-      <h4>${escapeHTML(profile.display_name)}</h4>
-      <p>@${escapeHTML(profile.username)}</p>
-      <p>${escapeHTML(profile.talent_category || "Other")}</p>
-      <p>${escapeHTML(profile.bio || "")}</p>
-    </article>
-  `).join("");
+  container.innerHTML = data.map(profile => {
+    const avatar = profile.avatar_url
+      ? `<img class="talent-profile-photo"
+          src="${escapeHTML(profile.avatar_url)}"
+          alt="Creator profile">`
+      : `<div class="talent-profile-photo talent-profile-placeholder">
+          👤
+        </div>`;
+
+    return `
+      <article class="talent-creator-card">
+        ${avatar}
+
+        <div class="talent-creator-info">
+          <h4>${escapeHTML(profile.display_name || "Creator")}</h4>
+          <p class="talent-username">
+            @${escapeHTML(profile.username || "creator")}
+          </p>
+          <span class="talent-profile-category">
+            ${escapeHTML(profile.talent_category || "Other")}
+          </span>
+          <p>${escapeHTML(profile.bio || "")}</p>
+        </div>
+      </article>
+    `;
+  }).join("");
 }
+
 
 /* PUBLISH TALENT CONTENT */
 
