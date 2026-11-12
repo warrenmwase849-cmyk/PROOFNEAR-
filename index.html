@@ -779,8 +779,9 @@ function getAnswer(t) {
     
   </div>
 </div>
+
 <!-- End PROOFNEAR Welcome Screen -->
-  
+
 <dialog id="actionDialog" class="modal">
   <form method="dialog" class="modal-close">
     <button aria-label="Close">×</button>
@@ -790,27 +791,19 @@ function getAnswer(t) {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Main PROOFNEAR JavaScript: load only once -->
 <script src="app.js"></script>
 
-</body>
-</html>
-
-    <form method="dialog" class="modal-close"><button aria-label="Close">×</button></form>
-    <div id="modalContent"></div>
-  </dialog>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
-    <script>
+<!-- Welcome screen voice and closing behavior -->
+<script>
 (function () {
   const screen = document.getElementById("welcomeScreen");
   const voiceBtn = document.getElementById("welcomeVoiceBtn");
 
-  if (!screen) {
-    console.error("PROOFNEAR welcome screen not found");
-    return;
-  }
+  if (!screen) return;
 
   const message =
     "Welcome to PROOFNEAR. Your opportunities, your connections, your future.";
@@ -834,8 +827,9 @@ function getAnswer(t) {
   }, 6000);
 })();
 </script>
-</body>
-  <script>
+
+<!-- PROOFNEAR service worker -->
+<script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js")
@@ -847,5 +841,7 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
-  </script>
+</script>
+
+</body>
 </html>
