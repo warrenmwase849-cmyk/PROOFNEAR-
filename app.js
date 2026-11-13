@@ -523,7 +523,10 @@ async function openChallengeEntry(challengeId) {
     showToast("This challenge is unavailable.");
     return;
   }
-
+  if (new Date(challenge.ends_at).getTime() <= Date.now()) {
+    showToast("This challenge has already closed.");
+    return;
+    }
   modalContent.innerHTML = `
     <h2>Join Challenge</h2>
     <h3>${escapeHTML(challenge.title)}</h3>
