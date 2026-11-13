@@ -2174,14 +2174,25 @@ async function voteForChallengeEntry(entryId) {
     return;
   }
 
-  // Save the vote
-  const { error: voteError } =
-    await supabaseClient
-      .from("challenge_votes")
-      .insert({
-        entry_id: entryId,
-        voter_id: user.id
-      });
+  // Save vote securely through Supabase RPC
+const { data: voteSaved, error: voteError } =
+  await supabaseClient.rpc(
+    "cast_challenge_entry_vote",
+    {
+      p_entry_id: entryId
+    }
+  );
+
+if (voteError) {
+  console.error("Voting error:", voteError.message);
+  alert(voteError.message || "Your vote could not be saved.");
+  return;
+}
+
+if (!voteSaved) {
+  alert("You have already voted for this entry.");
+  return;
+}
 
   if (voteError) {
     if (voteError.code === "23505") {
