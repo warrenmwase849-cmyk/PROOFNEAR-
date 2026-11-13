@@ -1770,7 +1770,10 @@ async function toggleTalentPostLike(postId) {
     }
 
     // Refresh the feed and like counts
-    await loadTalentPosts();
+    await Promise.all([
+  loadTalentPosts(),
+  loadTalentRankings()
+]);
 
   } catch (error) {
     console.error("Talent like:", error.message);
