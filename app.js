@@ -2345,7 +2345,8 @@ async function loadTalentRankings() {
       await supabaseClient
         .from("talent_challenges")
         .select("id,title")
-        .eq("status", "published");
+.eq("status", "published")
+.gt("ends_at", new Date().toISOString());
 
     if (challengesError) throw challengesError;
 
