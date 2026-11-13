@@ -2921,3 +2921,184 @@ background: linear-gradient(
     font-size: 12px;
   }
 }
+/* =================================
+   PROOFNEAR PREMIUM OPPORTUNITY CARDS
+================================= */
+
+.premium-listing-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  padding: 21px;
+  background: #ffffff;
+  border: 1px solid #e2ebe7;
+  border-radius: 17px;
+  box-shadow: 0 6px 20px rgba(16, 42, 67, .055);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.premium-listing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 13px 28px rgba(16, 42, 67, .10);
+}
+
+.premium-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.premium-listing-card .listing-type {
+  display: inline-flex;
+  padding: 7px 11px;
+  border-radius: 30px;
+  background: #e5f5ee;
+  color: #087451;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.premium-listing-card .listing-type.service {
+  background: #eaf1ff;
+  color: #2459a6;
+}
+
+.work-type-badge {
+  padding: 6px 10px;
+  border-radius: 30px;
+  background: #f1f5f9;
+  color: #526579;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.premium-card-content h3 {
+  margin: 0 0 9px;
+  color: #102a43;
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.premium-category {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #087b65;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.premium-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.premium-card-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #526579;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.premium-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 15px;
+  border-top: 1px solid #edf1ef;
+}
+
+.premium-pay {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.premium-pay small {
+  color: #84919e;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .6px;
+}
+
+.premium-pay strong {
+  color: #087451;
+  font-size: 15px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.premium-detail-button {
+  flex-shrink: 0;
+  padding: 9px 12px;
+  border: 1px solid #087b65;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #087b65;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.premium-detail-button:hover {
+  background: #087b65;
+  color: #ffffff;
+}
+
+.premium-card-status {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.premium-card-status .availability-badge {
+  padding: 6px 10px;
+  border-radius: 30px;
+  background: #e8f7ed;
+  color: #167443;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.preview-note {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px dashed #dce8e2;
+  color: #84919e;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .7px;
+}
+
+@media (max-width: 560px) {
+  .premium-listing-card {
+    padding: 17px;
+    gap: 14px;
+    border-radius: 14px;
+  }
+
+  .premium-card-content h3 {
+    font-size: 17px;
+  }
+
+  .premium-card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .premium-detail-button {
+    width: 100%;
+    min-height: 42px;
+  }
+}
