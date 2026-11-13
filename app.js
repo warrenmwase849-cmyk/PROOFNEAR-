@@ -2292,10 +2292,8 @@ async function loadTalentRankings() {
       if (!container) return;
 
       const ranked = Object.entries(creatorScores)
-        .filter(([, scores]) => scores[scoreKey] > 0)
-        .sort((a, b) => b[1][scoreKey] - a[1][scoreKey])
-        .slice(0, 10);
-
+  .sort((a, b) => b[1][scoreKey] - a[1][scoreKey])
+  .slice(0, 10);
       if (!ranked.length) {
         container.textContent = "Rankings will appear after creators receive likes.";
         return;
