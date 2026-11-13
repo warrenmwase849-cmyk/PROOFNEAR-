@@ -1694,7 +1694,8 @@ async function loadTalentPosts() {
               ${myLikedPosts.has(post.id) ? "❤️ Liked" : "🤍 Like"}
               (${likeCounts[post.id] || 0})
             </button>
-          </div>
+                    </div>
+        </div>
 
       </article>
     `;
