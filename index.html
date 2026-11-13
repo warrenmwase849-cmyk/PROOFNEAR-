@@ -554,6 +554,49 @@ function getAnswer(t) {
   </form>
 </section>
 
+<!-- PROOFNEAR RECENT OPPORTUNITIES -->
+<section class="listings-section" id="jobs">
+
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow dark-eyebrow">EXPLORE OPPORTUNITIES</span>
+      <h2>Recent Opportunities</h2>
+      <p>Discover jobs, services and opportunities near you.</p>
+    </div>
+    <span class="demo-label">LATEST LISTINGS</span>
+  </div>
+
+  <p id="opportunityCount" class="opportunity-count">
+    Loading opportunities...
+  </p>
+
+  <div class="tabs">
+    <button type="button" class="tab active" data-filter="all">
+      All
+    </button>
+    <button type="button" class="tab" data-filter="job">
+      Jobs
+    </button>
+    <button type="button" class="tab" data-filter="service">
+      Services
+    </button>
+  </div>
+
+  <div id="listingGrid" class="listing-grid"></div>
+
+  <div id="emptyState" class="empty-state" hidden>
+    No opportunities found. Try another search.
+  </div>
+
+  <div id="loadMoreWrap" class="load-more-wrap" hidden>
+    <button type="button" class="btn btn-primary" id="loadMoreBtn">
+      Load More Opportunities
+    </button>
+  </div>
+
+</section>
+<!-- END PROOFNEAR RECENT OPPORTUNITIES -->
+
 <!-- PROOFNEAR TALENT ARENA -->
 <section class="talent-arena section" id="talentArena">
 
