@@ -2794,3 +2794,130 @@ background: linear-gradient(
     font-size: 11px;
   }
 }
+
+/* PROOFNEAR PREMIUM RECENT OPPORTUNITIES */
+
+.listings-section {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.listings-section .section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.listings-section .section-heading h2 {
+  color: #102a43;
+  font-size: clamp(23px, 3vw, 31px);
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.listings-section .demo-label {
+  background: #e6f5ee;
+  color: #087451;
+  padding: 9px 13px;
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.opportunity-count {
+  color: #64748b;
+  font-size: 13px;
+  margin: 12px 0 20px;
+}
+
+.listings-section .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #e5ece8;
+  padding-bottom: 13px;
+}
+
+.listings-section .tab {
+  padding: 10px 20px;
+  border: 1px solid #dce8e2;
+  border-radius: 30px;
+  background: #ffffff;
+  color: #526579;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.listings-section .tab.active {
+  background: #087b65;
+  border-color: #087b65;
+  color: #ffffff;
+}
+
+.listings-section .tab:hover {
+  border-color: #087b65;
+}
+
+.listing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.listings-section .empty-state {
+  padding: 35px 20px;
+  text-align: center;
+  background: #f7faf8;
+  border: 1px dashed #cadbd2;
+  border-radius: 15px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+#loadMoreBtn {
+  min-height: 46px;
+  padding: 0 25px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+@media (max-width: 850px) {
+  .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .listings-section {
+    padding: 0 12px;
+    margin: 42px auto;
+  }
+
+  .listings-section .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .listing-grid {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .listings-section .tab {
+    padding: 9px 15px;
+    font-size: 12px;
+  }
+}
