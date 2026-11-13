@@ -2326,24 +2326,28 @@ async function loadTalentRankings() {
       ])
     );
 
-    // Load likes
-    const postIds = posts.map(post => post.id);
+    
+// Load secure public like counts
+const postIds = posts.map(post => post.id);
 
-    const { data: likes, error: likesError } =
-      await supabaseClient
-        .from("talent_post_likes")
-        .select("post_id")
-        .in("post_id", postIds);
+const {
+  data: likeStats,
+  error: likesError
+} = await supabaseClient.rpc(
+  "get_talent_post_like_counts",
+  { p_post_ids: postIds }
+);
 
-    if (likesError) throw likesError;
+if (likesError) throw likesError;
 
-    // Count likes per post and creator
-    const likeCounts = {};
+// Count likes per post and creator
+const likeCounts = {};
 
-    (likes || []).forEach(like => {
-      likeCounts[like.post_id] =
-        (likeCounts[like.post_id] || 0) + 1;
-    });
+(likeStats || []).forEach(item => {
+  likeCounts[item.post_id] =
+    Number(item.like_count) || 0;
+});
+
 
     const creatorScores = {};
 
