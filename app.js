@@ -2357,10 +2357,16 @@ async function loadTalentRankings() {
 
         if (voteError) throw voteError;
 
-        const totalVotes = (voteCounts || []).reduce(
-          (sum, item) => sum + Number(item.vote_count || 0),
-          0
-        );
+        const approvedEntryIds = new Set(
+  (entries || []).map(entry => entry.id)
+);
+
+const totalVotes = (voteCounts || [])
+  .filter(item => approvedEntryIds.has(item.entry_id))
+  .reduce(
+    (sum, item) => sum + Number(item.vote_count || 0),
+    0
+  );
 
         return {
           title: challenge.title,
