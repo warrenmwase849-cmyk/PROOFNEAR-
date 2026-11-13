@@ -2207,13 +2207,13 @@ async function loadTalentRankings() {
     if (postsError) throw postsError;
 
     if (!posts || posts.length === 0) {
-      containers.forEach(container => {
-        if (container) {
-          container.textContent = "No published creator posts yet.";
-        }
-      });
-      return;
-    }
+  [rankingMusic, rankingCreators, rankingComedy, rankingDance]
+    .forEach(container => {
+      if (container) {
+        container.textContent = "No published creator posts yet.";
+      }
+    });
+} else {
 
     // Load creator profiles
     const creatorIds = [
