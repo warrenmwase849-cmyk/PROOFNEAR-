@@ -135,6 +135,7 @@ async function loadApprovedOpportunities() {
   searchListings();
 }
 
+
 function renderListings(items = currentListings, reset = true) {
   if (reset) {
     visibleListingsCount = LISTINGS_PER_PAGE;
@@ -156,47 +157,69 @@ function renderListings(items = currentListings, reset = true) {
 
   visibleItems.forEach(item => {
     const card = document.createElement("article");
-    card.className = "listing-card";
+    card.className = "listing-card premium-listing-card";
 
     const typeLabel = item.type === "job"
       ? "JOB OPPORTUNITY"
       : "SERVICE REQUEST";
 
     card.innerHTML = `
-      <div class="listing-top">
+      <div class="premium-card-top">
         <span class="listing-type ${item.type === "service" ? "service" : ""}">
           ${typeLabel}
         </span>
+
         ${item.workType ? `
           <span class="work-type-badge">
             ${escapeHTML(item.workType)}
           </span>
         ` : ""}
-        ${!item.isPreview ? `
+      </div>
+
+      <div class="premium-card-content">
+
+        <h3>${escapeHTML(item.title)}</h3>
+
+        ${item.category ? `
+          <span class="premium-category">
+            ${escapeHTML(item.category)}
+          </span>
+        ` : ""}
+
+        <p class="premium-description">
+          ${escapeHTML(item.description)}
+        </p>
+
+      </div>
+
+      <div class="premium-card-location">
+        <span>📍</span>
+        <span>${escapeHTML(item.location)}</span>
+      </div>
+
+      <div class="premium-card-footer">
+
+        <div class="premium-pay">
+          <small>PAYMENT / BUDGET</small>
+          <strong>${escapeHTML(item.pay)}</strong>
+        </div>
+
+        <button class="text-button premium-detail-button"
+          data-detail="${escapeHTML(item.id)}">
+          View details →
+        </button>
+
+      </div>
+
+      ${!item.isPreview ? `
+        <div class="premium-card-status">
           <span class="availability-badge">
             ${escapeHTML(item.availability_status || "OPEN")}
           </span>
-        ` : ""}
-      </div>
-
-      <h3>${escapeHTML(item.title)}</h3>
-
-      <p>${escapeHTML(item.description)}</p>
-
-      <div class="listing-meta">
-        <span>⌖ ${escapeHTML(item.location)}</span>
-      </div>
-
-      <div class="listing-bottom">
-        <strong>${escapeHTML(item.pay)}</strong>
-        <button class="text-button" data-detail="${item.id}">
-          View details →
-        </button>
-      </div>
-
-      ${item.isPreview ? `
+        </div>
+      ` : `
         <p class="preview-note">PROOFNEAR SAMPLE PREVIEW</p>
-      ` : ""}
+      `}
     `;
 
     grid.appendChild(card);
