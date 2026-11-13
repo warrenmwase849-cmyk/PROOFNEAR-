@@ -1388,9 +1388,22 @@ if (talentProfileForm) {
       };
 
       const avatar =
-        talentProfileForm.elements.avatar.files[0];
+  talentProfileForm.elements.avatar.files[0];
 
-      if (avatar) {
+if (avatar) {
+  const allowedAvatarTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+  if (!allowedAvatarTypes.includes(avatar.type)) {
+    throw new Error("Please upload a JPG, PNG or WEBP profile photo.");
+  }
+
+  if (avatar.size > 5 * 1024 * 1024) {
+    throw new Error("Your profile photo must not exceed 5 MB.");
+  }
         profile.avatar_url = await uploadTalentMedia(
           user,
           avatar,
