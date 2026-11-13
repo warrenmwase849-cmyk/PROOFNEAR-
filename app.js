@@ -2164,8 +2164,11 @@ async function voteForChallengeEntry(entryId) {
 
   alert("Your vote has been recorded! ❤️");
 
-  // Refresh rankings and vote totals
-  await loadTalentChallenges();
+  // Refresh challenge feed and overall rankings
+await Promise.all([
+  loadTalentChallenges(),
+  loadTalentRankings()
+]);
 }
 
 /* ==========================================
