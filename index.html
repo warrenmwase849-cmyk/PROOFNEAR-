@@ -506,64 +506,53 @@ function getAnswer(t) {
 
 </section>
 <!-- END PROOFNEAR ROTATING HOMEPAGE SLIDER -->
-        <section class="search-panel" aria-label="Search opportunities">
+        
+<section class="search-panel" aria-label="Search opportunities">
 
-      <div class="search-heading"><div><span class="eyebrow dark-eyebrow">START HERE</span><h2>What are you looking for?</h2></div><span class="free-tag">Job seekers search free</span></div>
-      <form id="searchForm" class="search-grid">
-        <label class="search-field"><span>KEYWORD OR SKILL</span><input id="keyword" type="search" placeholder="e.g. plumber, waiter, driver"></label>
-        <label class="search-field"><span>LOCATION</span><input id="location" placeholder="Type your town e.g. Gulu" style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px"></label>
-        <label class="search-field"><span>OPPORTUNITY TYPE</span><select id="type"><option value="">All opportunities</option><option value="job">Employment</option><option value="service">Services</option></select></label>
-        <button class="btn btn-primary search-button" type="submit">Search opportunities <span>→</span></button>
-      </form>
-    </section>
-
-    <section class="section" id="categories">
-      <div class="section-heading"><div><span class="eyebrow dark-eyebrow">EXPLORE OPPORTUNITIES</span><h2>What can we help you find?</h2></div><p>From a full-time job to a trusted person for a one-day task.</p></div>
-      <div class="category-grid">
-        <button class="category-card" data-category="Employment"><span class="category-icon icon-blue">▣</span><b>Employment</b><small>Full-time, part-time & casual</small></button>
-        <button class="category-card" data-category="Home services"><span class="category-icon icon-green">⌂</span><b>Home services</b><small>Cleaning, cooking & gardening</small></button>
-        <button class="category-card" data-category="Skilled trades"><span class="category-icon icon-orange">⚒</span><b>Skilled trades</b><small>Plumbers, electricians & builders</small></button>
-        <button class="category-card" data-category="Transport"><span class="category-icon icon-purple">➜</span><b>Transport</b><small>Drivers & delivery workers</small></button>
-        <button class="category-card" data-category="Hospitality"><span class="category-icon icon-pink">✧</span><b>Hospitality</b><small>Waiters, cooks & hotel staff</small></button>
-        <button class="category-card" data-category="Mechanics"><span class="category-icon icon-teal">⚙</span><b>Mechanics</b><small>Vehicle & motorcycle repair</small></button>
-      </div>
-    </section>
-
-    
-<section class="section listings-section" id="jobs">
-  <div class="section-heading">
+  <div class="search-heading">
     <div>
-      <span class="eyebrow dark-eyebrow">RECENT OPPORTUNITIES</span>
-      <h2>Explore what's available</h2>
+      <span class="eyebrow dark-eyebrow">FIND YOUR NEXT OPPORTUNITY</span>
+      <h2>What are you looking for?</h2>
+      <p>Search jobs, services and opportunities across Uganda.</p>
     </div>
-    <span class="demo-label">LIVE OPPORTUNITIES</span>
+    <span class="free-tag">FREE TO SEARCH</span>
   </div>
 
-  <div class="opportunity-count" id="opportunityCount">
-    Loading opportunities...
-  </div>
+  <form id="searchForm" class="search-grid">
 
-  <div class="tabs">
-    <button class="tab active" data-filter="all">All</button>
-    <button class="tab" data-filter="job">Jobs</button>
-    <button class="tab" data-filter="service">Services</button>
-  </div>
+    <label class="search-field">
+      <span>WHAT DO YOU NEED?</span>
+      <input
+        id="keyword"
+        type="search"
+        placeholder="e.g. Plumber, waiter, driver..."
+      >
+    </label>
 
-  <div class="listing-grid" id="listingGrid"></div>
+    <label class="search-field">
+      <span>WHERE?</span>
+      <input
+        id="location"
+        type="search"
+        placeholder="Town or district e.g. Kampala"
+      >
+    </label>
 
-  <div class="empty-state" id="emptyState" hidden>
-    No matching opportunities yet. Try another keyword or location.
-  </div>
+    <label class="search-field">
+      <span>OPPORTUNITY TYPE</span>
+      <select id="type">
+        <option value="">All opportunities</option>
+        <option value="job">Employment</option>
+        <option value="service">Services</option>
+      </select>
+    </label>
 
-  <div class="load-more-wrap" id="loadMoreWrap" hidden>
-    <button class="btn btn-primary" id="loadMoreBtn">
-      Load More Opportunities
+    <button class="btn btn-primary search-button" type="submit">
+      Search opportunities <span>→</span>
     </button>
-  </div>
+
+  </form>
 </section>
-
-    
-
 
 <!-- PROOFNEAR TALENT ARENA -->
 <section class="talent-arena section" id="talentArena">
