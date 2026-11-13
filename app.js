@@ -2168,6 +2168,231 @@ async function voteForChallengeEntry(entryId) {
   await loadTalentChallenges();
 }
 
+/* ==========================================
+   LOAD TALENT ARENA RANKINGS
+========================================== */
+
+async function loadTalentRankings() {
+  const rankingMusic = document.getElementById("rankingMusic");
+  const rankingCreators = document.getElementById("rankingCreators");
+  const rankingComedy = document.getElementById("rankingComedy");
+  const rankingDance = document.getElementById("rankingDance");
+  const rankingChallenges = document.getElementById("rankingChallenges");
+
+  const containers = [
+    rankingMusic,
+    rankingCreators,
+    rankingComedy,
+    rankingDance,
+    rankingChallenges
+  ];
+
+  if (!containers.some(Boolean)) return;
+
+  containers.forEach(container => {
+    if (container) container.textContent = "Loading rankings...";
+  });
+
+  try {
+    // Load published creator posts
+    const { data: posts, error: postsError } =
+      await supabaseClient
+        .from("talent_posts")
+        .select("id,creator_id,title,category")
+        .eq("status", "published");
+
+    if (postsError) throw postsError;
+
+    if (!posts || posts.length === 0) {
+      containers.forEach(container => {
+        if (container) {
+          container.textContent = "No published creator posts yet.";
+        }
+      });
+      return;
+    }
+
+    // Load creator profiles
+    const creatorIds = [
+      ...new Set(posts.map(post => post.creator_id).filter(Boolean))
+    ];
+
+    const { data: profiles, error: profilesError } =
+      await supabaseClient
+        .from("talent_profiles")
+        .select("user_id,username,display_name")
+        .in("user_id", creatorIds);
+
+    if (profilesError) throw profilesError;
+
+    const profileMap = Object.fromEntries(
+      (profiles || []).map(profile => [
+        profile.user_id,
+        profile
+      ])
+    );
+
+    // Load likes
+    const postIds = posts.map(post => post.id);
+
+    const { data: likes, error: likesError } =
+      await supabaseClient
+        .from("talent_post_likes")
+        .select("post_id")
+        .in("post_id", postIds);
+
+    if (likesError) throw likesError;
+
+    // Count likes per post and creator
+    const likeCounts = {};
+
+    (likes || []).forEach(like => {
+      likeCounts[like.post_id] =
+        (likeCounts[like.post_id] || 0) + 1;
+    });
+
+    const creatorScores = {};
+
+    posts.forEach(post => {
+      const creatorId = post.creator_id;
+      if (!creatorId) return;
+
+      if (!creatorScores[creatorId]) {
+        creatorScores[creatorId] = {
+          likes: 0,
+          music: 0,
+          comedy: 0,
+          dance: 0
+        };
+      }
+
+      const count = likeCounts[post.id] || 0;
+      const category = String(post.category || "").toLowerCase();
+
+      creatorScores[creatorId].likes += count;
+
+      if (category.includes("music") || category.includes("song")) {
+        creatorScores[creatorId].music += count;
+      }
+
+      if (category.includes("comedy") || category.includes("comedian")) {
+        creatorScores[creatorId].comedy += count;
+      }
+
+      if (category.includes("dance") || category.includes("dancer")) {
+        creatorScores[creatorId].dance += count;
+      }
+    });
+
+    // Display each ranking
+    function renderRanking(container, scoreKey) {
+      if (!container) return;
+
+      const ranked = Object.entries(creatorScores)
+        .filter(([, scores]) => scores[scoreKey] > 0)
+        .sort((a, b) => b[1][scoreKey] - a[1][scoreKey])
+        .slice(0, 10);
+
+      if (!ranked.length) {
+        container.textContent = "Rankings will appear after creators receive likes.";
+        return;
+      }
+
+      container.innerHTML = ranked.map(([creatorId, scores], index) => {
+        const profile = profileMap[creatorId] || {};
+        const name = profile.display_name || profile.username || "Creator";
+
+        return `
+          <div class="talent-ranking-item">
+            <strong>
+              ${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "🏅"}
+              ${escapeHTML(name)}
+            </strong>
+            <span>❤️ ${scores[scoreKey]} likes</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    renderRanking(rankingMusic, "music");
+    renderRanking(rankingCreators, "likes");
+    renderRanking(rankingComedy, "comedy");
+    renderRanking(rankingDance, "dance");
+
+    // Load published challenges
+    const { data: challenges, error: challengesError } =
+      await supabaseClient
+        .from("talent_challenges")
+        .select("id,title")
+        .eq("status", "published");
+
+    if (challengesError) throw challengesError;
+
+    if (!challenges || challenges.length === 0) {
+      if (rankingChallenges) {
+        rankingChallenges.textContent = "No published challenges yet.";
+      }
+      return;
+    }
+
+    // Count approved entries and their votes
+    const challengeRankings = await Promise.all(
+      challenges.map(async challenge => {
+        const { data: entries, error: entriesError } =
+          await supabaseClient
+            .from("challenge_entries")
+            .select("id")
+            .eq("challenge_id", challenge.id)
+            .eq("status", "approved");
+
+        if (entriesError) throw entriesError;
+
+        const { data: voteCounts, error: voteError } =
+          await supabaseClient.rpc(
+            "get_challenge_entry_vote_counts",
+            { p_challenge_id: challenge.id }
+          );
+
+        if (voteError) throw voteError;
+
+        const totalVotes = (voteCounts || []).reduce(
+          (sum, item) => sum + Number(item.vote_count || 0),
+          0
+        );
+
+        return {
+          title: challenge.title,
+          entries: (entries || []).length,
+          votes: totalVotes
+        };
+      })
+    );
+
+    challengeRankings.sort((a, b) => b.votes - a.votes);
+
+    if (rankingChallenges) {
+      rankingChallenges.innerHTML = challengeRankings
+        .slice(0, 10)
+        .map((challenge, index) => `
+          <div class="talent-ranking-item">
+            <strong>
+              ${index + 1}. ${escapeHTML(challenge.title || "Challenge")}
+            </strong>
+            <span>👍 ${challenge.votes} votes · ${challenge.entries} entries</span>
+          </div>
+        `).join("");
+    }
+
+  } catch (error) {
+    console.error("Talent rankings:", error.message);
+
+    containers.forEach(container => {
+      if (container) {
+        container.textContent = "Rankings could not be loaded.";
+      }
+    });
+  }
+}
 
 /* INITIAL TALENT ARENA LOAD */
 
