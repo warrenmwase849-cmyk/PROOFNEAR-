@@ -609,6 +609,21 @@ async function openChallengeEntry(challengeId) {
     submitButton.textContent = "Uploading entry...";
 
     try {
+            const { data: latestChallenge, error: latestError } =
+        await supabaseClient
+          .from("talent_challenges")
+          .select("status, ends_at")
+          .eq("id", challengeId)
+          .single();
+
+      if (
+        latestError ||
+        !latestChallenge ||
+        latestChallenge.status !== "published" ||
+        new Date(latestChallenge.ends_at).getTime() <= Date.now()
+      ) {
+        throw new Error("This challenge is no longer accepting entries.");
+      }
       const extension = file.name
         .split(".")
         .pop()
