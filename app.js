@@ -2175,10 +2175,9 @@ async function loadTalentArena() {
   await Promise.all([
     loadTalentProfiles(),
     loadTalentPosts(),
-    loadTalentChallenges()
+    loadTalentChallenges(),
+    loadTalentRankings()
   ]);
 }
-
 loadTalentArena();
-
 
