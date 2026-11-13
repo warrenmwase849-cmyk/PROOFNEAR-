@@ -2194,16 +2194,68 @@ if (!voteSaved) {
   return;
 }
 
-  if (voteError) {
-    if (voteError.code === "23505") {
-      alert("You have already voted for this entry.");
-    } else {
-      console.error("Voting error:", voteError.message);
-      alert("Your vote could not be saved. Please try again.");
-    }
+  async function voteForChallengeEntry(entryId) {
 
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    alert("Please sign in before voting.");
     return;
   }
+
+  const { data: entry, error: entryError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,creator_id,status")
+      .eq("id", entryId)
+      .single();
+
+  if (entryError || !entry) {
+    alert("Could not find this challenge entry.");
+    return;
+  }
+
+  if (entry.status !== "approved") {
+    alert("You can only vote for approved entries.");
+    return;
+  }
+
+  if (entry.creator_id === user.id) {
+    alert("You cannot vote for your own entry.");
+    return;
+  }
+
+  // Save vote securely through Supabase RPC
+  const { data: voteSaved, error: voteError } =
+    await supabaseClient.rpc(
+      "cast_challenge_entry_vote",
+      {
+        p_entry_id: entryId
+      }
+    );
+
+  if (voteError) {
+    console.error("Voting error:", voteError.message);
+    alert(voteError.message || "Your vote could not be saved.");
+    return;
+  }
+
+  if (!voteSaved) {
+    alert("You have already voted for this entry.");
+    return;
+  }
+
+  alert("Your vote has been recorded! ❤️");
+
+  // Refresh challenge feed and overall rankings
+  await Promise.all([
+    loadTalentChallenges(),
+    loadTalentRankings()
+  ]);
+}
 
   alert("Your vote has been recorded! ❤️");
 
