@@ -2321,6 +2321,7 @@ async function loadTalentRankings() {
     renderRanking(rankingCreators, "likes");
     renderRanking(rankingComedy, "comedy");
     renderRanking(rankingDance, "dance");
+    }
 
     // Load published challenges
     const { data: challenges, error: challengesError } =
