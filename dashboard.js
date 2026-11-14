@@ -244,6 +244,9 @@ dashboardContent.innerHTML = `
       <div class="dashboard-card" style="margin:0;border-top:4px solid #d6a84b;">
         <p style="margin:0;color:#71817d;">⏳ Pending</p>
         <h2 id="pendingOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+     <div class="stats-progress">
+  <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
+</div>
       </div>
 
       <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
