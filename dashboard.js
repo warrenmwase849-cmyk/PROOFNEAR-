@@ -1003,7 +1003,39 @@ async function loadMyProfile() {
     </div>
   `;
 }
+async function submitVerificationRequest() {
+  if (!currentUser) return;
 
+  const message = document.getElementById("verificationMessage");
+  const fullName = document.getElementById("verificationFullName").value.trim();
+  const requestType = document.getElementById("verificationType").value;
+  const reason = document.getElementById("verificationReason").value.trim();
+
+  if (!fullName) {
+    message.textContent = "Please enter your full name.";
+    return;
+  }
+
+  message.textContent = "Submitting request...";
+
+  const { error } = await supabaseClient
+    .from("verification_requests")
+    .insert({
+      user_id: currentUser.id,
+      request_type: requestType,
+      full_name: fullName,
+      reason: reason
+    });
+
+  if (error) {
+    message.textContent = error.code === "23505"
+      ? "You already have a pending verification request."
+      : "Submission failed: " + error.message;
+    return;
+  }
+
+  message.textContent = "Verification request submitted successfully! ❤️";
+}
 async function uploadProfilePhoto() {
   if (!currentUser) return;
 
