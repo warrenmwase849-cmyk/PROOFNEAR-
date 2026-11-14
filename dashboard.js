@@ -2286,4 +2286,60 @@ async function loadMyApplications() {
 // START THE DASHBOARD
 initializeDashboard();
 
+async function loadVerificationRequests() {
+  dashboardContent.innerHTML = `
+    <h2>🏅 Verification Centre</h2>
+    <p>Loading applications...</p>
+  `;
 
+  const { data: isAdmin, error: adminError } =
+    await supabaseClient.rpc("is_proofnear_admin");
+
+  if (adminError || !isAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
+
+  const { data: requests, error } = await supabaseClient
+    .from("verification_requests")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>Verification Centre</h2>
+      <p>${escapeHTML(error.message)}</p>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🏅 Verification Centre</h2>
+    <p>Pending applications: ${requests.length}</p>
+
+    ${requests.length === 0
+      ? "<p>No pending applications.</p>"
+      : requests.map(request => `
+        <div class="dashboard-card">
+          <h3>${escapeHTML(request.full_name)}</h3>
+          <p>Type: ${escapeHTML(request.request_type)}</p>
+          <p>Reason: ${escapeHTML(request.reason || "Not provided")}</p>
+          <p>Submitted: ${new Date(request.created_at).toLocaleDateString()}</p>
+
+          <button class="btn btn-primary"
+            onclick="reviewVerificationRequest('${request.id}', 'approved')">
+            Approve
+          </button>
+
+          <button class="btn btn-secondary"
+            onclick="reviewVerificationRequest('${request.id}', 'rejected')">
+            Reject
+          </button>
+        </div>
+      `).join("")}
+  `;
+}
