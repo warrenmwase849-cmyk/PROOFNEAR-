@@ -3184,3 +3184,17 @@ background: linear-gradient(
 .pending-fill {
   background: #d6a84b;
 }
+/* PROOFNEAR APPLICATIONS SIDEBAR VISIBILITY FIX */
+
+.dashboard-sidebar.expanded .sidebar-menu-grid {
+  display: grid !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.dashboard-sidebar.expanded .sidebar-menu-grid .sidebar-link {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
