@@ -87,6 +87,9 @@ function showSection(section) {
   else if (section === "opportunities") {
   loadMyOpportunities();
 }
+    else if (section === "applications") {
+  loadMyApplications();
+}
     else if (section === "payments") {
   loadMyPayments();
     }
