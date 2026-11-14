@@ -64,7 +64,12 @@ async function initializeDashboard() {
 
 function showSection(section) {
   if (!currentUser) return;
-
+  document.querySelectorAll(".sidebar-link").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.getAttribute("onclick")?.includes(`'${section}'`)
+    );
+  });
   const name =
     currentUser.user_metadata.full_name ||
     currentUser.email.split("@")[0];
