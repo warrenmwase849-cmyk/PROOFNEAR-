@@ -3187,3 +3187,31 @@ background: linear-gradient(
   visibility: visible !important;
   opacity: 1 !important;
 }
+.listing-poster {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.listing-poster-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.listing-poster-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eaf1ff;
+  font-size: 18px;
+}
+
+.listing-poster-name {
+  color: #243b53;
+  font-size: 13px;
+  font-weight: 600;
+}
