@@ -3162,3 +3162,25 @@ background: linear-gradient(
   border-left: 4px solid #f5c96b;
   font-weight: 800;
 }
+/* DASHBOARD STATISTICS PROGRESS */
+
+.stats-progress {
+  height: 7px;
+  width: 100%;
+  margin-top: 14px;
+  background: #e8efec;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.stats-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #269b65;
+  border-radius: 20px;
+  transition: width 0.5s ease;
+}
+
+.pending-fill {
+  background: #d6a84b;
+}
