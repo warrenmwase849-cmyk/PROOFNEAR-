@@ -249,6 +249,9 @@ dashboardContent.innerHTML = `
       <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
         <p style="margin:0;color:#71817d;">✅ Approved</p>
         <h2 id="approvedOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+      <div class="stats-progress">
+  <div id="approvedProgress" class="stats-progress-fill"></div>
+</div>
       </div>
 
     </div>
