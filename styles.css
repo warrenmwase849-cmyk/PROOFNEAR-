@@ -225,7 +225,15 @@ h1, h2, h3 {
   background: #ffffff;
   border: 1px solid #e5ece9;
 }
+.dashboard-main .dashboard-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 
+.dashboard-main .dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(7, 94, 84, 0.12);
+  border-color: #b8d8ce;
+}
 .dashboard-main .dashboard-card h3 {
   color: #075e54;
   margin-bottom: 10px;
