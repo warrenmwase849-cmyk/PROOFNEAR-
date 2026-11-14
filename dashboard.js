@@ -850,7 +850,7 @@ async function loadMyProfile() {
 
   const { data: profile, error } = await supabaseClient
     .from("profiles")
-    .select("full_name, district, bio, account_type, verification_status")
+    .select("full_name, district, bio, account_type, verification_status, avatar_url")
     .eq("id", currentUser.id)
     .maybeSingle();
 
