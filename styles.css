@@ -3102,3 +3102,48 @@ background: linear-gradient(
     min-height: 42px;
   }
 }
+
+/* PROOFNEAR PREMIUM DASHBOARD WELCOME */
+
+.dashboard-welcome {
+  padding: 30px;
+  margin-bottom: 24px;
+  border-radius: 20px;
+  color: #ffffff;
+  background: linear-gradient(120deg, #075e54, #103f32);
+  box-shadow: 0 10px 28px rgba(7, 94, 84, 0.14);
+}
+
+.dashboard-welcome .welcome-tag {
+  display: inline-block;
+  color: #f5c96b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+.dashboard-welcome h2 {
+  color: #ffffff;
+  font-size: clamp(24px, 4vw, 34px);
+  margin: 0 0 10px;
+}
+
+.dashboard-welcome p {
+  color: rgba(255,255,255,0.85);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.dashboard-welcome .welcome-account {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .dashboard-welcome {
+    padding: 23px 18px;
+  }
+}
