@@ -1000,7 +1000,20 @@ async function saveMyProfile() {
 
   message.textContent = "Profile updated successfully! ❤️";
 }
+function previewProfilePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  const preview = document.getElementById("profilePhotoPreview");
+
+  if (file.size > 3 * 1024 * 1024) {
+    alert("Please choose a photo smaller than 3 MB.");
+    event.target.value = "";
+    return;
+  }
+
+  preview.src = URL.createObjectURL(file);
+}
 
 function loadAccountSettings() {
   if (!currentUser) return;
