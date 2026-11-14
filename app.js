@@ -736,7 +736,14 @@ function saveLogin(){ var n=document.getElementById("authName").value; var p=doc
 
 async function openListingDetails(item) {
   const isRealJob = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(item.id));
-
+const posterInfo = `
+  <div class="listing-poster">
+    ${item.posterAvatar
+      ? `<img class="listing-poster-avatar" src="${escapeHTML(item.posterAvatar)}" alt="Poster photo">`
+      : `<span class="listing-poster-avatar listing-poster-placeholder">👤</span>`}
+    <span class="listing-poster-name">${escapeHTML(item.posterName || "PROOFNEAR Member")}</span>
+  </div>
+`;
   modalContent.innerHTML = `
     <h2>${escapeHTML(item.title)}</h2>
     <p>${escapeHTML(item.description || "")}</p>
