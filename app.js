@@ -745,7 +745,8 @@ const posterInfo = `
   </div>
 `;
   modalContent.innerHTML = `
-    <h2>${escapeHTML(item.title)}</h2>
+    ${posterInfo}
+<h2>${escapeHTML(item.title)}</h2>
     <p>${escapeHTML(item.description || "")}</p>
     <p>
       <b>Location:</b> ${escapeHTML(item.location || "")}<br>
