@@ -132,6 +132,9 @@ if (userIds.length) {
     approvedListings = (jobs || []).map(job => ({
       id: job.id,
       type: "job",
+      user_id: job.user_id,
+posterName: profilesById[job.user_id]?.full_name || "PROOFNEAR Member",
+posterAvatar: profilesById[job.user_id]?.avatar_url || "",
       title: job.title,
       category: job.category || "General",
       workType: job.category || "OPPORTUNITY",
