@@ -2572,3 +2572,73 @@ async function loadTalentArena() {
 }
 loadTalentArena();
 
+async function openPublicProfile(userId) {
+  if (!userId) return;
+
+  modalContent.innerHTML = `
+    <h2>👤 Public Profile</h2>
+    <p>Loading profile...</p>
+  `;
+
+  if (!dialog.open) dialog.showModal();
+
+  const { data: profiles, error } = await supabaseClient.rpc(
+    "get_public_profile",
+    { target_user_id: userId }
+  );
+
+  if (error || !profiles || profiles.length === 0) {
+    modalContent.innerHTML = `
+      <h2>Profile unavailable</h2>
+      <p>We could not load this person's profile.</p>
+      <button class="btn btn-primary" onclick="dialog.close()">Close</button>
+    `;
+    return;
+  }
+
+  const profile = profiles[0];
+
+  const { data: jobs, error: jobsError } = await supabaseClient
+    .from("jobs")
+    .select("id, title, category, location, pay, description, created_at")
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+
+  modalContent.innerHTML = `
+    <div style="text-align:center;">
+      <img
+        src="${escapeHTML(profile.avatar_url || 'https://placehold.co/120x120?text=Photo')}"
+        alt="Profile photo"
+        style="width:110px;height:110px;border-radius:50%;object-fit:cover;"
+      >
+
+      <h2>${escapeHTML(profile.full_name || "PROOFNEAR Member")}</h2>
+      <p>📍 ${escapeHTML(profile.district || "District not provided")}</p>
+      <p>${escapeHTML(profile.account_type || "Member")} account</p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>About Me</h3>
+      <p>${escapeHTML(profile.bio || "No biography added yet.")}</p>
+    </div>
+
+    <h3>💼 Published Opportunities</h3>
+
+    ${jobsError ? `
+      <p>Could not load opportunities.</p>
+    ` : !jobs || jobs.length === 0 ? `
+      <p>No approved opportunities published yet.</p>
+    ` : jobs.map(job => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(job.title)}</h3>
+        <p>${escapeHTML(job.category || "General")}</p>
+        <p>📍 ${escapeHTML(job.location || "Not specified")}</p>
+        <p>${escapeHTML(job.description || "")}</p>
+      </div>
+    `).join("")}
+
+    <button class="btn btn-primary" onclick="dialog.close()">Close Profile</button>
+  `;
+}
+
