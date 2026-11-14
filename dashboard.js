@@ -917,6 +917,13 @@ async function loadMyProfile() {
     accept="image/png,image/jpeg,image/webp"
     onchange="previewProfilePhoto(event)"
   >
+  <button
+  class="btn btn-primary"
+  onclick="uploadProfilePhoto()">
+  Upload Profile Photo
+</button>
+
+<p id="profilePhotoMessage"></p>
 </div>
       <label>Full name</label>
       <input
