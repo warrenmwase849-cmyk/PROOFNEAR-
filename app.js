@@ -113,6 +113,22 @@ async function loadApprovedOpportunities() {
     console.error("Could not load opportunities:", error.message);
     approvedListings = [];
   } else {
+   const userIds = [...new Set((jobs || []).map(job => job.user_id).filter(Boolean))];
+
+let profilesById = {};
+
+if (userIds.length) {
+  const { data: profiles, error: profilesError } = await supabaseClient
+    .from("profiles")
+    .select("id, full_name, avatar_url")
+    .in("id", userIds);
+
+  if (!profilesError) {
+    profilesById = Object.fromEntries(
+      (profiles || []).map(profile => [profile.id, profile])
+    );
+  }
+}
     approvedListings = (jobs || []).map(job => ({
       id: job.id,
       type: "job",
