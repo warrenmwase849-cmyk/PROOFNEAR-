@@ -973,53 +973,62 @@ async function loadMyProfile() {
   `;
 }
 
-async function saveMyProfile() {
+async function uploadProfilePhoto() {
   if (!currentUser) return;
 
-  const fullName = document.getElementById("profileFullName").value.trim();
-  const district = document.getElementById("profileDistrict").value.trim();
-  const bio = document.getElementById("profileBio").value.trim();
-  const accountType = document.getElementById("profileAccountType").value;
+  const input = document.getElementById("profilePhoto");
+  const message = document.getElementById("profilePhotoMessage");
+  const file = input.files[0];
 
-  const message = document.getElementById("profileMessage");
-
-  if (!fullName) {
-    message.textContent = "Please enter your full name.";
+  if (!file) {
+    message.textContent = "Please choose a photo first.";
     return;
   }
-
-  message.textContent = "Saving your profile...";
-
-  const { error } = await supabaseClient
-    .from("profiles")
-    .update({
-      full_name: fullName,
-      district: district,
-      bio: bio,
-      account_type: accountType
-    })
-    .eq("id", currentUser.id);
-
-  if (error) {
-    message.textContent = "Could not save: " + error.message;
-    return;
-  }
-
-  message.textContent = "Profile updated successfully! ❤️";
-}
-function previewProfilePhoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const preview = document.getElementById("profilePhotoPreview");
 
   if (file.size > 3 * 1024 * 1024) {
-    alert("Please choose a photo smaller than 3 MB.");
-    event.target.value = "";
+    message.textContent = "Photo must be smaller than 3 MB.";
     return;
   }
 
-  preview.src = URL.createObjectURL(file);
+  message.textContent = "Uploading photo...";
+
+  const extension = file.type === "image/png" ? "png" :
+    file.type === "image/webp" ? "webp" : "jpg";
+
+  const filePath = `${currentUser.id}/${Date.now()}.${extension}`;
+
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from("profile-photos")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type
+    });
+
+  if (uploadError) {
+    message.textContent = "Upload failed: " + uploadError.message;
+    return;
+  }
+
+  const { data } = supabaseClient
+    .storage
+    .from("profile-photos")
+    .getPublicUrl(filePath);
+
+  const { error: profileError } = await supabaseClient
+    .from("profiles")
+    .update({ avatar_url: data.publicUrl })
+    .eq("id", currentUser.id);
+
+  if (profileError) {
+    message.textContent = "Photo uploaded, but profile update failed: " + profileError.message;
+    return;
+  }
+
+  document.getElementById("profilePhotoPreview").src = data.publicUrl;
+  message.textContent = "Profile photo updated successfully! ❤️";
+  input.value = "";
 }
 
 function loadAccountSettings() {
