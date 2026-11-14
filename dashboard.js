@@ -898,6 +898,26 @@ async function loadMyProfile() {
 </div>
 
 <div class="dashboard-card">
+<div class="profile-photo-section">
+  <img
+    id="profilePhotoPreview"
+    src="${escapeHTML(savedProfile.avatar_url || 'https://placehold.co/120x120?text=Photo')}"
+    alt="Profile photo"
+    width="120"
+    height="120"
+    style="border-radius:50%;object-fit:cover;"
+  >
+
+  <br>
+
+  <label for="profilePhoto">Choose profile photo</label>
+  <input
+    type="file"
+    id="profilePhoto"
+    accept="image/png,image/jpeg,image/webp"
+    onchange="previewProfilePhoto(event)"
+  >
+</div>
       <label>Full name</label>
       <input
         type="text"
