@@ -2625,6 +2625,11 @@ async function openPublicProfile(userId) {
 
       <h2>${escapeHTML(profile.full_name || "PROOFNEAR Member")}</h2>
       <p>📍 ${escapeHTML(profile.district || "District not provided")}</p>
+      <p>
+  ${profile.verification_status === "verified"
+    ? "✅ Verified Account"
+    : "⚪ Not Verified"}
+</p>
       <p>${escapeHTML(profile.account_type || "Member")} account</p>
     </div>
 
