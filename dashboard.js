@@ -194,15 +194,27 @@ async function loadDashboardOverview() {
     currentUser.user_metadata.account_type ||
     "both";
 
-  dashboardContent.innerHTML = `
-    <div style="margin-bottom:24px;">
-      <h2 style="margin-bottom:6px;">
+  
+dashboardContent.innerHTML = `
+    <div class="dashboard-welcome">
+      <span class="welcome-tag">YOUR PROOFNEAR DASHBOARD</span>
+
+      <h2>
         Welcome back, ${escapeHTML(name)}! 👋
       </h2>
-      <p style="color:#71817d;margin:0;">
-        Here's an overview of your PROOFNEAR account.
+
+      <p>
+        Your opportunities. Your progress. Your future.
+        Everything you need to manage your PROOFNEAR account is here.
       </p>
+
+      <div class="welcome-account">
+        👤 ${escapeHTML(accountType)} account
+        &nbsp; • &nbsp;
+        ✉️ ${escapeHTML(currentUser.email)}
+      </div>
     </div>
+
 
     <div class="dashboard-card">
       <h3>👤 Account Information</h3>
