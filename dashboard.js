@@ -860,7 +860,21 @@ async function loadMyProfile() {
   }
 
   const savedProfile = profile || {};
+  const profileFields = [
+    savedProfile.full_name || currentUser.user_metadata.full_name,
+    currentUser.email,
+    savedProfile.district,
+    savedProfile.bio,
+    savedProfile.account_type
+  ];
 
+  const completedFields = profileFields.filter(
+    value => value && String(value).trim() !== ""
+  ).length;
+
+  const completionPercent = Math.round(
+    (completedFields / profileFields.length) * 100
+  );
   dashboardContent.innerHTML = `
     <h2>👤 My Profile</h2>
 
