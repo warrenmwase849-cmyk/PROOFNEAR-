@@ -2100,7 +2100,77 @@ async function logoutUser() {
   window.location.href = "index.html";
 }
 
+// =================================
+// MY APPLICATIONS
+// =================================
 
+async function loadMyApplications() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>📝 My Applications</h2>
+    <p>Loading your applications...</p>
+  `;
+
+  const { data: applications, error } = await supabaseClient
+    .from("applications")
+    .select(`
+      id,
+      application_message,
+      status,
+      created_at,
+      job:jobs(title, location)
+    `)
+    .eq("applicant_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>📝 My Applications</h2>
+      <p>Could not load applications: ${escapeHTML(error.message)}</p>
+    `;
+    return;
+  }
+
+  if (!applications || applications.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>📝 My Applications</h2>
+      <div class="dashboard-card">
+        <h3>No applications yet</h3>
+        <p>When you apply for opportunities on PROOFNEAR,
+        your applications will appear here.</p>
+        <button class="btn btn-primary"
+          onclick="window.location.href='index.html'">
+          Explore Opportunities
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>📝 My Applications</h2>
+    <p>Track the opportunities you have applied for.</p>
+
+    ${applications.map(application => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(application.job?.title || "Opportunity")}</h3>
+
+        <p>📍 ${escapeHTML(application.job?.location || "Location not specified")}</p>
+
+        <p>📅 Applied:
+          ${new Date(application.created_at).toLocaleDateString()}
+        </p>
+
+        <p>📌 Status:
+          <strong>${escapeHTML(application.status || "Pending")}</strong>
+        </p>
+
+        <p>${escapeHTML(application.application_message || "")}</p>
+      </div>
+    `).join("")}
+  `;
+}
 // START THE DASHBOARD
 initializeDashboard();
 
