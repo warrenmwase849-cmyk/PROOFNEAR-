@@ -3168,3 +3168,22 @@ background: linear-gradient(
   visibility: visible !important;
   opacity: 1 !important;
 }
+/* PROOFNEAR APPLICATION BUTTON VISIBILITY FIX */
+#dashboardSidebar .sidebar-menu-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-auto-flow: row !important;
+  overflow: visible !important;
+}
+
+#dashboardSidebar .sidebar-link {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#dashboardSidebar .sidebar-label {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
