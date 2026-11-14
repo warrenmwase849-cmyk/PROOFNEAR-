@@ -343,6 +343,21 @@ dashboardContent.innerHTML = `
 
   document.getElementById("approvedOpportunities").textContent =
     approved ?? 0;
+    const totalCount = total ?? 0;
+
+  const pendingPercent = totalCount > 0
+    ? ((pending ?? 0) / totalCount) * 100
+    : 0;
+
+  const approvedPercent = totalCount > 0
+    ? ((approved ?? 0) / totalCount) * 100
+    : 0;
+
+  document.getElementById("pendingProgress").style.width =
+    `${pendingPercent}%`;
+
+  document.getElementById("approvedProgress").style.width =
+    `${approvedPercent}%`;
 }
 
 async function loadMyPayments() {
