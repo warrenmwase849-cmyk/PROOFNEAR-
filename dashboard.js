@@ -1872,7 +1872,6 @@ async function setJobAvailability(jobId, newStatus) {
     alert("Opportunity could not be updated.");
   }
 }
-initializeDashboard();
 
 async function loadPendingPayments() {
   if (!isProofnearAdmin) {
