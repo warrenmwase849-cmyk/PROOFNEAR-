@@ -878,7 +878,22 @@ async function loadMyProfile() {
   dashboardContent.innerHTML = `
     <h2>👤 My Profile</h2>
 
-    <div class="dashboard-card">
+<div class="dashboard-card profile-completion">
+  <h3>📈 Profile Completion</h3>
+
+  <h2>${completionPercent}%</h2>
+
+  <div class="stats-progress">
+    <div
+      class="stats-progress-fill"
+      style="width:${completionPercent}%">
+    </div>
+  </div>
+
+  <p>Complete your profile to help people know you better.</p>
+</div>
+
+<div class="dashboard-card">
       <label>Full name</label>
       <input
         type="text"
