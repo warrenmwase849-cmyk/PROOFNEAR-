@@ -201,7 +201,11 @@ function renderListings(items = currentListings, reset = true) {
     ${item.posterAvatar
       ? `<img class="listing-poster-avatar" src="${escapeHTML(item.posterAvatar)}" alt="Poster photo">`
       : `<span class="listing-poster-avatar listing-poster-placeholder">👤</span>`}
-    <span class="listing-poster-name">${escapeHTML(item.posterName || "PROOFNEAR Member")}</span>
+    <span class="listing-poster-name"
+  onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+  style="cursor:pointer;">
+  ${escapeHTML(item.posterName || "PROOFNEAR Member")}
+</span>
   </div>
 ` : ""}
 
