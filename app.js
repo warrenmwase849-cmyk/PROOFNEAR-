@@ -105,7 +105,7 @@ let visibleListingsCount = 8;
 async function loadApprovedOpportunities() {
   const { data: jobs, error } = await supabaseClient
     .from("jobs")
-    .select("id, title, category, location, description, pay, created_at, status, availability_status")
+    .select("id, user_id, title, category, location, description, pay, created_at, status, availability_status")
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
