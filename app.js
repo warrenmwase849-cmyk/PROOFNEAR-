@@ -196,6 +196,14 @@ function renderListings(items = currentListings, reset = true) {
       </div>
 
       <div class="premium-card-content">
+      ${!item.isPreview ? `
+  <div class="listing-poster">
+    ${item.posterAvatar
+      ? `<img class="listing-poster-avatar" src="${escapeHTML(item.posterAvatar)}" alt="Poster photo">`
+      : `<span class="listing-poster-avatar listing-poster-placeholder">👤</span>`}
+    <span class="listing-poster-name">${escapeHTML(item.posterName || "PROOFNEAR Member")}</span>
+  </div>
+` : ""}
 
         <h3>${escapeHTML(item.title)}</h3>
 
