@@ -963,6 +963,37 @@ async function loadMyProfile() {
       <p><strong>Verification:</strong>
         ${escapeHTML(savedProfile.verification_status || "Not verified")}
       </p>
+      <div class="dashboard-card">
+  <h3>🏅 Apply for Verification</h3>
+  <p>Request a PROOFNEAR verification badge.</p>
+
+  <label>Verification type</label>
+  <select id="verificationType">
+    <option value="identity">Personal Identity</option>
+    <option value="business">Business Verification</option>
+  </select>
+
+  <label>Full name</label>
+  <input
+    type="text"
+    id="verificationFullName"
+    value="${escapeHTML(savedProfile.full_name || currentUser.user_metadata.full_name || "")}"
+    placeholder="Your real full name"
+  >
+
+  <label>Why should we verify you?</label>
+  <textarea
+    id="verificationReason"
+    placeholder="Briefly explain your verification request"
+  ></textarea>
+
+  <button class="btn btn-primary"
+    onclick="submitVerificationRequest()">
+    Submit Verification Request
+  </button>
+
+  <p id="verificationMessage"></p>
+</div>
 
       <button class="btn btn-primary" onclick="saveMyProfile()">
         Save Profile
