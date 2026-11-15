@@ -3423,3 +3423,26 @@ background: linear-gradient(
   visibility: visible !important;
   opacity: 1 !important;
 }
+
+/* =====================================
+   PROOFNEAR — KEEP FOOTER AT PAGE BOTTOM
+===================================== */
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+footer.footer {
+  width: 100%;
+  margin-top: auto;
+  flex-shrink: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+}
