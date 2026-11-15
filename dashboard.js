@@ -57,7 +57,13 @@ async function initializeDashboard() {
       }
     }
   }
+const verificationButton = document.getElementById(
+  "verificationAdminButton"
+);
 
+if (verificationButton) {
+  verificationButton.style.display = "flex";
+}
   console.log("PROOFNEAR: Initialization completed");
 }
 
