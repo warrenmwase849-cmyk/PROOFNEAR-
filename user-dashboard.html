@@ -17,6 +17,7 @@
       margin: 0;
       background: #f4f7f6;
       color: #20332e;
+      font-family: Arial, sans-serif;
     }
 
     .user-header {
@@ -45,15 +46,19 @@
       min-height: 85vh;
       margin: 25px auto;
       padding: 0 18px 25px;
+      transition: grid-template-columns 0.25s ease;
     }
 
+    /* SIDEBAR */
     .dashboard-sidebar {
+      min-width: 0;
       padding: 23px 17px;
       background: linear-gradient(145deg, #075e54, #06483f);
       color: white;
       border-radius: 18px;
       height: fit-content;
       box-shadow: 0 10px 25px rgba(0,50,42,.12);
+      transition: width 0.25s ease, padding 0.25s ease;
     }
 
     .sidebar-top {
@@ -70,6 +75,7 @@
     }
 
     .sidebar-toggle {
+      flex-shrink: 0;
       width: 42px;
       height: 40px;
       border: 0;
@@ -78,6 +84,10 @@
       color: #075e54;
       font-size: 23px;
       cursor: pointer;
+    }
+
+    .sidebar-toggle:hover {
+      background: #f1dcae;
     }
 
     .sidebar-brand {
@@ -122,6 +132,7 @@
 
     .sidebar-icon {
       width: 24px;
+      flex-shrink: 0;
       text-align: center;
     }
 
@@ -137,6 +148,29 @@
       font-size: 11px;
     }
 
+    /* DESKTOP COLLAPSED SIDEBAR */
+    @media(min-width: 761px) {
+      .dashboard-sidebar.expanded {
+        width: 78px;
+        padding: 18px 10px;
+      }
+
+      .dashboard-sidebar.expanded .admin-heading,
+      .dashboard-sidebar.expanded .sidebar-brand,
+      .dashboard-sidebar.expanded .sidebar-menu-grid {
+        display: none;
+      }
+
+      .dashboard-sidebar.expanded .sidebar-top {
+        justify-content: center;
+      }
+
+      .dashboard-sidebar.expanded .sidebar-toggle {
+        display: block;
+      }
+    }
+
+    /* MAIN CONTENT */
     .dashboard-main {
       min-width: 0;
       padding: 25px;
@@ -144,6 +178,7 @@
       border: 1px solid #e0e7e4;
       border-radius: 16px;
       box-shadow: 0 5px 20px rgba(0,0,0,.035);
+      overflow-wrap: anywhere;
     }
 
     .dashboard-card {
@@ -154,6 +189,10 @@
       background: white;
     }
 
+    .dashboard-main button {
+      cursor: pointer;
+    }
+
     .user-footer {
       padding: 20px;
       text-align: center;
@@ -161,6 +200,7 @@
       font-size: 12px;
     }
 
+    /* MOBILE */
     @media(max-width: 760px) {
       .dashboard-layout {
         grid-template-columns: 1fr;
@@ -170,6 +210,7 @@
       }
 
       .dashboard-sidebar {
+        width: 100%;
         padding: 19px 15px;
       }
 
@@ -177,10 +218,20 @@
         display: none;
         grid-template-columns: 1fr 1fr;
         gap: 5px;
+        margin-top: 15px;
+      }
+
+      /* On mobile, expanded means menu is visible */
+      .dashboard-sidebar.expanded {
+        width: 100%;
       }
 
       .dashboard-sidebar.expanded .sidebar-menu-grid {
         display: grid;
+      }
+
+      .dashboard-sidebar .sidebar-brand {
+        display: block;
       }
 
       .dashboard-main {
@@ -189,6 +240,17 @@
 
       .user-header h1 {
         font-size: 22px;
+      }
+
+      .sidebar-link {
+        padding: 11px 8px;
+        font-size: 13px;
+      }
+    }
+
+    @media(max-width: 380px) {
+      .sidebar-menu-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -208,9 +270,11 @@
     <div class="sidebar-top">
       <h3 class="admin-heading">👤 My Account</h3>
 
-      <button class="sidebar-toggle"
+      <button
+        class="sidebar-toggle"
         onclick="toggleSidebar()"
-        aria-label="Open menu">
+        aria-label="Toggle dashboard menu"
+        aria-expanded="false">
         ☰
       </button>
     </div>
@@ -231,10 +295,11 @@
         <span class="sidebar-icon">💼</span>
         <span class="sidebar-label">My Opportunities</span>
       </button>
+
       <button class="sidebar-link" onclick="showSection('applications')">
-  <span class="sidebar-icon">📝</span>
-  <span class="sidebar-label">My Applications</span>
-</button>
+        <span class="sidebar-icon">📝</span>
+        <span class="sidebar-label">My Applications</span>
+      </button>
 
       <button class="sidebar-link" onclick="showSection('post')">
         <span class="sidebar-icon">➕</span>
@@ -298,4 +363,3 @@
 
 </body>
 </html>
-
