@@ -2172,13 +2172,6 @@ function toggleSidebar() {
 // PROOFNEAR DASHBOARD CONTROLS
 // =================================
 
-  if (!menu) return;
-
-  menu.style.display =
-    menu.style.display === "none" ? "grid" : "none";
-}
-
-
 // MARK ONE NOTIFICATION AS READ
 async function markNotificationRead(notificationId) {
   if (!currentUser || !notificationId) return;
