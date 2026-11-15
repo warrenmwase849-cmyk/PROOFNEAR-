@@ -3384,3 +3384,42 @@ background: linear-gradient(
     z-index: 1001;
   }
 }
+/* ==================================
+   PROOFNEAR HEADER TEXT VISIBILITY FIX
+================================== */
+
+.site-header {
+  background: #102a43 !important;
+  color: #ffffff !important;
+}
+
+.site-header nav a,
+.site-header .logo,
+.site-header #menuToggle,
+.site-header #accountBtn {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.site-header nav a {
+  background: transparent !important;
+}
+
+/* Prevent white overlays from hiding header text */
+.site-header nav,
+.site-header .logo {
+  position: relative;
+  z-index: 1002;
+}
+
+/* Mobile menu text */
+#mobileMenu,
+#mobileMenu a {
+  color: #102a43 !important;
+}
+
+#mobileMenu a {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
