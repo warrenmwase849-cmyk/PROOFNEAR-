@@ -3286,17 +3286,19 @@ background: linear-gradient(
     visibility: visible !important;
   }
 }
+
 /* ==================================
-   PROOFNEAR PREMIUM HEADER
+   PROOFNEAR PREMIUM HEADER - FIXED
 ================================== */
 
 .site-header {
   width: 100%;
   min-height: 72px;
   padding: 12px 5%;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
   background: #102a43;
   color: #ffffff;
   box-shadow: 0 3px 15px rgba(0,0,0,0.12);
@@ -3304,18 +3306,81 @@ background: linear-gradient(
   z-index: 1000;
 }
 
-.site-header a {
-  color: #ffffff;
+/* LOGO */
+.site-header .logo {
+  display: block !important;
+  visibility: visible !important;
+  color: #ffffff !important;
+  font-size: 25px;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.site-header .logo span {
+  color: #35c879 !important;
+}
+
+/* DESKTOP NAVIGATION */
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.site-header nav a {
+  color: #ffffff !important;
   text-decoration: none;
+  font-weight: 600;
 }
 
-.site-header button {
-  border-radius: 10px;
+/* HAMBURGER */
+.site-header #menuToggle {
+  display: none;
+  visibility: visible !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 9px 13px;
+  font-size: 23px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
+/* ACCOUNT BUTTON */
+.site-header #accountBtn {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+/* MOBILE */
 @media (max-width: 700px) {
   .site-header {
-    min-height: 64px;
-    padding: 10px 16px;
+    min-height: 65px;
+    padding: 10px 15px;
+    gap: 10px;
+  }
+
+  .site-header .logo {
+    font-size: 22px;
+    margin-right: auto;
+  }
+
+  .site-header nav {
+    display: none !important;
+  }
+
+  .site-header #menuToggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .site-header #accountBtn {
+    display: none !important;
+  }
+
+  .site-header #mobileMenu {
+    z-index: 1001;
   }
 }
