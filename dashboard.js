@@ -124,8 +124,7 @@ else if (section === "verification") {
     }
 
     dashboardContent.innerHTML = `
-      <h2>🔐 PROOFNEAR Admin Panel</h2>
-      
+
 <h2>🔐 PROOFNEAR Admin Panel</h2>
 <p>Manage and supervise platform activities.</p>
 
