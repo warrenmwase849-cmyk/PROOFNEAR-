@@ -506,11 +506,33 @@ if (postPaymentMethod && postAirtelDetails && postMtnDetails) {
   updatePostPaymentDisplay();
 }
   dialog.showModal();
+  function bindAuthButtons() {
   const registerBtn = document.getElementById("registerBtn");
-if (registerBtn) registerBtn.onclick = registerUser;
+  if (registerBtn) registerBtn.onclick = registerUser;
 
-const loginBtn = document.getElementById("loginBtn");
-if (loginBtn) loginBtn.onclick = loginUser;
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) loginBtn.onclick = loginUser;
+
+  const showRegister = document.getElementById("showRegister");
+  if (showRegister) {
+    showRegister.onclick = () => {
+      modalContent.innerHTML = forms.register;
+      bindAuthButtons();
+    };
+  }
+
+  const showSignin = document.getElementById("showSignin");
+  if (showSignin) {
+    showSignin.onclick = () => {
+      modalContent.innerHTML = forms.signin;
+      bindAuthButtons();
+    };
+  }
+}
+
+if (kind === "signin" || kind === "register") {
+  bindAuthButtons();
+}
   const postForm = document.getElementById("postForm");
   if (postForm) postForm.addEventListener("submit", async e => {
   e.preventDefault();
