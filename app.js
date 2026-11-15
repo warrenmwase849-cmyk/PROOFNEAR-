@@ -132,6 +132,8 @@ if (userIds.length) {
     );
   }
 }
+    console.log("PROOFNEAR approved jobs received:", jobs);
+console.log("Approved jobs count:", (jobs || []).length);
     approvedListings = (jobs || []).map(job => ({
       id: job.id,
       type: "job",
