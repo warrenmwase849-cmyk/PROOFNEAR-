@@ -3215,3 +3215,45 @@ background: linear-gradient(
   font-size: 13px;
   font-weight: 600;
 }
+/* =================================
+   PROOFNEAR MOBILE DASHBOARD MENU
+================================= */
+
+@media (max-width: 700px) {
+
+  /* Keep the sidebar compact by default */
+  .dashboard-sidebar:not(.expanded) {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Hide all navigation links until hamburger is tapped */
+  .dashboard-sidebar:not(.expanded) .sidebar-menu-grid {
+    display: none !important;
+  }
+
+  /* Hide labels when menu is closed */
+  .dashboard-sidebar:not(.expanded) .sidebar-label,
+  .dashboard-sidebar:not(.expanded) h3 {
+    display: none !important;
+  }
+
+  /* Show navigation when hamburger is tapped */
+  .dashboard-sidebar.expanded .sidebar-menu-grid {
+    display: grid !important;
+    width: 100% !important;
+  }
+
+  .dashboard-sidebar.expanded .sidebar-label,
+  .dashboard-sidebar.expanded h3 {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .dashboard-sidebar.expanded .sidebar-link {
+    width: 100% !important;
+  }
+}
