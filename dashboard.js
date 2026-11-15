@@ -103,7 +103,17 @@ function showSection(section) {
 else if (section === "settings") {
   loadAccountSettings();
 }
+else if (section === "verification") {
+  if (!isProofnearAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access Denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
 
+  loadVerificationRequests();
+}
   else if (section === "admin") {
     if (!isProofnearAdmin) {
       dashboardContent.innerHTML = `
