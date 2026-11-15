@@ -51,7 +51,15 @@ if (adminNavigation) {
   adminNavigation.style.display =
     isProofnearAdmin ? "block" : "none";
 }
-
+alert(
+  "Admin menu found: " + !!adminNavigation +
+  "\nMenu display: " +
+  (adminNavigation ? getComputedStyle(adminNavigation).display : "Not found") +
+  "\nParent display: " +
+  (adminNavigation?.parentElement
+    ? getComputedStyle(adminNavigation.parentElement).display
+    : "No parent")
+);
   console.log("PROOFNEAR: Initialization completed");
 }
 
