@@ -29,8 +29,6 @@ async function initializeDashboard() {
 
   updateNotificationBadge();
   startNotificationListener();
-
-  const { data: isAdmin, error: adminError } =
   
 const { data: isAdmin, error: adminError } =
   await supabaseClient.rpc("is_proofnear_admin");
