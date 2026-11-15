@@ -8,6 +8,37 @@
   <title>PROOFNEAR | My Dashboard</title>
   <link rel="stylesheet" href="styles.css">
 
+/* FINAL MOBILE SIDEBAR VISIBILITY FIX */
+@media (max-width: 760px) {
+
+  /* Closed menu: show only My Account area and hamburger */
+  #dashboardSidebar:not(.expanded) .sidebar-brand {
+    display: none !important;
+  }
+
+  #dashboardSidebar:not(.expanded) #dashboardMenu {
+    display: none !important;
+  }
+
+  /* Open menu: show dashboard heading and all menu links */
+  #dashboardSidebar.expanded .sidebar-brand {
+    display: block !important;
+  }
+
+  #dashboardSidebar.expanded #dashboardMenu {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    margin-top: 15px;
+  }
+}
+
+@media (max-width: 380px) {
+  #dashboardSidebar.expanded #dashboardMenu {
+    grid-template-columns: 1fr;
+  }
+}
+  
   <style>
     * {
       box-sizing: border-box;
