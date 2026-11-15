@@ -2355,3 +2355,34 @@ async function loadVerificationRequests() {
       `).join("")}
   `;
 }
+async function reviewVerificationRequest(requestId, decision) {
+  if (!currentUser) return;
+
+  const confirmed = confirm(
+    `Are you sure you want to ${decision} this application?`
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient.rpc(
+    "review_verification_request",
+    {
+      request_id: requestId,
+      decision: decision,
+      note: null
+    }
+  );
+
+  if (error) {
+    alert("Review failed: " + error.message);
+    return;
+  }
+
+  alert(
+    decision === "approved"
+      ? "Application approved! Verified badge awarded."
+      : "Application rejected."
+  );
+
+  loadVerificationRequests();
+}
