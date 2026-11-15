@@ -3257,3 +3257,32 @@ background: linear-gradient(
     width: 100% !important;
   }
 }
+
+/* =====================================
+   PROOFNEAR FINAL SIDEBAR VISIBILITY FIX
+===================================== */
+
+/* Collapsed sidebar: hide text labels */
+#dashboardSidebar:not(.expanded) .sidebar-label,
+#dashboardSidebar:not(.expanded) h3 {
+  display: none !important;
+}
+
+/* Mobile: hide the entire menu until opened */
+@media (max-width: 700px) {
+  #dashboardSidebar:not(.expanded) #dashboardMenu {
+    display: none !important;
+  }
+
+  #dashboardSidebar.expanded #dashboardMenu {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  #dashboardSidebar.expanded .sidebar-label,
+  #dashboardSidebar.expanded h3 {
+    display: inline-block !important;
+    visibility: visible !important;
+  }
+}
