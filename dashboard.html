@@ -452,87 +452,87 @@
     <div class="sidebar-divider"></div>
   </div>
 
-  <div class="sidebar-menu-grid">
+  
+<div class="sidebar-menu-grid">
 
-    <button class="sidebar-link" onclick="showSection('overview')" title="Overview">
-      <span class="sidebar-icon">🏠</span>
-      <span class="sidebar-label">Overview</span>
-    </button>
+  <h3 class="sidebar-group-title">🏠 MY DASHBOARD</h3>
 
-    <button class="sidebar-link" onclick="showSection('opportunities')" title="My Opportunities">
-      <span class="sidebar-icon">💼</span>
-      <span class="sidebar-label">My Opportunities</span>
-    </button>
-    <button class="sidebar-link"
-  onclick="showSection('applications')"
-  title="My Applications">
-  <span class="sidebar-icon">📝</span>
-  <span class="sidebar-label">My Applications</span>
-    </button>
+  <button class="sidebar-link" onclick="showSection('overview')">
+    <span class="sidebar-icon">🏠</span>
+    <span class="sidebar-label">Overview</span>
+  </button>
 
-    <button class="sidebar-link" onclick="showSection('post')" title="Post Opportunity">
-      <span class="sidebar-icon">➕</span>
-      <span class="sidebar-label">Post Opportunity</span>
-    </button>
+  <button class="sidebar-link" onclick="showSection('opportunities')">
+    <span class="sidebar-icon">💼</span>
+    <span class="sidebar-label">My Opportunities</span>
+  </button>
 
-    <button class="sidebar-link" onclick="showSection('notifications')" title="Notifications">
-      <span class="sidebar-icon">🔔</span>
-      <span class="sidebar-label">Notifications</span>
-      <span id="notificationBadge" class="notification-badge" style="display:none;">0</span>
-    </button>
+  <button class="sidebar-link" onclick="showSection('applications')">
+    <span class="sidebar-icon">📝</span>
+    <span class="sidebar-label">My Applications</span>
+  </button>
 
-    <button class="sidebar-link" onclick="logoutUser()" title="Log Out">
-      <span class="sidebar-icon">🚪</span>
-      <span class="sidebar-label">Log Out</span>
-    </button>
+  <button class="sidebar-link" onclick="showSection('post')">
+    <span class="sidebar-icon">➕</span>
+    <span class="sidebar-label">Post Opportunity</span>
+  </button>
 
-    <button class="sidebar-link" onclick="showSection('profile')" title="My Profile">
-      <span class="sidebar-icon">👤</span>
-      <span class="sidebar-label">My Profile</span>
-    </button>
+  <h3 class="sidebar-group-title">👤 MY ACCOUNT</h3>
 
-    <button class="sidebar-link" onclick="showSection('payments')" title="My Payments">
-      <span class="sidebar-icon">💰</span>
-      <span class="sidebar-label">My Payments</span>
-    </button>
+  <button class="sidebar-link" onclick="showSection('profile')">
+    <span class="sidebar-icon">👤</span>
+    <span class="sidebar-label">My Profile</span>
+  </button>
 
-    <button class="sidebar-link" onclick="showSection('messages')" title="Messages">
-      <span class="sidebar-icon">✉️</span>
-      <span class="sidebar-label">Messages</span>
-    </button>
+  <button class="sidebar-link" onclick="showSection('payments')">
+    <span class="sidebar-icon">💰</span>
+    <span class="sidebar-label">My Payments</span>
+  </button>
 
-    <button class="sidebar-link" onclick="showSection('settings')" title="Settings">
-      <span class="sidebar-icon">⚙️</span>
-      <span class="sidebar-label">Settings</span>
-    </button>
-    <button
-  class="sidebar-link"
-  id="verificationAdminButton"
-  onclick="loadVerificationRequests()"
-  style="display:none;"
-  title="Verification Centre">
-  <span class="sidebar-icon">🏅</span>
-  <span class="sidebar-label">Verification Centre</span>
-    </button>
-    <button
-  class="sidebar-link"
-  id="verificationAdminButton"
-  onclick="loadVerificationRequests()"
-  style="display:none;"
-  title="Verification Centre">
+  <button class="sidebar-link" onclick="showSection('notifications')">
+    <span class="sidebar-icon">🔔</span>
+    <span class="sidebar-label">Notifications</span>
+    <span id="notificationBadge" class="notification-badge" style="display:none;">0</span>
+  </button>
 
-  <span class="sidebar-icon">🏅</span>
-  <span class="sidebar-label">Verification Centre</span>
+  <button class="sidebar-link" onclick="showSection('messages')">
+    <span class="sidebar-icon">✉️</span>
+    <span class="sidebar-label">Messages</span>
+  </button>
+
+  <button class="sidebar-link" onclick="showSection('settings')">
+    <span class="sidebar-icon">⚙️</span>
+    <span class="sidebar-label">Settings</span>
+  </button>
+
+  <div id="adminNavigation" style="display:none;">
+    <h3 class="sidebar-group-title">🔐 ADMINISTRATION</h3>
+
+    <button class="sidebar-link" onclick="showSection('admin')">
+      <span class="sidebar-icon">🔐</span>
+      <span class="sidebar-label">Admin Dashboard</span>
     </button>
 
-    <button class="sidebar-link" onclick="location.href='index.html'" title="Homepage">
-      <span class="sidebar-icon">←</span>
-      <span class="sidebar-label">Homepage</span>
+    <button class="sidebar-link" onclick="loadVerificationRequests()">
+      <span class="sidebar-icon">🏅</span>
+      <span class="sidebar-label">Verification Centre</span>
     </button>
-
   </div>
-</aside>
 
+  <h3 class="sidebar-group-title">🌐 GENERAL</h3>
+
+  <button class="sidebar-link" onclick="location.href='index.html'">
+    <span class="sidebar-icon">←</span>
+    <span class="sidebar-label">Homepage</span>
+  </button>
+
+  <button class="sidebar-link" onclick="logoutUser()">
+    <span class="sidebar-icon">🚪</span>
+    <span class="sidebar-label">Log Out</span>
+  </button>
+
+</div>
+</aside>
 
   <main class="dashboard-main" id="dashboardContent">
     <h2>Welcome to PROOFNEAR</h2>
