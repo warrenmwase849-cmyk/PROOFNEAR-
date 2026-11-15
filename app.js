@@ -392,12 +392,42 @@ function openModal(kind) {
 </label>
       <label>Phone number<input required name="phone" type="tel" placeholder="Your contact number"></label>
       <button class="btn btn-primary" type="submit">Preview my profile</button></form>`,
-    signin: `
-<h2>Welcome to PROOFNEAR</h2>
+    
+signin: `
+<h2>Welcome back!</h2>
+<p>Sign in to continue to PROOFNEAR.</p>
+
+<div class="form-stack">
+  <label>Email address
+    <input id="authEmail" type="email"
+      placeholder="Enter your email" required>
+  </label>
+
+  <label>Password
+    <input id="authPassword" type="password"
+      placeholder="Enter your password" required>
+  </label>
+
+  <button class="btn btn-primary" id="loginBtn" type="button">
+    Sign in
+  </button>
+
+  <p id="authMessage" class="form-hint"></p>
+
+  <p>New to PROOFNEAR?
+    <button class="btn" id="showRegister" type="button">
+      Create an account
+    </button>
+  </p>
+</div>`,
+
+register: `
+<h2>Create your account</h2>
+<p>Join PROOFNEAR and discover opportunities.</p>
 
 <div class="form-stack">
   <label>Full name
-    <input id="authName" placeholder="Your full name">
+    <input id="authName" placeholder="Your full name" required>
   </label>
 
   <label>Email address
@@ -422,12 +452,15 @@ function openModal(kind) {
     Create account
   </button>
 
-  <button class="btn" id="loginBtn" type="button">
-    Already registered? Log in
-  </button>
-
   <p id="authMessage" class="form-hint"></p>
+
+  <p>Already have an account?
+    <button class="btn" id="showSignin" type="button">
+      Sign in
+    </button>
+  </p>
 </div>`
+
   };
   modalContent.innerHTML = forms[kind] || forms.post;
   const postTypeSelect = document.getElementById("postType");
