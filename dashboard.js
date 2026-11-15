@@ -2172,9 +2172,6 @@ function toggleSidebar() {
 // PROOFNEAR DASHBOARD CONTROLS
 // =================================
 
-function toggleSidebar() {
-  const menu = document.querySelector(".sidebar-menu-grid");
-
   if (!menu) return;
 
   menu.style.display =
