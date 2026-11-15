@@ -31,41 +31,26 @@ async function initializeDashboard() {
   startNotificationListener();
 
   const { data: isAdmin, error: adminError } =
-    await supabaseClient.rpc("is_proofnear_admin");
+  
+const { data: isAdmin, error: adminError } =
+  await supabaseClient.rpc("is_proofnear_admin");
 
-  if (adminError) {
-    console.error("Admin check failed:", adminError.message);
-  } else {
-    isProofnearAdmin = isAdmin === true;
-
-    console.log("PROOFNEAR administrator:", isProofnearAdmin);
-
-    if (isProofnearAdmin) {
-      const sidebar = document.querySelector(".dashboard-sidebar");
-      const menu = sidebar?.querySelector(".sidebar-menu-grid");
-
-      if (menu && !menu.querySelector(".admin-panel-link")) {
-        const adminButton = document.createElement("button");
-
-        adminButton.textContent = "🔐 Admin Panel";
-        adminButton.className = "sidebar-link admin-panel-link";
-        adminButton.addEventListener("click", () => {
-          showSection("admin");
-        });
-
-        menu.insertBefore(adminButton, menu.firstElementChild);
-      }
-    }
-  }
-if (isProofnearAdmin) {
-  const verificationButton = document.getElementById(
-    "verificationAdminButton"
-  );
-
-  if (verificationButton) {
-    verificationButton.style.display = "flex";
-  }
+if (adminError) {
+  console.error("Admin check failed:", adminError.message);
+  isProofnearAdmin = false;
+} else {
+  isProofnearAdmin = isAdmin === true;
 }
+
+console.log("PROOFNEAR administrator:", isProofnearAdmin);
+
+const adminNavigation = document.getElementById("adminNavigation");
+
+if (adminNavigation) {
+  adminNavigation.style.display =
+    isProofnearAdmin ? "block" : "none";
+}
+
   console.log("PROOFNEAR: Initialization completed");
 }
 
