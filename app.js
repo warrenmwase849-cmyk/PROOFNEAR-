@@ -2675,7 +2675,7 @@ async function openPublicProfile(userId) {
 
   const { data: jobs, error: jobsError } = await supabaseClient
     .from("jobs")
-    .select("id, title, category, location, pay, description, created_at")
+    .select("id, user_id, title, category, location, pay, description, created_at")
     .eq("user_id", userId)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
