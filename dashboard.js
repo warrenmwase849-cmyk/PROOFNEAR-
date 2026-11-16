@@ -401,6 +401,11 @@ dashboardContent.innerHTML = `
 
   document.getElementById("approvedOpportunities").textContent =
     approved ?? 0;
+    document.getElementById("receivedApplications").textContent =
+    received;
+
+  document.getElementById("myApplicationsCount").textContent =
+    myApplications ?? 0;
     const totalCount = total ?? 0;
 
   const pendingPercent = totalCount > 0
