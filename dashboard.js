@@ -41,10 +41,7 @@ if (adminError) {
 }
 
 console.log("PROOFNEAR administrator:", isProofnearAdmin);
-alert(
-  "Admin status: " + isAdmin +
-  "\nError: " + (adminError?.message || "None")
-);
+
 const adminNavigation = document.getElementById("adminNavigation");
 
 if (adminNavigation) {
