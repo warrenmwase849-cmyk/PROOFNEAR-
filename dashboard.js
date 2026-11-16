@@ -345,8 +345,6 @@ dashboardContent.innerHTML = `
       .select("id", { count: "exact", head: true })
       .eq("user_id", currentUser.id)
       .eq("status", "approved");
-
-    if (
     
   // Applications received for jobs posted by this user
   const { data: myJobIds, error: myJobsError } =
