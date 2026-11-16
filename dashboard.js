@@ -346,7 +346,13 @@ dashboardContent.innerHTML = `
       .eq("user_id", currentUser.id)
       .eq("status", "approved");
 
-  if (totalError || pendingError || approvedError) {
+    if (
+    totalError ||
+    pendingError ||
+    approvedError ||
+    receivedError ||
+    myApplicationsError
+  ) {
      // Applications received for jobs posted by this user
   const { data: myJobIds, error: myJobsError } =
     await supabaseClient
