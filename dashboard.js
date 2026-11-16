@@ -182,10 +182,11 @@ else if (section === "verification") {
     Review Challenge Entries
   </button>
 </div>
-    `;
+        `;
+
+    loadAdminApplicationStats();
   }
 }
-
 async function loadDashboardOverview() {
   if (!currentUser) return;
 
