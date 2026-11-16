@@ -347,13 +347,8 @@ dashboardContent.innerHTML = `
       .eq("status", "approved");
 
     if (
-    totalError ||
-    pendingError ||
-    approvedError ||
-    receivedError ||
-    myApplicationsError
-  ) {
-     // Applications received for jobs posted by this user
+    
+  // Applications received for jobs posted by this user
   const { data: myJobIds, error: myJobsError } =
     await supabaseClient
       .from("jobs")
@@ -379,10 +374,22 @@ dashboardContent.innerHTML = `
       .from("applications")
       .select("id", { count: "exact", head: true })
       .eq("applicant_id", currentUser.id);
-    console.error(
-      "Dashboard statistics error:",
-      totalError || pendingError || approvedError
-    );
+
+  // Check for errors
+  if (
+    totalError ||
+    pendingError ||
+    approvedError ||
+    receivedError ||
+    myApplicationsError
+  ) {
+    console.error("Dashboard statistics error:", {
+      totalError,
+      pendingError,
+      approvedError,
+      receivedError,
+      myApplicationsError
+    });
 
     document.getElementById("totalOpportunities").textContent = "—";
     document.getElementById("pendingOpportunities").textContent = "—";
@@ -392,6 +399,7 @@ dashboardContent.innerHTML = `
 
     return;
   }
+
 
   document.getElementById("totalOpportunities").textContent =
     total ?? 0;
