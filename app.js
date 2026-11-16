@@ -2710,13 +2710,18 @@ async function openPublicProfile(userId) {
     ` : !jobs || jobs.length === 0 ? `
       <p>No approved opportunities published yet.</p>
     ` : jobs.map(job => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(job.title)}</h3>
-        <p>${escapeHTML(job.category || "General")}</p>
-        <p>📍 ${escapeHTML(job.location || "Not specified")}</p>
-        <p>${escapeHTML(job.description || "")}</p>
-      </div>
-    `).join("")}
+  <div class="dashboard-card"
+       onclick="openListingDetails(${JSON.stringify(job).replace(/"/g, '&quot;')})"
+       style="cursor:pointer;">
+
+    <h3>${escapeHTML(job.title)}</h3>
+    <p>${escapeHTML(job.category || "General")}</p>
+    <p>📍 ${escapeHTML(job.location || "Not specified")}</p>
+    <p>${escapeHTML(job.description || "")}</p>
+
+    <small>👆 Tap to view opportunity</small>
+  </div>
+`).join("")}
 
     <button class="btn btn-primary" onclick="dialog.close()">Close Profile</button>
   `;
