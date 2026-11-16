@@ -267,6 +267,20 @@ dashboardContent.innerHTML = `
 </div>
       </div>
 
+          </div>
+
+      <!-- Applications Received -->
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #2878c8;">
+        <p style="margin:0;color:#71817d;">📨 Applications Received</p>
+        <h2 id="receivedApplications" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
+      <!-- My Applications -->
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
+        <p style="margin:0;color:#71817d;">📝 My Applications</p>
+        <h2 id="myApplicationsCount" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
     </div>
 
     <div class="dashboard-card">
