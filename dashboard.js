@@ -347,6 +347,32 @@ dashboardContent.innerHTML = `
       .eq("status", "approved");
 
   if (totalError || pendingError || approvedError) {
+     // Applications received for jobs posted by this user
+  const { data: myJobIds, error: myJobsError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id")
+      .eq("user_id", currentUser.id);
+
+  let received = 0;
+  let receivedError = myJobsError;
+
+  if (!myJobsError && myJobIds?.length > 0) {
+    const result = await supabaseClient
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .in("job_id", myJobIds.map(job => job.id));
+
+    received = result.count ?? 0;
+    receivedError = result.error;
+  }
+
+  // Applications submitted by this user
+  const { count: myApplications, error: myApplicationsError } =
+    await supabaseClient
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .eq("applicant_id", currentUser.id);
     console.error(
       "Dashboard statistics error:",
       totalError || pendingError || approvedError
