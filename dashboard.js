@@ -187,6 +187,26 @@ else if (section === "verification") {
     loadAdminApplicationStats();
   }
 }
+async function loadAdminApplicationStats() {
+  const { data, error } = await supabaseClient.rpc(
+    "get_admin_application_stats"
+  );
+
+  if (error) {
+    console.error("Admin application statistics error:", error);
+    document.getElementById("adminApplicationsReceived").textContent = "—";
+    document.getElementById("adminUniqueApplicants").textContent = "—";
+    return;
+  }
+
+  const stats = data?.[0];
+
+  document.getElementById("adminApplicationsReceived").textContent =
+    stats?.total_applications ?? 0;
+
+  document.getElementById("adminUniqueApplicants").textContent =
+    stats?.unique_applicants ?? 0;
+}
 async function loadDashboardOverview() {
   if (!currentUser) return;
 
