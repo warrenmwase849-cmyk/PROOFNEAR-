@@ -810,7 +810,12 @@ const posterInfo = `
   onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
   style="cursor:pointer;"
 >`
-      : `<span class="listing-poster-avatar listing-poster-placeholder">👤</span>`}
+      : `<span
+    class="listing-poster-avatar listing-poster-placeholder"
+    onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+    style="cursor:pointer;">
+    👤
+  </span>`}
     <span class="listing-poster-name"
   onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
   style="cursor:pointer;">
