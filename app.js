@@ -204,8 +204,16 @@ function renderListings(items = currentListings, reset = true) {
       ${!item.isPreview ? `
   <div class="listing-poster">
     ${item.posterAvatar
-      ? `<img class="listing-poster-avatar" src="${escapeHTML(item.posterAvatar)}" alt="Poster photo">`
-      : `<span class="listing-poster-avatar listing-poster-placeholder">👤</span>`}
+  ? `<img
+      class="listing-poster-avatar"
+      src="${escapeHTML(item.posterAvatar)}"
+      alt="Poster photo"
+      onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+      style="cursor:pointer;">`
+  : `<span
+      class="listing-poster-avatar listing-poster-placeholder"
+      onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+      style="cursor:pointer;">👤</span>`}
     <span class="listing-poster-name"
   onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
   style="cursor:pointer;">
