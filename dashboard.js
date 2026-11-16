@@ -148,7 +148,7 @@ else if (section === "verification") {
       </div>
 
       <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
-        <p style="margin:0;color:#71817d;">📝 My Applications</p>
+        <p style="margin:0;color:#71817d;">👥 Unique Applicants</p>
         <h2 id="myApplicationsCount" style="font-size:30px;margin:12px 0 0;">...</h2>
       </div>
 <div class="dashboard-card">
