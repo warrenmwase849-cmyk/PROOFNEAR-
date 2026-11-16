@@ -387,6 +387,8 @@ dashboardContent.innerHTML = `
     document.getElementById("totalOpportunities").textContent = "—";
     document.getElementById("pendingOpportunities").textContent = "—";
     document.getElementById("approvedOpportunities").textContent = "—";
+    document.getElementById("receivedApplications").textContent = "—";
+    document.getElementById("myApplicationsCount").textContent = "—";
 
     return;
   }
