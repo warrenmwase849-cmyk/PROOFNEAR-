@@ -499,3 +499,253 @@ async function loadAdminEarnings() {
 
 
   const revenue = data.revenue || {};
+  const sources = data.sources || {};
+  const statuses = data.statuses || {};
+  const growth = data.growth || {};
+  const hourly = data.hourly || [];
+
+  const money = value =>
+    "UGX " + Number(value || 0).toLocaleString("en-UG");
+
+  const growthText = value => {
+    if (value === null || value === undefined) {
+      return "No previous-period baseline";
+    }
+    return `${value > 0 ? "+" : ""}${value}%`;
+  };
+
+  const { data: trends, error: trendsError } =
+    await supabaseClient.rpc(
+      "get_proofnear_admin_earnings_trends"
+    );
+
+  if (trendsError) {
+    console.error("Earnings trends error:", trendsError);
+  }
+
+  const dailyTrends = trends?.daily || [];
+  const monthlyTrends = trends?.monthly || [];
+  const methodTrends = trends?.methods || [];
+
+  const maxDaily = Math.max(
+    1,
+    ...dailyTrends.map(item => Number(item.amount || 0))
+  );
+
+  const maxMonthly = Math.max(
+    1,
+    ...monthlyTrends.map(item => Number(item.amount || 0))
+  );
+
+  const dailyChart = dailyTrends.map(item => `
+    <div style="flex:1;min-width:30px;text-align:center;">
+      <div style="
+        height:${Math.max(5, Number(item.amount || 0) / maxDaily * 110)}px;
+        background:#087f5b;
+        border-radius:5px 5px 0 0;
+      " title="${money(item.amount)}"></div>
+      <small>${item.date.slice(5)}</small>
+    </div>
+  `).join("");
+
+  const monthlyChart = monthlyTrends.map(item => `
+    <div style="flex:1;min-width:35px;text-align:center;">
+      <div style="
+        height:${Math.max(5, Number(item.amount || 0) / maxMonthly * 110)}px;
+        background:#2878c8;
+        border-radius:5px 5px 0 0;
+      " title="${money(item.amount)}"></div>
+      <small>${item.month}</small>
+    </div>
+  `).join("");
+
+  const paymentMethods = methodTrends.map(item => `
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 0;
+      border-bottom:1px solid #ddd;
+    ">
+      <strong>${escapeHTML(item.method)}</strong>
+      <span>${money(item.amount)} (${item.transactions} payments)</span>
+    </div>
+  `).join("");
+
+  const maxHourly = Math.max(
+    1,
+    ...hourly.map(item => Number(item.amount || 0))
+  );
+
+  const hourlyBars = hourly.map(item => `
+    <div style="
+      flex:1;
+      min-width:12px;
+      text-align:center;
+    ">
+      <div title="${item.hour}:00 — ${money(item.amount)}"
+        style="
+          height:${Math.max(
+            4,
+            Number(item.amount || 0) / maxHourly * 120
+          )}px;
+          background:#087f5b;
+          border-radius:5px 5px 0 0;
+          margin-top:auto;
+        ">
+      </div>
+      <small style="font-size:10px;">
+        ${String(item.hour).padStart(2, "0")}
+      </small>
+    </div>
+  `).join("");
+
+  dashboardContent.innerHTML = `
+    <h2>📊 CEO Earnings & Analytics</h2>
+    <p>Private PROOFNEAR financial overview</p>
+
+    <button class="btn btn-primary"
+      onclick="loadAdminEarnings()">
+      🔄 Refresh Analytics
+    </button>
+
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:14px;
+      margin:20px 0;
+    ">
+      <div class="dashboard-card" style="border-top:4px solid #087f5b;">
+        <p>💰 Lifetime Earnings</p>
+        <h2>${money(revenue.lifetime)}</h2>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #269b65;">
+        <p>📅 Today's Earnings</p>
+        <h2>${money(revenue.today)}</h2>
+        <small>Growth: ${growthText(growth.daily)}</small>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #2878c8;">
+        <p>📆 This Week</p>
+        <h2>${money(revenue.this_week)}</h2>
+        <small>Growth: ${growthText(growth.weekly)}</small>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #8055b7;">
+        <p>🗓️ This Month</p>
+        <h2>${money(revenue.this_month)}</h2>
+        <small>Growth: ${growthText(growth.monthly)}</small>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>⏰ Today's Hourly Earnings</h3>
+      <p>Revenue by Uganda local time (00:00–23:00).</p>
+      <div style="
+        display:flex;
+        align-items:flex-end;
+        gap:5px;
+        height:155px;
+        overflow-x:auto;
+        padding:12px 4px;
+      ">
+        ${hourlyBars}
+      </div>
+    </div>
+
+<div class="dashboard-card">
+  <h3>📈 Last 7 Days Revenue</h3>
+  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
+    ${dailyChart}
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <h3>📊 Six-Month Revenue Trend</h3>
+  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
+    ${monthlyChart}
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <h3>📱 MTN & Airtel Revenue</h3>
+  ${paymentMethods || "<p>No verified payments yet.</p>"}
+</div>
+
+
+    <div class="dashboard-card">
+      <h3>💳 Revenue Sources</h3>
+      <p>Opportunity Posting: <strong>${money(sources.posting)}</strong></p>
+      <p>Contact Unlocks: <strong>${money(sources.contact_unlock)}</strong></p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📈 Payment Activity</h3>
+      <p>Verified Payments: <strong>${statuses.verified || 0}</strong></p>
+      <p>Pending Payments: <strong>${statuses.pending || 0}</strong></p>
+      <p>Rejected Payments: <strong>${statuses.rejected || 0}</strong></p>
+      <p>Paying Users: <strong>${data.paying_users || 0}</strong></p>
+      <p>Total Verified Transactions:
+        <strong>${data.verified_transactions || 0}</strong>
+      </p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📊 Previous Period Comparison</h3>
+      <p>Yesterday: <strong>${money(revenue.yesterday)}</strong></p>
+      <p>Last Week: <strong>${money(revenue.last_week)}</strong></p>
+      <p>Last Month: <strong>${money(revenue.last_month)}</strong></p>
+    </div>
+
+    <p style="font-size:12px;color:#71817d;">
+      Report generated: ${
+        data.generated_at
+          ? new Date(data.generated_at).toLocaleString()
+          : "Not available"
+      }
+    </p>
+
+    <button class="btn btn-primary"
+      onclick="showSection('admin')">
+      ← Back to Admin Panel
+    </button>
+  `;
+}
+
+async function loadDashboardOverview() {
+  if (!currentUser) return;
+
+  const name =
+    currentUser.user_metadata.full_name ||
+    currentUser.email.split("@")[0];
+
+  const { data: accountProfile, error: accountProfileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("account_type")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+  if (accountProfileError) {
+    console.error("Account type loading error:", accountProfileError);
+  }
+
+  const accountType =
+    accountProfile?.account_type ||
+    currentUser.user_metadata.account_type ||
+    "both";
+
+
+dashboardContent.innerHTML = `
+    <div class="dashboard-welcome">
+      <span class="welcome-tag">YOUR PROOFNEAR DASHBOARD</span>
+
+      <h2>
+        Welcome back, ${escapeHTML(name)}! 👋
+      </h2>
+
+      <p>
+        Your opportunities. Your progress. Your future.
+        Everything you need to manage your PROOFNEAR account is here.
+      </p>
