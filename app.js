@@ -2962,3 +2962,211 @@ function toggleSidebar() {
     sidebar.classList.contains("expanded")
   );
 }
+// =================================
+// PROOFNEAR DASHBOARD CONTROLS
+// =================================
+
+// MARK ONE NOTIFICATION AS READ
+async function markNotificationRead(notificationId) {
+  if (!currentUser || !notificationId) return;
+
+  const { error } = await supabaseClient
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("id", notificationId)
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    alert("Could not update notification: " + error.message);
+    return;
+  }
+
+  await loadMyNotifications();
+  await updateNotificationBadge();
+}
+
+
+// LOG OUT
+async function logoutUser() {
+  const confirmed = confirm("Are you sure you want to log out?");
+
+  if (!confirmed) return;
+
+  if (notificationChannel) {
+    await supabaseClient.removeChannel(notificationChannel);
+    notificationChannel = null;
+  }
+
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert("Logout failed: " + error.message);
+    return;
+  }
+
+  window.location.href = "index.html";
+}
+
+// =================================
+// MY APPLICATIONS
+// =================================
+
+async function loadMyApplications() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>📝 My Applications</h2>
+    <p>Loading your applications...</p>
+  `;
+
+  const { data: applications, error } = await supabaseClient
+    .from("applications")
+    .select(`
+      id,
+      application_message,
+      status,
+      created_at,
+      job:jobs(title, location)
+    `)
+    .eq("applicant_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>📝 My Applications</h2>
+      <p>Could not load applications: ${escapeHTML(error.message)}</p>
+    `;
+    return;
+  }
+
+  if (!applications || applications.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>📝 My Applications</h2>
+      <div class="dashboard-card">
+        <h3>No applications yet</h3>
+        <p>When you apply for opportunities on PROOFNEAR,
+        your applications will appear here.</p>
+        <button class="btn btn-primary"
+          onclick="window.location.href='index.html'">
+          Explore Opportunities
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>📝 My Applications</h2>
+    <p>Track the opportunities you have applied for.</p>
+
+    ${applications.map(application => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(application.job?.title || "Opportunity")}</h3>
+
+        <p>📍 ${escapeHTML(application.job?.location || "Location not specified")}</p>
+
+        <p>📅 Applied:
+          ${new Date(application.created_at).toLocaleDateString()}
+        </p>
+
+        <p>📌 Status:
+          <strong>${escapeHTML(application.status || "Pending")}</strong>
+        </p>
+
+        <p>${escapeHTML(application.application_message || "")}</p>
+      </div>
+    `).join("")}
+  `;
+}
+// START THE DASHBOARD
+initializeDashboard();
+
+async function loadVerificationRequests() {
+
+  dashboardContent.innerHTML = `
+    <h2>🏅 Verification Centre</h2>
+    <p>Loading applications...</p>
+  `;
+
+  const { data: isAdmin, error: adminError } =
+    await supabaseClient.rpc("is_proofnear_admin");
+
+  if (adminError || !isAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
+
+  const { data: requests, error } = await supabaseClient
+    .from("verification_requests")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>Verification Centre</h2>
+      <p>${escapeHTML(error.message)}</p>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🏅 Verification Centre</h2>
+    <p>Pending applications: ${requests.length}</p>
+
+    ${requests.length === 0
+      ? "<p>No pending applications.</p>"
+      : requests.map(request => `
+        <div class="dashboard-card">
+          <h3>${escapeHTML(request.full_name)}</h3>
+          <p>Type: ${escapeHTML(request.request_type)}</p>
+          <p>Reason: ${escapeHTML(request.reason || "Not provided")}</p>
+          <p>Submitted: ${new Date(request.created_at).toLocaleDateString()}</p>
+
+          <button class="btn btn-primary"
+            onclick="reviewVerificationRequest('${request.id}', 'approved')">
+            Approve
+          </button>
+
+          <button class="btn btn-secondary"
+            onclick="reviewVerificationRequest('${request.id}', 'rejected')">
+            Reject
+          </button>
+        </div>
+      `).join("")}
+  `;
+}
+async function reviewVerificationRequest(requestId, decision) {
+  if (!currentUser) return;
+
+  const confirmed = confirm(
+    `Are you sure you want to ${decision} this application?`
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient.rpc(
+    "review_verification_request",
+    {
+      request_id: requestId,
+      decision: decision,
+      note: null
+    }
+  );
+
+  if (error) {
+    alert("Review failed: " + error.message);
+    return;
+  }
+
+  alert(
+    decision === "approved"
+      ? "Application approved! Verified badge awarded."
+      : "Application rejected."
+  );
+
+  loadVerificationRequests();
+}
