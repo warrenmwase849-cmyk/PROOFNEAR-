@@ -1748,3 +1748,218 @@ async function loadMyProfile() {
     width="120"
     height="120"
     style="border-radius:50%;object-fit:cover;"
+  if (password !== confirmPassword) {
+    message.textContent = "Passwords do not match.";
+    return;
+  }
+
+  message.textContent = "Updating password...";
+
+  const { error } = await supabaseClient.auth.updateUser({
+    password: password
+  });
+
+  if (error) {
+    message.textContent = "Password update failed: " + error.message;
+    return;
+  }
+
+  document.getElementById("newAccountPassword").value = "";
+  document.getElementById("confirmAccountPassword").value = "";
+
+  message.textContent = "Password updated successfully! ❤️";
+}
+
+
+async function loadMyNotifications() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>🔔 My Notifications</h2>
+    <p>Loading notifications...</p>
+  `;
+
+  const { data: notifications, error } = await supabaseClient
+    .from("notifications")
+    .select(`
+      id,
+      title,
+      message,
+      notification_type,
+      is_read,
+      created_at,
+      related_job_id,
+      related_payment_id
+    `)
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>🔔 My Notifications</h2>
+      <p>Could not load notifications:
+        ${escapeHTML(error.message)}
+      </p>
+    `;
+    return;
+  }
+
+  if (!notifications || notifications.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>🔔 My Notifications</h2>
+      <div class="dashboard-card">
+        <p>You have no notifications yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const hasUnread = notifications.some(
+    notification => !notification.is_read
+  );
+
+  dashboardContent.innerHTML = `
+    <h2>🔔 My Notifications</h2>
+
+    ${hasUnread ? `
+      <button class="btn btn-primary"
+        onclick="markAllNotificationsRead()">
+        ✓ Mark All as Read
+      </button>
+    ` : ""}
+
+    ${notifications.map(notification => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(notification.title)}</h3>
+        <p>${escapeHTML(notification.message)}</p>
+
+        <p><strong>Type:</strong>
+          ${escapeHTML(notification.notification_type)}
+        </p>
+
+        <p><strong>Status:</strong>
+          ${notification.is_read ? "Read" : "Unread"}
+        </p>
+
+        <p><strong>Date:</strong>
+          ${new Date(notification.created_at).toLocaleString()}
+        </p>
+
+        ${notification.related_job_id ? `
+          <button class="btn btn-primary"
+            onclick="openNotificationOpportunity('${notification.related_job_id}')">
+            View Opportunity
+          </button>
+        ` : ""}
+
+        ${notification.related_payment_id ? `
+          <button class="btn btn-primary"
+            onclick="openNotificationPayment('${notification.related_payment_id}')">
+            View Payment
+          </button>
+        ` : ""}
+
+        ${!notification.is_read ? `
+          <button class="btn btn-primary"
+            onclick="markNotificationRead('${notification.id}')">
+            Mark as Read
+          </button>
+        ` : ""}
+      </div>
+    `).join("")}
+  `;
+}
+
+
+async function markAllNotificationsRead() {
+  if (!currentUser) return;
+
+  const confirmed = confirm(
+    "Mark all your notifications as read?"
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", currentUser.id)
+    .eq("is_read", false);
+
+  if (error) {
+    alert("Could not mark notifications as read: " + error.message);
+    return;
+  }
+
+  await loadMyNotifications();
+  await updateNotificationBadge();
+
+  alert("All notifications marked as read!");
+}
+
+
+async function updateNotificationBadge() {
+  if (!currentUser) return;
+
+  const badge = document.getElementById("notificationBadge");
+
+  if (!badge) return;
+
+  const { count, error } = await supabaseClient
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", currentUser.id)
+    .eq("is_read", false);
+
+  if (error) {
+    console.error("Notification count error:", error);
+    return;
+  }
+
+  badge.textContent = (count ?? 0) > 99 ? "99+" : (count ?? 0);
+  badge.style.display = count > 0 ? "inline-flex" : "none";
+}
+function startNotificationListener() {
+  if (!currentUser) return;
+
+  if (notificationChannel) {
+    supabaseClient.removeChannel(notificationChannel);
+  }
+
+  notificationChannel = supabaseClient
+    .channel("proofnear-notifications-" + currentUser.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "notifications",
+        filter: "user_id=eq." + currentUser.id
+      },
+      () => {
+        updateNotificationBadge();
+      }
+    )
+    .subscribe();
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+async function logoutUser() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  window.location.href = "index.html";
+}
