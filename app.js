@@ -1,7 +1,5 @@
-
-// PROOFNEAR DASHBOARD CONNECTION
-
 const SUPABASE_URL = "https://rmprzvgxuwtkyfhrevki.supabase.co";
+
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Z_6UK4b8hG3u3sGdV2BFKA_bjd0eYoD";
 
 const supabaseClient = window.supabase.createClient(
@@ -9,2924 +7,2730 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_PUBLISHABLE_KEY
 );
 
-const dashboardContent = document.getElementById("dashboardContent");
-
-let currentUser = null;
-let isProofnearAdmin = false;
-let notificationChannel = null;
-
-
-async function initializeDashboard() {
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error || !data.session) {
-    window.location.href = "index.html";
-    return;
+const sampleListings = [
+  {
+    id: 1,
+    type: "job",
+    title: "Part-time Sales Assistant",
+    workType: "PART-TIME",
+    category: "Sales",
+    location: "Kampala",
+    pay: "UGX 250,000 / month",
+    description: "Assist customers, arrange products and support daily shop operations. Good communication skills are important.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 2,
+    type: "job",
+    title: "Remote Data Entry Assistant",
+    workType: "REMOTE",
+    category: "Online work",
+    location: "Work from home",
+    pay: "UGX 300,000 / month",
+    description: "A sample remote opportunity involving data entry, organising information and basic computer tasks.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 3,
+    type: "job",
+    title: "Restaurant Service Assistant",
+    workType: "PART-TIME",
+    category: "Hospitality",
+    location: "Entebbe",
+    pay: "UGX 15,000 / day",
+    description: "Support restaurant operations, serve customers and help maintain a clean working environment.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 4,
+    type: "job",
+    title: "Graduate Trainee",
+    workType: "INTERNSHIP",
+    category: "Career development",
+    location: "Kampala",
+    pay: "Allowance to be agreed",
+    description: "A sample entry-level opportunity for someone interested in gaining workplace experience.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 5,
+    type: "job",
+    title: "Delivery Rider",
+    workType: "FULL-TIME",
+    category: "Transport",
+    location: "Wakiso",
+    pay: "UGX 500,000 / month",
+    description: "Assist with local deliveries, handle packages carefully and communicate with customers.",
+    posted: "Sample preview",
+    isPreview: true
+  },
+  {
+    id: 6,
+    type: "service",
+    title: "Home Cleaning Service",
+    workType: "SERVICE REQUEST",
+    category: "Home services",
+    location: "Kampala",
+    pay: "UGX 30,000 / visit",
+    description: "A sample request for someone experienced in cleaning and maintaining a home.",
+    posted: "Sample preview",
+    isPreview: true
   }
+];
 
-  currentUser = data.session.user;
+let activeFilter = "all";
 
-  showSection("overview");
+const grid = document.getElementById("listingGrid");
+const empty = document.getElementById("emptyState");
+const dialog = document.getElementById("actionDialog");
+const modalContent = document.getElementById("modalContent");
+const toast = document.getElementById("toast");
 
-  updateNotificationBadge();
-  startNotificationListener();
+const yearElement = document.getElementById("year");
 
-const { data: isAdmin, error: adminError } =
-  await supabaseClient.rpc("is_proofnear_admin");
-
-if (adminError) {
-  console.error("Admin check failed:", adminError.message);
-  isProofnearAdmin = false;
-} else {
-  isProofnearAdmin = isAdmin === true;
+if (yearElement) {
+  yearElement.textContent = new Date().getFullYear();
 }
 
-console.log("PROOFNEAR administrator:", isProofnearAdmin);
 
-const adminNavigation = document.getElementById("adminNavigation");
 
-if (adminNavigation) {
-  adminNavigation.style.display =
-    isProofnearAdmin ? "block" : "none";
-}
+let approvedListings = [];
+let currentListings = sampleListings;
+let filteredListings = sampleListings;
 
-  console.log("PROOFNEAR: Initialization completed");
-}
+const LISTINGS_PER_PAGE = 8;
+let visibleListingsCount = 8;
 
-function showSection(section) {
-  if (!currentUser) return;
-  document.querySelectorAll(".sidebar-link").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.getAttribute("onclick")?.includes(`'${section}'`)
-    );
-  });
-  const name =
-    currentUser.user_metadata.full_name ||
-    currentUser.email.split("@")[0];
-
-  const email = currentUser.email || "";
-
-  if (section === "overview") {
-  loadDashboardOverview();
-}
-
-  else if (section === "profile") {
-  loadMyProfile();
-}
-
-  else if (section === "opportunities") {
-  loadMyOpportunities();
-}
-    else if (section === "applications") {
-  loadMyApplications();
-}
-    else if (section === "payments") {
-  loadMyPayments();
-    }
-
-  else if (section === "post") {
-  window.location.href = "index.html?open=post";
-}
-
-  else if (section === "messages") {
-    dashboardContent.innerHTML = `
-      <h2>Messages</h2>
-      <p>Your messages will appear here when messaging is connected.</p>
-    `;
-  }
-
-  else if (section === "notifications") {
-  loadMyNotifications();
-}
-
-else if (section === "settings") {
-  loadAccountSettings();
-}
-else if (section === "verification") {
-  if (!isProofnearAdmin) {
-    dashboardContent.innerHTML = `
-      <h2>Access Denied</h2>
-      <p>Administrator access required.</p>
-    `;
-    return;
-  }
-
-  loadVerificationRequests();
-}
-  else if (section === "admin") {
-    if (!isProofnearAdmin) {
-      dashboardContent.innerHTML = `
-        <h2>Access Denied</h2>
-        <p>Administrator access required.</p>
-      `;
-      return;
-    }
-
-    dashboardContent.innerHTML = `
-
-<h2>🔐 PROOFNEAR Admin Panel</h2>
-<p>Manage and supervise platform activities.</p>
-
-<div class="dashboard-card">
-  <h3>⏳ Pending Opportunities</h3>
-  <p>Review new opportunities awaiting approval.</p>
-  <button class="btn btn-primary" onclick="loadPendingJobs()">
-    Review Pending Jobs
-  </button>
-</div>
-
-<div class="dashboard-card">
-  <h3>✅ Approved Opportunities</h3>
-  <p>Manage opportunities already published.</p>
-  <button class="btn btn-primary" onclick="loadApprovedJobs()">
-    View Approved Opportunities
-  </button>
-</div>
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #2878c8;">
-        <p style="margin:0;color:#71817d;">📨 Applications Received</p>
-        <h2 id="adminApplicationsReceived" style="font-size:30px;margin:12px 0 0;">...</h2>
-      </div>
-
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
-        <p style="margin:0;color:#71817d;">👥 Unique Applicants</p>
-        <h2 id="adminUniqueApplicants" style="font-size:30px;margin:12px 0 0;">...</h2>
-      </div>
-<div class="dashboard-card">
-  <h3>💰 Payment Verification</h3>
-  <p>Review MTN and Airtel payments before approving opportunities.</p>
-  <button class="btn btn-primary" onclick="loadPendingPayments()">
-    Manage Payments
-  </button>
-</div>
-<div class="dashboard-card" style="border-top:4px solid #087f5b;">
-  <h3>📊 CEO Earnings & Analytics</h3>
-  <p>
-    Monitor PROOFNEAR revenue, payment activity,
-    financial growth and platform performance.
-  </p>
-  <button class="btn btn-primary" onclick="loadAdminEarnings()">
-    Open Earnings Dashboard
-  </button>
-</div>
-
-<div class="dashboard-card" style="border-top:4px solid #8b5cf6;">
-  <h3>📈 CEO Growth Analytics</h3>
-  <p>Track registrations and opportunity growth over 30 days.</p>
-  <button class="btn btn-primary"
-    onclick="loadAdminGrowthAnalytics()">
-    Open Growth Analytics
-  </button>
-</div>
-
-<div class="dashboard-card" style="border-top:4px solid #2878c8;">
-  <h3>🌍 CEO Platform Overview</h3>
-  <p>Monitor PROOFNEAR users and opportunity activity.</p>
-  <button class="btn btn-primary"
-    onclick="loadAdminPlatformOverview()">
-    Open Platform Overview
-  </button>
-</div>
-
-<div class="dashboard-card">
-  <h3>🎤 Pending Talent Content</h3>
-  <p>Review music, videos, photos and other creator submissions.</p>
-  <button class="btn btn-primary" onclick="loadPendingTalentPosts()">
-    Review Talent Content
-  </button>
-</div>
-
-<div class="dashboard-card">
-  <h3>🏆 Pending Talent Challenges</h3>
-  <p>Review creator challenges before they become public.</p>
-  <button class="btn btn-primary" onclick="loadPendingTalentChallenges()">
-    Review Challenges
-  </button>
-</div>
-<div class="dashboard-card">
-  <h3>🎬 Pending Challenge Entries</h3>
-  <p>Review photos, videos and other entries submitted by challenge participants.</p>
-  <button class="btn btn-primary"
-    onclick="loadPendingChallengeEntries()">
-    Review Challenge Entries
-  </button>
-</div>
-        `;
-
-    loadAdminApplicationStats();
-  }
-}
-async function loadAdminApplicationStats() {
-  const { data, error } = await supabaseClient.rpc(
-    "get_admin_application_stats"
-  );
-
-  if (error) {
-    console.error("Admin application statistics error:", error);
-    document.getElementById("adminApplicationsReceived").textContent = "—";
-    document.getElementById("adminUniqueApplicants").textContent = "—";
-    return;
-  }
-
-  const stats = data?.[0];
-
-  document.getElementById("adminApplicationsReceived").textContent =
-    stats?.total_applications ?? 0;
-
-  document.getElementById("adminUniqueApplicants").textContent =
-    stats?.unique_applicants ?? 0;
-}
-
-async function loadAdminPlatformOverview() {
-  if (!isProofnearAdmin) {
-    dashboardContent.innerHTML = `
-      <h2>Access Denied</h2>
-      <p>Administrator access required.</p>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>🌍 CEO Platform Overview</h2>
-    <p>Loading PROOFNEAR platform statistics...</p>
-  `;
-
-  try {
-    const { data, error } = await supabaseClient.rpc(
-      "get_proofnear_admin_overview"
-    );
-
-    if (error) throw error;
-
-    const overview = data || {};
-    const totalUsers = Number(overview.total_users || 0);
-    const totalOpportunities = Number(overview.total_opportunities || 0);
-    const statuses = overview.opportunities_by_status || {};
-
-    dashboardContent.innerHTML = `
-      <h2>🌍 CEO Platform Overview</h2>
-      <p>PROOFNEAR platform performance</p>
-
-      <div class="dashboard-card">
-        <h3>👥 Registered Users</h3>
-        <h2>${totalUsers.toLocaleString()}</h2>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>💼 Total Opportunities</h3>
-        <h2>${totalOpportunities.toLocaleString()}</h2>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>📊 Opportunities by Status</h3>
-        <p>Approved: ${Number(statuses.APPROVED || 0).toLocaleString()}</p>
-        <p>Pending: ${Number(statuses.PENDING || 0).toLocaleString()}</p>
-      </div>
-
-      <button class="btn btn-primary"
-        onclick="loadAdminPlatformOverview()">
-        🔄 Refresh Overview
-      </button>
-
-      <button class="btn btn-primary"
-        onclick="showSection('admin')">
-        ← Back to Admin Panel
-      </button>
-    `;
-  } catch (error) {
-    console.error("Platform overview error:", error);
-
-    dashboardContent.innerHTML = `
-      <h2>🌍 CEO Platform Overview</h2>
-      <div class="dashboard-card">
-        <p>Unable to load platform statistics.</p>
-        <p>${escapeHTML(error?.message || "An unexpected error occurred.")}</p>
-        <button class="btn btn-primary"
-          onclick="loadAdminPlatformOverview()">
-          🔄 Try Again
-        </button>
-        <button class="btn btn-primary"
-          onclick="showSection('admin')">
-          ← Back to Admin Panel
-        </button>
-      </div>
-    `;
-  }
-}
-
-async function loadAdminGrowthAnalytics() {
-  if (!isProofnearAdmin) {
-    dashboardContent.innerHTML = `
-      <h2>Access Denied</h2>
-      <p>Administrator access required.</p>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>📈 CEO Growth Analytics</h2>
-    <p>Loading PROOFNEAR growth data...</p>
-  `;
-
-  try {
-    const { data, error } = await supabaseClient.rpc(
-      "get_proofnear_admin_growth"
-    );
-
-    if (error) throw error;
-
-    const report = data || {};
-
-    const growthText = value =>
-      value === null || value === undefined
-        ? "No previous-period baseline"
-        : `${value > 0 ? "+" : ""}${value}%`;
-
-    const daily = Array.isArray(report.daily) ? report.daily : [];
-
-    const maxValue = Math.max(
-      1,
-      ...daily.map(day =>
-        Math.max(
-          Number(day.users || 0),
-          Number(day.opportunities || 0)
-        )
-      )
-    );
-
-    const chart = daily.map(day => {
-      const users = Number(day.users || 0);
-      const opportunities = Number(day.opportunities || 0);
-      const dateLabel = String(day.date || "").slice(5);
-
-      return `
-        <div style="min-width:42px;text-align:center;">
-          <div style="
-            height:120px;
-            display:flex;
-            align-items:flex-end;
-            justify-content:center;
-            gap:4px;
-          ">
-            <div title="Users: ${users}"
-              style="
-                width:15px;
-                height:${Math.max(3, users / maxValue * 110)}px;
-                background:#087f5b;
-                border-radius:4px 4px 0 0;
-              ">
-            </div>
-
-            <div title="Opportunities: ${opportunities}"
-              style="
-                width:15px;
-                height:${Math.max(3, opportunities / maxValue * 110)}px;
-                background:#2878c8;
-                border-radius:4px 4px 0 0;
-              ">
-            </div>
-          </div>
-          <small>${escapeHTML(dateLabel || "—")}</small>
-        </div>
-      `;
-    }).join("");
-
-    dashboardContent.innerHTML = `
-      <h2>📈 CEO Growth Analytics</h2>
-      <p>PROOFNEAR growth over the last 30 days</p>
-
-      <button class="btn btn-primary"
-        onclick="loadAdminGrowthAnalytics()">
-        🔄 Refresh Growth
-      </button>
-
-      <div class="dashboard-card">
-        <h3>👥 New Registered Users</h3>
-        <h2>${Number(report.users_30_days || 0).toLocaleString()}</h2>
-        <p>Growth: ${growthText(report.users_growth)}</p>
-        <small>
-          Previous 30 days:
-          ${Number(report.users_previous_30_days || 0).toLocaleString()}
-        </small>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>💼 New Opportunities</h3>
-        <h2>${Number(report.jobs_30_days || 0).toLocaleString()}</h2>
-        <p>Growth: ${growthText(report.jobs_growth)}</p>
-        <small>
-          Previous 30 days:
-          ${Number(report.jobs_previous_30_days || 0).toLocaleString()}
-        </small>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>📊 Daily Activity — Last 30 Days</h3>
-        <p>
-          <span style="color:#087f5b;">■ Users</span>
-          &nbsp;
-          <span style="color:#2878c8;">■ Opportunities</span>
-        </p>
-
-        <div style="
-          display:flex;
-          align-items:flex-end;
-          gap:8px;
-          overflow-x:auto;
-          padding:12px 4px;
-        ">
-          ${chart || "<p>No daily activity data available yet.</p>"}
-        </div>
-      </div>
-
-      <button class="btn btn-primary"
-        onclick="showSection('admin')">
-        ← Back to Admin Panel
-      </button>
-    `;
-  } catch (error) {
-    console.error("Growth analytics error:", error);
-
-    dashboardContent.innerHTML = `
-      <h2>📈 CEO Growth Analytics</h2>
-      <div class="dashboard-card">
-        <p>Unable to load growth analytics.</p>
-        <p>${escapeHTML(error?.message || "An unexpected error occurred.")}</p>
-        <button class="btn btn-primary"
-          onclick="loadAdminGrowthAnalytics()">
-          🔄 Try Again
-        </button>
-        <button class="btn btn-primary"
-          onclick="showSection('admin')">
-          ← Back to Admin Panel
-        </button>
-      </div>
-    `;
-  }
-}
-
-async function loadAdminEarnings() {
-  if (!isProofnearAdmin) {
-    dashboardContent.innerHTML = `
-      <h2>Access Denied</h2>
-      <p>Administrator access required.</p>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>📊 CEO Earnings & Analytics</h2>
-    <p>Loading your financial report...</p>
-  `;
-
-  const { data, error } = await supabaseClient.rpc(
-    "get_proofnear_admin_earnings"
-  );
-
-  if (error) {
-    console.error("CEO earnings error:", error);
-    dashboardContent.innerHTML = `
-      <h2>📊 CEO Earnings & Analytics</h2>
-      <div class="dashboard-card">
-        <p>Unable to load financial data.</p>
-        <p>${escapeHTML(error.message)}</p>
-        <button class="btn btn-primary"
-          onclick="loadAdminEarnings()">Try Again</button>
-      </div>
-    `;
-    return;
-  }
-
-
-  const revenue = data.revenue || {};
-  const sources = data.sources || {};
-  const statuses = data.statuses || {};
-  const growth = data.growth || {};
-  const hourly = data.hourly || [];
-
-  const money = value =>
-    "UGX " + Number(value || 0).toLocaleString("en-UG");
-
-  const growthText = value => {
-    if (value === null || value === undefined) {
-      return "No previous-period baseline";
-    }
-    return `${value > 0 ? "+" : ""}${value}%`;
-  };
-
-  const { data: trends, error: trendsError } =
-    await supabaseClient.rpc(
-      "get_proofnear_admin_earnings_trends"
-    );
-
-  if (trendsError) {
-    console.error("Earnings trends error:", trendsError);
-  }
-
-  const dailyTrends = trends?.daily || [];
-  const monthlyTrends = trends?.monthly || [];
-  const methodTrends = trends?.methods || [];
-
-  const maxDaily = Math.max(
-    1,
-    ...dailyTrends.map(item => Number(item.amount || 0))
-  );
-
-  const maxMonthly = Math.max(
-    1,
-    ...monthlyTrends.map(item => Number(item.amount || 0))
-  );
-
-  const dailyChart = dailyTrends.map(item => `
-    <div style="flex:1;min-width:30px;text-align:center;">
-      <div style="
-        height:${Math.max(5, Number(item.amount || 0) / maxDaily * 110)}px;
-        background:#087f5b;
-        border-radius:5px 5px 0 0;
-      " title="${money(item.amount)}"></div>
-      <small>${item.date.slice(5)}</small>
-    </div>
-  `).join("");
-
-  const monthlyChart = monthlyTrends.map(item => `
-    <div style="flex:1;min-width:35px;text-align:center;">
-      <div style="
-        height:${Math.max(5, Number(item.amount || 0) / maxMonthly * 110)}px;
-        background:#2878c8;
-        border-radius:5px 5px 0 0;
-      " title="${money(item.amount)}"></div>
-      <small>${item.month}</small>
-    </div>
-  `).join("");
-
-  const paymentMethods = methodTrends.map(item => `
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 0;
-      border-bottom:1px solid #ddd;
-    ">
-      <strong>${escapeHTML(item.method)}</strong>
-      <span>${money(item.amount)} (${item.transactions} payments)</span>
-    </div>
-  `).join("");
-
-  const maxHourly = Math.max(
-    1,
-    ...hourly.map(item => Number(item.amount || 0))
-  );
-
-  const hourlyBars = hourly.map(item => `
-    <div style="
-      flex:1;
-      min-width:12px;
-      text-align:center;
-    ">
-      <div title="${item.hour}:00 — ${money(item.amount)}"
-        style="
-          height:${Math.max(
-            4,
-            Number(item.amount || 0) / maxHourly * 120
-          )}px;
-          background:#087f5b;
-          border-radius:5px 5px 0 0;
-          margin-top:auto;
-        ">
-      </div>
-      <small style="font-size:10px;">
-        ${String(item.hour).padStart(2, "0")}
-      </small>
-    </div>
-  `).join("");
-
-  dashboardContent.innerHTML = `
-    <h2>📊 CEO Earnings & Analytics</h2>
-    <p>Private PROOFNEAR financial overview</p>
-
-    <button class="btn btn-primary"
-      onclick="loadAdminEarnings()">
-      🔄 Refresh Analytics
-    </button>
-
-    <div style="
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-      gap:14px;
-      margin:20px 0;
-    ">
-      <div class="dashboard-card" style="border-top:4px solid #087f5b;">
-        <p>💰 Lifetime Earnings</p>
-        <h2>${money(revenue.lifetime)}</h2>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #269b65;">
-        <p>📅 Today's Earnings</p>
-        <h2>${money(revenue.today)}</h2>
-        <small>Growth: ${growthText(growth.daily)}</small>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #2878c8;">
-        <p>📆 This Week</p>
-        <h2>${money(revenue.this_week)}</h2>
-        <small>Growth: ${growthText(growth.weekly)}</small>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #8055b7;">
-        <p>🗓️ This Month</p>
-        <h2>${money(revenue.this_month)}</h2>
-        <small>Growth: ${growthText(growth.monthly)}</small>
-      </div>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>⏰ Today's Hourly Earnings</h3>
-      <p>Revenue by Uganda local time (00:00–23:00).</p>
-      <div style="
-        display:flex;
-        align-items:flex-end;
-        gap:5px;
-        height:155px;
-        overflow-x:auto;
-        padding:12px 4px;
-      ">
-        ${hourlyBars}
-      </div>
-    </div>
-
-<div class="dashboard-card">
-  <h3>📈 Last 7 Days Revenue</h3>
-  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
-    ${dailyChart}
-  </div>
-</div>
-
-<div class="dashboard-card">
-  <h3>📊 Six-Month Revenue Trend</h3>
-  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
-    ${monthlyChart}
-  </div>
-</div>
-
-<div class="dashboard-card">
-  <h3>📱 MTN & Airtel Revenue</h3>
-  ${paymentMethods || "<p>No verified payments yet.</p>"}
-</div>
-
-
-    <div class="dashboard-card">
-      <h3>💳 Revenue Sources</h3>
-      <p>Opportunity Posting: <strong>${money(sources.posting)}</strong></p>
-      <p>Contact Unlocks: <strong>${money(sources.contact_unlock)}</strong></p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📈 Payment Activity</h3>
-      <p>Verified Payments: <strong>${statuses.verified || 0}</strong></p>
-      <p>Pending Payments: <strong>${statuses.pending || 0}</strong></p>
-      <p>Rejected Payments: <strong>${statuses.rejected || 0}</strong></p>
-      <p>Paying Users: <strong>${data.paying_users || 0}</strong></p>
-      <p>Total Verified Transactions:
-        <strong>${data.verified_transactions || 0}</strong>
-      </p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📊 Previous Period Comparison</h3>
-      <p>Yesterday: <strong>${money(revenue.yesterday)}</strong></p>
-      <p>Last Week: <strong>${money(revenue.last_week)}</strong></p>
-      <p>Last Month: <strong>${money(revenue.last_month)}</strong></p>
-    </div>
-
-    <p style="font-size:12px;color:#71817d;">
-      Report generated: ${
-        data.generated_at
-          ? new Date(data.generated_at).toLocaleString()
-          : "Not available"
-      }
-    </p>
-
-    <button class="btn btn-primary"
-      onclick="showSection('admin')">
-      ← Back to Admin Panel
-    </button>
-  `;
-}
-// ==========================================
-// PROOFNEAR DASHBOARD OVERVIEW
-// ==========================================
-
-async function loadDashboardOverview() {
-  if (!currentUser) return;
-
-  const name =
-    currentUser.user_metadata?.full_name ||
-    currentUser.email?.split("@")[0] ||
-    "User";
-
-  const { data: accountProfile, error: accountProfileError } =
-    await supabaseClient
-      .from("profiles")
-      .select("account_type")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
-  if (accountProfileError) {
-    console.error("Account type loading error:", accountProfileError);
-  }
-
-  const accountType =
-    accountProfile?.account_type ||
-    currentUser.user_metadata?.account_type ||
-    "both";
-
-  dashboardContent.innerHTML = `
-    <div class="dashboard-welcome">
-      <span class="welcome-tag">YOUR PROOFNEAR DASHBOARD</span>
-
-      <h2>
-        Welcome back, ${escapeHTML(name)}! 👋
-      </h2>
-
-      <p>
-        Your opportunities. Your progress. Your future.
-        Everything you need to manage your PROOFNEAR account is here.
-      </p>
-
-      <div class="welcome-account">
-        👤 ${escapeHTML(accountType)} account
-        &nbsp; • &nbsp;
-        ✉️ ${escapeHTML(currentUser.email || "")}
-      </div>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>👤 Account Information</h3>
-      <p><strong>Email:</strong> ${escapeHTML(currentUser.email || "")}</p>
-      <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
-    </div>
-
-    <h3 style="margin:24px 0 14px;">📊 Your Activity</h3>
-
-    <div style="
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-      gap:14px;
-      margin-bottom:24px;
-    ">
-
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #087f70;">
-        <p style="margin:0;color:#71817d;">💼 Total Opportunities</p>
-        <h2 id="totalOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-      </div>
-
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #d6a84b;">
-        <p style="margin:0;color:#71817d;">⏳ Pending</p>
-        <h2 id="pendingOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-        <div class="stats-progress">
-          <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
-        </div>
-      </div>
-
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
-        <p style="margin:0;color:#71817d;">✅ Approved</p>
-        <h2 id="approvedOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-        <div class="stats-progress">
-          <div id="approvedProgress" class="stats-progress-fill"></div>
-        </div>
-      </div>
-
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #2878c8;">
-        <p style="margin:0;color:#71817d;">📨 Applications Received</p>
-        <h2 id="receivedApplications" style="font-size:30px;margin:12px 0 0;">...</h2>
-      </div>
-
-      <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
-        <p style="margin:0;color:#71817d;">📝 My Applications</p>
-        <h2 id="myApplicationsCount" style="font-size:30px;margin:12px 0 0;">...</h2>
-      </div>
-
-    </div>
-
-    <div class="dashboard-card">
-      <h3>🚀 Quick Actions</h3>
-
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-        gap:10px;
-      ">
-
-        <button class="btn btn-primary"
-          onclick="showSection('post')">
-          ➕ Post Opportunity
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="showSection('opportunities')">
-          💼 My Opportunities
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="showSection('applications')">
-          📝 My Applications
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="showSection('payments')">
-          💰 My Payments
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="showSection('notifications')">
-          🔔 Notifications
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="showSection('messages')">
-          ✉️ Messages
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="showSection('profile')">
-          👤 Edit Profile
-        </button>
-
-      </div>
-    </div>
-  `;
-
-  // Load total opportunities
-  const { count: total, error: totalError } =
-    await supabaseClient
-      .from("jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", currentUser.id);
-
-  // Load pending opportunities
-  const { count: pending, error: pendingError } =
-    await supabaseClient
-      .from("jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", currentUser.id)
-      .eq("status", "pending");
-
-  // Load approved opportunities
-  const { count: approved, error: approvedError } =
-    await supabaseClient
-      .from("jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", currentUser.id)
-      .eq("status", "approved");
-
-  // Find opportunities posted by this user
-  const { data: myJobIds, error: myJobsError } =
-    await supabaseClient
-      .from("jobs")
-      .select("id")
-      .eq("user_id", currentUser.id);
-
-  // Count applications received
-  let received = 0;
-  let receivedError = myJobsError;
-
-  if (!myJobsError && myJobIds?.length > 0) {
-    const result = await supabaseClient
-      .from("applications")
-      .select("id", { count: "exact", head: true })
-      .in("job_id", myJobIds.map(job => job.id));
-
-    received = result.count ?? 0;
-    receivedError = result.error;
-  }
-
-  // Count applications submitted by this user
-  const { count: myApplications, error: myApplicationsError } =
-    await supabaseClient
-      .from("applications")
-      .select("id", { count: "exact", head: true })
-      .eq("applicant_id", currentUser.id);
-
-  // Check database errors
-  if (
-    totalError ||
-    pendingError ||
-    approvedError ||
-    receivedError ||
-    myApplicationsError
-  ) {
-    console.error("Dashboard statistics error:", {
-      totalError,
-      pendingError,
-      approvedError,
-      receivedError,
-      myApplicationsError
-    });
-
-    document.getElementById("totalOpportunities").textContent = "—";
-    document.getElementById("pendingOpportunities").textContent = "—";
-    document.getElementById("approvedOpportunities").textContent = "—";
-    document.getElementById("receivedApplications").textContent = "—";
-    document.getElementById("myApplicationsCount").textContent = "—";
-
-    return;
-  }
-
-  // Display statistics
-  document.getElementById("totalOpportunities").textContent =
-    total ?? 0;
-
-  document.getElementById("pendingOpportunities").textContent =
-    pending ?? 0;
-
-  document.getElementById("approvedOpportunities").textContent =
-    approved ?? 0;
-
-  document.getElementById("receivedApplications").textContent =
-    received;
-
-  document.getElementById("myApplicationsCount").textContent =
-    myApplications ?? 0;
-
-  // Update progress bars
-  const totalCount = total ?? 0;
-
-  const pendingPercent = totalCount > 0
-    ? ((pending ?? 0) / totalCount) * 100
-    : 0;
-
-  const approvedPercent = totalCount > 0
-    ? ((approved ?? 0) / totalCount) * 100
-    : 0;
-
-  document.getElementById("pendingProgress").style.width =
-    `${pendingPercent}%`;
-
-  document.getElementById("approvedProgress").style.width =
-    `${approvedPercent}%`;
-}
-async function loadMyPayments() {
-  if (!currentUser) return;
-
-  dashboardContent.innerHTML = `
-    <h2>💰 My Payments</h2>
-    <p>Loading your payment history...</p>
-  `;
-
-  const { data: payments, error } = await supabaseClient.rpc(
-    "get_my_proofnear_payments"
-  );
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>💰 My Payments</h2>
-      <p>Could not load payments: ${escapeHTML(error.message)}</p>
-    `;
-    return;
-  }
-
-  if (!payments || payments.length === 0) {
-    dashboardContent.innerHTML = `
-      <h2>💰 My Payments</h2>
-      <div class="dashboard-card">
-        <p>You have not submitted any payments yet.</p>
-      </div>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>💰 My Payments</h2>
-
-    ${payments.map(payment => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(payment.opportunity_title)}</h3>
-
-        <p><strong>Type:</strong>
-          ${payment.payment_type === "posting"
-            ? "Opportunity Posting"
-            : payment.payment_type === "contact_unlock"
-            ? "Contact Unlock"
-            : "Other"}
-        </p>
-
-        <p><strong>Amount:</strong>
-          UGX ${escapeHTML(payment.amount)}
-        </p>
-
-        <p><strong>Method:</strong>
-          ${escapeHTML(payment.payment_method)}
-        </p>
-
-        <p><strong>Transaction reference:</strong>
-          ${escapeHTML(payment.transaction_reference)}
-        </p>
-
-        <p><strong>Status:</strong>
-          ${escapeHTML(payment.status.toUpperCase())}
-        </p>
-
-        <p><strong>Submitted:</strong>
-          ${new Date(payment.created_at).toLocaleString()}
-        </p>
-
-        ${payment.verified_at ? `
-          <p><strong>Verified:</strong>
-            ${new Date(payment.verified_at).toLocaleString()}
-          </p>
-        ` : ""}
-      </div>
-    `).join("")}
-  `;
-}
-
-async function loadMyOpportunities() {
-  if (!currentUser) return;
-
-  dashboardContent.innerHTML = `
-    <h2>💼 My Opportunities</h2>
-    <p>Loading your opportunities...</p>
-  `;
-
+async function loadApprovedOpportunities() {
   const { data: jobs, error } = await supabaseClient
     .from("jobs")
-    .select(`
-      id,
-      title,
-      description,
-      location,
-      category,
-      pay,
-      status,
-      availability_status,
-      created_at
-    `)
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>💼 My Opportunities</h2>
-      <p>Could not load opportunities:
-        ${escapeHTML(error.message)}
-      </p>
-    `;
-    return;
-  }
-
-  if (!jobs || jobs.length === 0) {
-    dashboardContent.innerHTML = `
-      <h2>💼 My Opportunities</h2>
-      <div class="dashboard-card">
-        <p>You have not posted any opportunities yet.</p>
-      </div>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>💼 My Opportunities</h2>
-
-    ${jobs.map(job => `
-      <div class="dashboard-card" data-job-id="${escapeHTML(job.id)}">
-
-        <div class="job-details">
-          <h3>${escapeHTML(job.title)}</h3>
-
-          <p><strong>Category:</strong>
-            ${escapeHTML(job.category || "Not specified")}
-          </p>
-
-          <p><strong>Location:</strong>
-            ${escapeHTML(job.location || "Not specified")}
-          </p>
-
-          <p><strong>Payment:</strong>
-            ${escapeHTML(job.pay ?? "Not specified")}
-          </p>
-
-          <p><strong>Approval:</strong>
-            ${escapeHTML(job.status || "Pending").toUpperCase()}
-          </p>
-
-          <p><strong>Availability:</strong>
-            ${escapeHTML(job.availability_status || "OPEN").toUpperCase()}
-          </p>
-
-          <p>${escapeHTML(job.description || "")}</p>
-
-          <p><strong>Posted:</strong>
-            ${new Date(job.created_at).toLocaleDateString()}
-          </p>
-
-          <button class="btn btn-primary edit-job-btn">
-            ✏️ Edit
-          </button>
-
-          <button class="btn btn-primary delete-job-btn">
-            🗑️ Delete
-          </button>
-        </div>
-
-      </div>
-    `).join("")}
-  `;
-
-
-  // EDIT OPPORTUNITY
-  dashboardContent.querySelectorAll(".edit-job-btn").forEach(button => {
-    button.addEventListener("click", () => {
-      const card = button.closest("[data-job-id]");
-      const job = jobs.find(item => item.id === card?.dataset.jobId);
-
-      if (!job || !currentUser) {
-        alert("Could not find this opportunity.");
-        return;
-      }
-
-      card.innerHTML = `
-        <h3>✏️ Edit Opportunity</h3>
-
-        <form class="edit-job-form">
-          <label>Title</label>
-          <input name="title" value="${escapeHTML(job.title || "")}" required>
-
-          <label>Category</label>
-          <input name="category" value="${escapeHTML(job.category || "")}">
-
-          <label>Location</label>
-          <input name="location" value="${escapeHTML(job.location || "")}">
-
-          <label>Payment</label>
-          <input name="pay" value="${escapeHTML(job.pay ?? "")}">
-
-          <label>Description</label>
-          <textarea name="description" required>${escapeHTML(job.description || "")}</textarea>
-
-          <label>Availability</label>
-          <select name="availability_status">
-            <option value="OPEN" ${job.availability_status === "OPEN" ? "selected" : ""}>Open</option>
-            <option value="FILLED" ${job.availability_status === "FILLED" ? "selected" : ""}>Filled</option>
-            <option value="ON HOLD" ${job.availability_status === "ON HOLD" ? "selected" : ""}>On Hold</option>
-          </select>
-
-          <button class="btn btn-primary" type="submit">
-            💾 Save Changes
-          </button>
-
-          <button class="btn btn-primary cancel-edit-btn" type="button">
-            Cancel
-          </button>
-        </form>
-      `;
-
-      card.querySelector(".cancel-edit-btn").addEventListener("click", () => {
-        loadMyOpportunities();
-      });
-
-      card.querySelector(".edit-job-form").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const form = event.currentTarget;
-        const formData = new FormData(form);
-
-        const updates = {
-          title: formData.get("title").trim(),
-          category: formData.get("category").trim(),
-          location: formData.get("location").trim(),
-          pay: formData.get("pay").trim(),
-          description: formData.get("description").trim(),
-          availability_status: formData.get("availability_status")
-        };
-
-        const saveButton = form.querySelector('button[type="submit"]');
-        saveButton.disabled = true;
-        saveButton.textContent = "Saving...";
-
-        try {
-          const { error } = await supabaseClient
-            .from("jobs")
-            .update(updates)
-            .eq("id", job.id)
-            .eq("user_id", currentUser.id);
-
-          if (error) throw error;
-
-          alert("Opportunity updated successfully!");
-          await loadMyOpportunities();
-
-        } catch (error) {
-          alert("Could not save changes: " + error.message);
-          saveButton.disabled = false;
-          saveButton.textContent = "💾 Save Changes";
-        }
-      });
-    });
-  });
-
-
-  // DELETE OPPORTUNITY
-
-dashboardContent.querySelectorAll(".delete-job-btn").forEach(button => {
-  button.addEventListener("click", async () => {
-    const card = button.closest("[data-job-id]");
-    const jobId = card?.dataset.jobId;
-
-    if (!jobId || !currentUser) return;
-
-    const confirmed = confirm(
-      "Are you sure you want to permanently delete this opportunity?"
-    );
-
-    if (!confirmed) return;
-
-    button.disabled = true;
-    button.textContent = "Deleting...";
-
-    try {
-      const { error } = await supabaseClient
-        .from("jobs")
-        .delete()
-        .eq("id", jobId)
-        .eq("user_id", currentUser.id);
-
-      if (error) throw error;
-
-      alert("Opportunity deleted successfully!");
-      await loadMyOpportunities();
-
-    } catch (error) {
-      alert("Could not delete opportunity: " + error.message);
-      button.disabled = false;
-            button.textContent = "🗑️ Delete";
-    }
-  });
-});
-}
-
-
-async function openNotificationOpportunity(jobId) {
-  if (!currentUser || !jobId) return;
-
-  dashboardContent.innerHTML = `
-    <h2>💼 Opportunity Details</h2>
-    <p>Loading opportunity...</p>
-  `;
-
-  const { data: job, error } = await supabaseClient
-    .from("jobs")
-    .select(`
-      id,
-      title,
-      description,
-      location,
-      category,
-      pay,
-      status,
-      availability_status,
-      created_at
-    `)
-    .eq("id", jobId)
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
-
-  if (error || !job) {
-    dashboardContent.innerHTML = `
-      <h2>💼 Opportunity Details</h2>
-      <p>Could not find this opportunity.</p>
-      <button class="btn btn-primary"
-        onclick="loadMyNotifications()">
-        Back to Notifications
-      </button>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>💼 Opportunity Details</h2>
-
-    <div class="dashboard-card">
-      <h3>${escapeHTML(job.title)}</h3>
-
-      <p><strong>Category:</strong>
-        ${escapeHTML(job.category || "Not specified")}
-      </p>
-
-      <p><strong>Location:</strong>
-        ${escapeHTML(job.location || "Not specified")}
-      </p>
-
-      <p><strong>Payment:</strong>
-        ${escapeHTML(job.pay || "Not specified")}
-      </p>
-
-      <p><strong>Approval:</strong>
-        ${escapeHTML(job.status || "Pending").toUpperCase()}
-      </p>
-
-      <p><strong>Availability:</strong>
-        ${escapeHTML(job.availability_status || "OPEN").toUpperCase()}
-      </p>
-
-      <p>${escapeHTML(job.description || "")}</p>
-
-      <p><strong>Posted:</strong>
-        ${new Date(job.created_at).toLocaleDateString()}
-      </p>
-    </div>
-
-    <button class="btn btn-primary"
-      onclick="loadMyOpportunities()">
-      Back to My Opportunities
-    </button>
-
-    <button class="btn btn-primary"
-      onclick="loadMyNotifications()">
-      Back to Notifications
-    </button>
-  `;
-}
-
-
-async function openNotificationPayment(paymentId) {
-  if (!currentUser || !paymentId) return;
-
-  dashboardContent.innerHTML = `
-    <h2>💳 Payment Details</h2>
-    <p>Loading payment...</p>
-  `;
-
-  const { data: payments, error } = await supabaseClient
-    .rpc("get_my_proofnear_payments");
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>💳 Payment Details</h2>
-      <p>Could not load payment:
-        ${escapeHTML(error.message)}
-      </p>
-      <button class="btn btn-primary"
-        onclick="loadMyNotifications()">
-        Back to Notifications
-      </button>
-    `;
-    return;
-  }
-
-  const payment = (payments || []).find(
-    item => String(item.payment_id) === String(paymentId)
-  );
-
-  if (!payment) {
-    dashboardContent.innerHTML = `
-      <h2>💳 Payment Details</h2>
-      <p>Payment not found in your payment history.</p>
-      <button class="btn btn-primary"
-        onclick="loadMyPayments()">
-        View My Payments
-      </button>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>💳 Payment Details</h2>
-
-    <div class="dashboard-card">
-      <h3>${escapeHTML(payment.opportunity_title || "PROOFNEAR Payment")}</h3>
-
-      <p><strong>Amount:</strong>
-        UGX ${Number(payment.amount).toLocaleString()}
-      </p>
-
-      <p><strong>Payment Type:</strong>
-        ${escapeHTML(payment.payment_type || "Not specified")}
-      </p>
-
-      <p><strong>Status:</strong>
-        ${escapeHTML(payment.status || "Unknown").toUpperCase()}
-      </p>
-
-      <p><strong>Payment Method:</strong>
-        ${escapeHTML(payment.payment_method || "Not specified")}
-      </p>
-
-      <p><strong>Transaction Reference:</strong>
-        ${escapeHTML(payment.transaction_reference || "Not specified")}
-      </p>
-
-      <p><strong>Date:</strong>
-        ${payment.created_at
-          ? new Date(payment.created_at).toLocaleString()
-          : "Not specified"}
-      </p>
-
-      <p><strong>Verified At:</strong>
-        ${payment.verified_at
-          ? new Date(payment.verified_at).toLocaleString()
-          : "Not yet verified"}
-      </p>
-    </div>
-
-    <button class="btn btn-primary"
-      onclick="loadMyPayments()">
-      Back to My Payments
-    </button>
-
-    <button class="btn btn-primary"
-      onclick="loadMyNotifications()">
-      Back to Notifications
-    </button>
-  `;
-}
-
-
-
-async function loadMyProfile() {
-  if (!currentUser) return;
-
-  dashboardContent.innerHTML = `
-    <h2>👤 My Profile</h2>
-    <p>Loading your profile...</p>
-  `;
-
-  const { data: profile, error } = await supabaseClient
-    .from("profiles")
-    .select("full_name, district, bio, account_type, verification_status, avatar_url")
-    .eq("id", currentUser.id)
-    .maybeSingle();
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>My Profile</h2>
-      <p>Could not load profile: ${escapeHTML(error.message)}</p>
-    `;
-    return;
-  }
-
-  const savedProfile = profile || {};
-
-  const profileFields = [
-    savedProfile.full_name || currentUser.user_metadata.full_name,
-    currentUser.email,
-    savedProfile.district,
-    savedProfile.bio,
-    savedProfile.account_type
-  ];
-
-  const completedFields = profileFields.filter(
-    value => value && String(value).trim() !== ""
-  ).length;
-
-  const completionPercent = Math.round(
-    (completedFields / profileFields.length) * 100
-  );
-  dashboardContent.innerHTML = `
-    <h2>👤 My Profile</h2>
-
-<div class="dashboard-card profile-completion">
-  <h3>📈 Profile Completion</h3>
-
-  <h2>${completionPercent}%</h2>
-
-  <div class="stats-progress">
-    <div
-      class="stats-progress-fill"
-      style="width:${completionPercent}%">
-    </div>
-  </div>
-
-  <p>Complete your profile to help people know you better.</p>
-</div>
-
-<div class="dashboard-card">
-<div class="profile-photo-section">
-  <img
-    id="profilePhotoPreview"
-    src="${escapeHTML(savedProfile.avatar_url || 'https://placehold.co/120x120?text=Photo')}"
-    alt="Profile photo"
-    width="120"
-    height="120"
-    style="border-radius:50%;object-fit:cover;"
-    >
-
-  <br>
-
-  <label for="profilePhoto">Choose profile photo</label>
-  <input
-    type="file"
-    id="profilePhoto"
-    accept="image/png,image/jpeg,image/webp"
-    onchange="previewProfilePhoto(event)"
-  >
-  <button
-  class="btn btn-primary"
-  onclick="uploadProfilePhoto()">
-  Upload Profile Photo
-</button>
-
-<p id="profilePhotoMessage"></p>
-</div>
-      <label>Full name</label>
-      <input
-        type="text"
-        id="profileFullName"
-        value="${escapeHTML(savedProfile.full_name || currentUser.user_metadata.full_name || "")}"
-      >
-
-      <label>Email address</label>
-      <input
-        type="email"
-        value="${escapeHTML(currentUser.email || "")}"
-        disabled
-      >
-
-      <label>District</label>
-      <input
-        type="text"
-        id="profileDistrict"
-        value="${escapeHTML(savedProfile.district || "")}"
-        placeholder="Enter your district"
-      >
-
-      <label>About me</label>
-      <textarea
-        id="profileBio"
-        placeholder="Tell people a little about yourself"
-      >${escapeHTML(savedProfile.bio || "")}</textarea>
-
-      <label>Account type</label>
-      <select id="profileAccountType">
-        <option value="seeker" ${savedProfile.account_type === "seeker" ? "selected" : ""}>Seeker</option>
-        <option value="provider" ${savedProfile.account_type === "provider" ? "selected" : ""}>Provider</option>
-        <option value="both" ${(!savedProfile.account_type || savedProfile.account_type === "both") ? "selected" : ""}>Both</option>
-      </select>
-
-      <p><strong>Verification:</strong>
-        ${escapeHTML(savedProfile.verification_status || "Not verified")}
-      </p>
-      <div class="dashboard-card">
-  <h3>🏅 Apply for Verification</h3>
-  <p>Request a PROOFNEAR verification badge.</p>
-
-  <label>Verification type</label>
-  <select id="verificationType">
-    <option value="identity">Personal Identity</option>
-    <option value="business">Business Verification</option>
-  </select>
-
-  <label>Full name</label>
-  <input
-    type="text"
-    id="verificationFullName"
-    value="${escapeHTML(savedProfile.full_name || currentUser.user_metadata.full_name || "")}"
-    placeholder="Your real full name"
-  >
-
-  <label>Why should we verify you?</label>
-  <textarea
-    id="verificationReason"
-    placeholder="Briefly explain your verification request"
-  ></textarea>
-
-  <button class="btn btn-primary"
-    onclick="submitVerificationRequest()">
-    Submit Verification Request
-  </button>
-
-  <p id="verificationMessage"></p>
-</div>
-
-      <button class="btn btn-primary" onclick="saveMyProfile()">
-        Save Profile
-      </button>
-
-      <p id="profileMessage"></p>
-    </div>
-  `;
-}
-async function submitVerificationRequest() {
-  if (!currentUser) return;
-
-  const message = document.getElementById("verificationMessage");
-  const fullName = document.getElementById("verificationFullName").value.trim();
-  const requestType = document.getElementById("verificationType").value;
-  const reason = document.getElementById("verificationReason").value.trim();
-
-  if (!fullName) {
-    message.textContent = "Please enter your full name.";
-    return;
-  }
-
-  message.textContent = "Submitting request...";
-
-  const { error } = await supabaseClient
-    .from("verification_requests")
-    .insert({
-      user_id: currentUser.id,
-      request_type: requestType,
-      full_name: fullName,
-      reason: reason
-    });
-
-  if (error) {
-    message.textContent = error.code === "23505"
-      ? "You already have a pending verification request."
-      : "Submission failed: " + error.message;
-    return;
-  }
-
-  message.textContent = "Verification request submitted successfully! ❤️";
-}
-async function uploadProfilePhoto() {
-  if (!currentUser) return;
-
-  const input = document.getElementById("profilePhoto");
-  const message = document.getElementById("profilePhotoMessage");
-  const file = input.files[0];
-
-  if (!file) {
-    message.textContent = "Please choose a photo first.";
-    return;
-  }
-
-  if (file.size > 3 * 1024 * 1024) {
-    message.textContent = "Photo must be smaller than 3 MB.";
-    return;
-  }
-
-  message.textContent = "Uploading photo...";
-
-  const extension = file.type === "image/png" ? "png" :
-    file.type === "image/webp" ? "webp" : "jpg";
-
-  const filePath = `${currentUser.id}/${Date.now()}.${extension}`;
-
-  const { error: uploadError } = await supabaseClient
-    .storage
-    .from("profile-photos")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type
-    });
-
-  if (uploadError) {
-    message.textContent = "Upload failed: " + uploadError.message;
-    return;
-  }
-
-  const { data } = supabaseClient
-    .storage
-    .from("profile-photos")
-    .getPublicUrl(filePath);
-
-  const { error: profileError } = await supabaseClient
-    .from("profiles")
-    .update({ avatar_url: data.publicUrl })
-    .eq("id", currentUser.id);
-
-  if (profileError) {
-    message.textContent = "Photo uploaded, but profile update failed: " + profileError.message;
-    return;
-  }
-
-  document.getElementById("profilePhotoPreview").src = data.publicUrl;
-  message.textContent = "Profile photo updated successfully! ❤️";
-  input.value = "";
-}
-
-function loadAccountSettings() {
-  if (!currentUser) return;
-
-  dashboardContent.innerHTML = `
-    <h2>⚙️ Account Settings</h2>
-
-    <div class="dashboard-card">
-      <h3>🔐 Change Password</h3>
-      <p>Update your PROOFNEAR account password.</p>
-
-      <label>New Password</label>
-      <input
-        type="password"
-        id="newAccountPassword"
-        placeholder="Enter new password"
-      >
-
-      <label>Confirm New Password</label>
-      <input
-        type="password"
-        id="confirmAccountPassword"
-        placeholder="Confirm new password"
-      >
-
-      <button class="btn btn-primary" onclick="changeAccountPassword()">
-        Update Password
-      </button>
-
-      <p id="passwordMessage"></p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📧 Email Address</h3>
-      <p>${escapeHTML(currentUser.email || "")}</p>
-      <p>Email changes can be requested through account security settings.</p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>🛡️ Account Security</h3>
-      <p>Your account is protected by Supabase authentication.</p>
-      <p>Never share your password or secret API keys.</p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>🔑 PROOFNEAR Configuration</h3>
-      <p>Frontend configuration uses your Supabase publishable key.</p>
-      <p>Secret keys must remain private and server-side.</p>
-    </div>
-  `;
-}
-
-async function changeAccountPassword() {
-  if (!currentUser) return;
-
-  const password = document.getElementById("newAccountPassword").value;
-  const confirmPassword = document.getElementById("confirmAccountPassword").value;
-  const message = document.getElementById("passwordMessage");
-
-  if (password.length < 8) {
-    message.textContent = "Password must contain at least 8 characters.";
-    return;
-  }
-  if (password !== confirmPassword) {
-    message.textContent = "Passwords do not match.";
-    return;
-  }
-
-  message.textContent = "Updating password...";
-
-  const { error } = await supabaseClient.auth.updateUser({
-    password: password
-  });
-
-  if (error) {
-    message.textContent = "Password update failed: " + error.message;
-    return;
-  }
-
-  document.getElementById("newAccountPassword").value = "";
-  document.getElementById("confirmAccountPassword").value = "";
-
-  message.textContent = "Password updated successfully! ❤️";
-}
-
-
-async function loadMyNotifications() {
-  if (!currentUser) return;
-
-  dashboardContent.innerHTML = `
-    <h2>🔔 My Notifications</h2>
-    <p>Loading notifications...</p>
-  `;
-
-  const { data: notifications, error } = await supabaseClient
-    .from("notifications")
-    .select(`
-      id,
-      title,
-      message,
-      notification_type,
-      is_read,
-      created_at,
-      related_job_id,
-      related_payment_id
-    `)
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>🔔 My Notifications</h2>
-      <p>Could not load notifications:
-        ${escapeHTML(error.message)}
-      </p>
-    `;
-    return;
-  }
-
-  if (!notifications || notifications.length === 0) {
-    dashboardContent.innerHTML = `
-      <h2>🔔 My Notifications</h2>
-      <div class="dashboard-card">
-        <p>You have no notifications yet.</p>
-      </div>
-    `;
-    return;
-  }
-
-  const hasUnread = notifications.some(
-    notification => !notification.is_read
-  );
-
-  dashboardContent.innerHTML = `
-    <h2>🔔 My Notifications</h2>
-
-    ${hasUnread ? `
-      <button class="btn btn-primary"
-        onclick="markAllNotificationsRead()">
-        ✓ Mark All as Read
-      </button>
-    ` : ""}
-
-    ${notifications.map(notification => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(notification.title)}</h3>
-        <p>${escapeHTML(notification.message)}</p>
-
-        <p><strong>Type:</strong>
-          ${escapeHTML(notification.notification_type)}
-        </p>
-
-        <p><strong>Status:</strong>
-          ${notification.is_read ? "Read" : "Unread"}
-        </p>
-
-        <p><strong>Date:</strong>
-          ${new Date(notification.created_at).toLocaleString()}
-        </p>
-
-        ${notification.related_job_id ? `
-          <button class="btn btn-primary"
-            onclick="openNotificationOpportunity('${notification.related_job_id}')">
-            View Opportunity
-          </button>
-        ` : ""}
-
-        ${notification.related_payment_id ? `
-          <button class="btn btn-primary"
-            onclick="openNotificationPayment('${notification.related_payment_id}')">
-            View Payment
-          </button>
-        ` : ""}
-
-        ${!notification.is_read ? `
-          <button class="btn btn-primary"
-            onclick="markNotificationRead('${notification.id}')">
-            Mark as Read
-          </button>
-        ` : ""}
-      </div>
-    `).join("")}
-  `;
-}
-
-
-async function markAllNotificationsRead() {
-  if (!currentUser) return;
-
-  const confirmed = confirm(
-    "Mark all your notifications as read?"
-  );
-
-  if (!confirmed) return;
-
-  const { error } = await supabaseClient
-    .from("notifications")
-    .update({ is_read: true })
-    .eq("user_id", currentUser.id)
-    .eq("is_read", false);
-
-  if (error) {
-    alert("Could not mark notifications as read: " + error.message);
-    return;
-  }
-
-  await loadMyNotifications();
-  await updateNotificationBadge();
-
-  alert("All notifications marked as read!");
-}
-
-
-async function updateNotificationBadge() {
-  if (!currentUser) return;
-
-  const badge = document.getElementById("notificationBadge");
-
-  if (!badge) return;
-
-  const { count, error } = await supabaseClient
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", currentUser.id)
-    .eq("is_read", false);
-
-  if (error) {
-    console.error("Notification count error:", error);
-    return;
-  }
-
-  badge.textContent = (count ?? 0) > 99 ? "99+" : (count ?? 0);
-  badge.style.display = count > 0 ? "inline-flex" : "none";
-}
-function startNotificationListener() {
-  if (!currentUser) return;
-
-  if (notificationChannel) {
-    supabaseClient.removeChannel(notificationChannel);
-  }
-
-  notificationChannel = supabaseClient
-    .channel("proofnear-notifications-" + currentUser.id)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "notifications",
-        filter: "user_id=eq." + currentUser.id
-      },
-      () => {
-        updateNotificationBadge();
-      }
-    )
-    .subscribe();
-}
-
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[char]);
-}
-
-async function logoutUser() {
-  const { error } = await supabaseClient.auth.signOut();
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  window.location.href = "index.html";
-}
-        <p><strong>Pay / Budget:</strong> ${job.pay ? "UGX " + escapeHTML(job.pay) : "Not specified"}</p>
-        <p>${escapeHTML(job.description || "")}</p>
-        <p><strong>Status:</strong> ${escapeHTML(job.status)}</p>
-        <button
-  class="btn btn-primary"
-  onclick="approveJob('${job.id}')">
-  Approve Opportunity
-</button>
-<button
-  class="btn btn-danger"
-  onclick="rejectJob('${job.id}')">
-  Reject Opportunity
-</button>
-      </div>
-    `).join("")}
-    <button onclick="showSection('admin')">Back to Admin Panel</button>
-  `;
-}
-
-async function approveJob(jobId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const confirmed = confirm(
-    "Are you sure you want to approve this opportunity?"
-  );
-
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "approve_proofnear_job",
-    { target_job_id: jobId }
-  );
-
-  if (error) {
-    alert("Approval failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Opportunity approved successfully! 🎉");
-    await loadPendingJobs();
-  } else {
-    alert("This opportunity was not pending or has already been processed.");
-  }
-}
-async function rejectJob(jobId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const confirmed = confirm(
-    "Are you sure you want to reject this opportunity?"
-  );
-
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "reject_proofnear_job",
-    { target_job_id: jobId }
-  );
-
-  if (error) {
-    alert("Rejection failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Opportunity rejected successfully.");
-    await loadPendingJobs();
-  } else {
-    alert("This opportunity was already processed.");
-  }
-}
-
-/* TALENT ARENA ADMIN MODERATION */
-
-async function loadPendingTalentPosts() {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const { data: posts, error } = await supabaseClient
-    .from("talent_posts")
-    .select("id, title, description, category, media_type, media_url, created_at, status")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Pending talent posts:", error);
-    alert("Could not load pending talent content.");
-    return;
-  }
-
-  if (!posts.length) {
-    dashboardContent.innerHTML = `
-      <h2>🎤 Pending Talent Content</h2>
-      <p>There are currently no pending talent submissions.</p>
-      <button onclick="showSection('admin')">Back to Admin Panel</button>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>🎤 Pending Talent Content</h2>
-
-    ${posts.map(post => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(post.title)}</h3>
-        <p><strong>Category:</strong>
-          ${escapeHTML(post.category || "Not specified")}</p>
-        <p><strong>Type:</strong>
-          ${escapeHTML(post.media_type || "Not specified")}</p>
-        <p>${escapeHTML(post.description || "")}</p>
-        <p><strong>Status:</strong> Pending approval</p>
-
-        ${post.media_type === "image" ? `
-          <img src="${escapeHTML(post.media_url || "")}"
-            alt="Talent submission"
-            style="width:100%;max-width:350px;border-radius:12px;">
-        ` : ""}
-
-        ${post.media_type === "audio" ? `
-          <audio controls style="width:100%;">
-            <source src="${escapeHTML(post.media_url || "")}">
-          </audio>
-        ` : ""}
-
-        ${post.media_type === "video" ? `
-          <video controls playsinline
-            style="width:100%;max-width:350px;border-radius:12px;">
-            <source src="${escapeHTML(post.media_url || "")}">
-          </video>
-        ` : ""}
-
-        <button class="btn btn-primary"
-          onclick="approveTalentPost('${post.id}')">
-          Approve
-        </button>
-
-        <button class="btn btn-danger"
-          onclick="rejectTalentPost('${post.id}')">
-          Reject
-        </button>
-      </div>
-    `).join("")}
-
-    <button onclick="showSection('admin')">Back to Admin Panel</button>
-  `;
-}
-
-async function approveTalentPost(postId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  if (!confirm("Approve this talent submission?")) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "approve_talent_post",
-    { target_post_id: postId }
-  );
-
-  if (error) {
-    alert("Approval failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Talent content approved successfully!");
-    await loadPendingTalentPosts();
-  } else {
-    alert("This submission is no longer pending.");
-  }
-}
-
-async function rejectTalentPost(postId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  if (!confirm("Reject this talent submission?")) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "reject_talent_post",
-    { target_post_id: postId }
-  );
-
-  if (error) {
-    alert("Rejection failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Talent content rejected.");
-    await loadPendingTalentPosts();
-  } else {
-    alert("This submission is no longer pending.");
-  }
-}
-/* TALENT ARENA CHALLENGE MODERATION */
-
-async function loadPendingTalentChallenges() {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const { data: challenges, error } = await supabaseClient
-    .from("talent_challenges")
-    .select("id, title, description, category, rules, ends_at, created_at, status")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Pending challenges:", error);
-    alert("Could not load pending challenges.");
-    return;
-  }
-
-  if (!challenges.length) {
-    dashboardContent.innerHTML = `
-      <h2>🏆 Pending Talent Challenges</h2>
-      <p>There are currently no pending challenges.</p>
-      <button onclick="showSection('admin')">Back to Admin Panel</button>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>🏆 Pending Talent Challenges</h2>
-
-    ${challenges.map(challenge => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(challenge.title)}</h3>
-
-        <p><strong>Category:</strong>
-          ${escapeHTML(challenge.category || "Not specified")}</p>
-
-        <p>${escapeHTML(challenge.description || "")}</p>
-
-        <p><strong>Rules:</strong>
-          ${escapeHTML(challenge.rules || "No rules provided")}</p>
-        <p><strong>Closing date:</strong>
-          ${challenge.ends_at
-            ? new Date(challenge.ends_at).toLocaleString()
-            : "Not specified"}</p>
-
-        <p><strong>Status:</strong> Pending approval</p>
-
-        <button class="btn btn-primary"
-          onclick="approveTalentChallenge('${challenge.id}')">
-          Approve Challenge
-        </button>
-
-        <button class="btn btn-danger"
-          onclick="rejectTalentChallenge('${challenge.id}')">
-          Reject Challenge
-        </button>
-      </div>
-    `).join("")}
-
-    <button onclick="showSection('admin')">Back to Admin Panel</button>
-  `;
-}
-
-async function approveTalentChallenge(challengeId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  if (!confirm("Approve this talent challenge?")) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "approve_talent_challenge",
-    { target_challenge_id: challengeId }
-  );
-
-  if (error) {
-    alert("Approval failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Talent challenge approved successfully!");
-    await loadPendingTalentChallenges();
-  } else {
-    alert("This challenge is no longer pending.");
-  }
-}
-
-async function rejectTalentChallenge(challengeId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  if (!confirm("Reject this talent challenge?")) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "reject_talent_challenge",
-    { target_challenge_id: challengeId }
-  );
-
-  if (error) {
-    alert("Rejection failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Talent challenge rejected.");
-    await loadPendingTalentChallenges();
-  } else {
-    alert("This challenge is no longer pending.");
-  }
-}
-/* =====================================
-   PENDING CHALLENGE ENTRIES
-===================================== */
-
-function escapeAdminText(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-}
-
-async function loadPendingChallengeEntries() {
-  const { data: entries, error } = await supabaseClient
-    .from("challenge_entries")
-    .select("id,challenge_id,title,description,media_url,created_at")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    dashboardContent.innerHTML =
-      "<p>Could not load pending challenge entries.</p>";
-    console.error(error);
-    return;
-  }
-
-  if (!entries || entries.length === 0) {
-    dashboardContent.innerHTML = `
-      <h2>🎬 Pending Challenge Entries</h2>
-      <p>There are currently no entries awaiting review.</p>
-      <button class="btn btn-primary" onclick="showSection('admin')">
-        Back to Admin Panel
-      </button>
-    `;
-    return;
-  }
-
-  const challengeIds = [
-    ...new Set(entries.map(entry => entry.challenge_id).filter(Boolean))
-  ];
-
-  let challengeTitles = {};
-
-  if (challengeIds.length) {
-    const { data: challenges, error: challengeError } =
-      await supabaseClient
-        .from("talent_challenges")
-        .select("id,title")
-        .in("id", challengeIds);
-
-    if (!challengeError && challenges) {
-      challengeTitles = Object.fromEntries(
-        challenges.map(challenge => [challenge.id, challenge.title])
-      );
-    }
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>🎬 Pending Challenge Entries</h2>
-    <p>Review participants' submissions.</p>
-
-    ${entries.map(entry => `
-      <div class="dashboard-card">
-        <h3>${escapeAdminText(entry.title)}</h3>
-
-        <p><strong>Challenge:</strong>
-          ${escapeAdminText(challengeTitles[entry.challenge_id] || "Challenge")}
-        </p>
-
-        <p>${escapeAdminText(entry.description)}</p>
-
-        <p><strong>Submitted:</strong>
-          ${new Date(entry.created_at).toLocaleString()}
-        </p>
-
-        ${entry.media_url ? `
-          <p>
-            <a href="${escapeAdminText(entry.media_url)}"
-               target="_blank"
-               rel="noopener noreferrer">
-              View submitted file
-            </a>
-          </p>
-        ` : "<p>No media file attached.</p>"}
-
-        <button class="btn btn-primary"
-          onclick="approveChallengeEntry('${entry.id}')">
-          Approve
-        </button>
-
-        <button class="btn btn-primary"
-          onclick="rejectChallengeEntry('${entry.id}')">
-          Reject
-        </button>
-      </div>
-    `).join("")}
-
-    <button class="btn btn-primary" onclick="showSection('admin')">
-      Back to Admin Panel
-    </button>
-  `;
-}
-
-
-/* APPROVE CHALLENGE ENTRY */
-
-async function approveChallengeEntry(entryId) {
-  const confirmed = confirm("Approve this challenge entry?");
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "admin_approve_challenge_entry",
-    { target_entry_id: entryId }
-  );
-
-  if (error) {
-    alert("Approval failed: " + error.message);
-    return;
-  }
-
-  if (data !== true) {
-    alert("This entry could not be approved.");
-    return;
-  }
-
-  alert("Challenge entry approved successfully!");
-  await loadPendingChallengeEntries();
-}
-
-
-/* REJECT CHALLENGE ENTRY */
-
-async function rejectChallengeEntry(entryId) {
-  const confirmed = confirm("Reject this challenge entry?");
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "admin_reject_challenge_entry",
-    { target_entry_id: entryId }
-  );
-
-  if (error) {
-    alert("Rejection failed: " + error.message);
-    return;
-  }
-
-  if (data !== true) {
-    alert("This entry could not be rejected.");
-    return;
-  }
-
-  alert("Challenge entry rejected.");
-  await loadPendingChallengeEntries();
-}
-async function loadApprovedJobs() {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const { data: jobs, error } = await supabaseClient
-    .from("jobs")
-    .select("id, title, category, location, description, pay, created_at, status, availability_status")
+    .select("id, user_id, title, category, location, description, pay, created_at, status, availability_status")
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Approved jobs error:", error);
-    alert("Could not load approved opportunities.");
-    return;
-  }
-  console.log("APPROVED JOBS:", jobs);
-
-  if (!jobs.length) {
-    dashboardContent.innerHTML = `
-      <h2>Approved Opportunities</h2>
-      <p>There are currently no approved opportunities.</p>
-      <button onclick="showSection('admin')">
-        Back to Admin Panel
-      </button>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>✅ Approved Opportunities</h2>
-
-    ${jobs.map(job => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(job.title)}</h3>
-        <p><strong>Category:</strong>
-          ${escapeHTML(job.category || "Not specified")}
-        </p>
-        <p><strong>Location:</strong>
-          ${escapeHTML(job.location || "Not specified")}
-        </p>
-        <p>${escapeHTML(job.description || "")}</p>
-        <p><strong>Approval:</strong> APPROVED</p>
-<p><strong>Availability:</strong> ${escapeHTML(job.availability_status || "OPEN")}</p>
-<div>
-  <button onclick="setJobAvailability('${job.id}', 'OPEN')">
-    Mark OPEN
-  </button>
-
-  <button onclick="setJobAvailability('${job.id}', 'FILLED')">
-    Mark FILLED
-  </button>
-
-  <button onclick="setJobAvailability('${job.id}', 'ON HOLD')">
-    Mark ON HOLD
-  </button>
-</div>
-        <p><strong>Published:</strong>
-          ${new Date(job.created_at).toLocaleDateString()}
-        </p>
-      </div>
-    `).join("")}
-
-    <button onclick="showSection('admin')">
-      Back to Admin Panel
-    </button>
-  `;
-}
-async function setJobAvailability(jobId, newStatus) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const confirmed = confirm(
-    "Change this opportunity's availability to " + newStatus + "?"
-  );
-
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "set_proofnear_job_availability",
-    {
-      target_job_id: jobId,
-      new_availability: newStatus
-    }
-  );
-
-  if (error) {
-    alert("Update failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Availability updated to " + newStatus + "! 🎉");
-    await loadApprovedJobs();
+    console.error("Could not load opportunities:", error.message);
+    approvedListings = [];
   } else {
-    alert("Opportunity could not be updated.");
+   const userIds = [...new Set((jobs || []).map(job => job.user_id).filter(Boolean))];
+
+let profilesById = {};
+
+if (userIds.length) {
+  const { data: profiles, error: profilesError } = await supabaseClient
+    .from("profiles")
+    .select("id, full_name, avatar_url")
+    .in("id", userIds);
+
+  if (!profilesError) {
+    profilesById = Object.fromEntries(
+      (profiles || []).map(profile => [profile.id, profile])
+    );
   }
 }
-
-async function loadPendingPayments() {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
+    console.log("PROOFNEAR approved jobs received:", jobs);
+console.log("Approved jobs count:", (jobs || []).length);
+    approvedListings = (jobs || []).map(job => ({
+      id: job.id,
+      type: "job",
+      user_id: job.user_id,
+posterName: profilesById[job.user_id]?.full_name || "PROOFNEAR Member",
+posterAvatar: profilesById[job.user_id]?.avatar_url || "",
+      title: job.title,
+      category: job.category || "General",
+      workType: job.category || "OPPORTUNITY",
+      location: job.location || "Location not specified",
+      pay: job.pay ? "UGX " + job.pay : "Contact publisher for details",
+      description: job.description || "",
+      availability_status: job.availability_status || "OPEN",
+      isPreview: false
+    }));
   }
 
-  dashboardContent.innerHTML = `
-    <h2>💰 Pending Payments</h2>
-    <p>Loading payment records...</p>
-  `;
+  currentListings = [
+    ...approvedListings,
+    ...sampleListings
+  ];
 
-  const { data: payments, error } = await supabaseClient
-    .rpc("get_proofnear_pending_payments_v2");
+  searchListings();
+}
 
-  if (error) {
-    console.error("Payment loading error:", error);
-    dashboardContent.innerHTML = `
-      <h2>Payment Verification</h2>
-      <p>Could not load payments: ${escapeHTML(error.message)}</p>
-      <button onclick="showSection('admin')">
-        Back to Admin Panel
-      </button>
-    `;
-    return;
+
+function renderListings(items = currentListings, reset = true) {
+  if (reset) {
+    visibleListingsCount = LISTINGS_PER_PAGE;
   }
 
-  if (!payments || payments.length === 0) {
-    dashboardContent.innerHTML = `
-      <h2>💰 Pending Payments</h2>
-      <p>No pending payments currently.</p>
-      <button onclick="showSection('admin')">
-        Back to Admin Panel
-      </button>
-    `;
-    return;
+  filteredListings = items;
+  grid.innerHTML = "";
+
+  const visibleItems = items.slice(0, visibleListingsCount);
+
+  const countElement = document.getElementById("opportunityCount");
+
+  if (countElement) {
+    countElement.textContent =
+      `Showing ${visibleItems.length} of ${items.length} displayed listings · ${approvedListings.length} approved opportunities`;
   }
 
-  dashboardContent.innerHTML = `
-    <h2>💰 Pending Payments</h2>
+  empty.hidden = items.length > 0;
 
-    ${payments.map(payment => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(payment.opportunity_title)}</h3>
+  visibleItems.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "listing-card premium-listing-card";
 
-        <p><strong>Payment Type:</strong>
-          ${payment.payment_type === "posting"
-            ? "Opportunity Posting"
-            : payment.payment_type === "contact_unlock"
-              ? "Contact Unlock"
-              : "Unknown"}
-        </p>
+    const typeLabel = item.type === "job"
+      ? "JOB OPPORTUNITY"
+      : "SERVICE REQUEST";
 
-        <p><strong>Payment Date:</strong>
-          ${new Date(payment.created_at).toLocaleString()}
-        </p>
+    card.innerHTML = `
+      <div class="premium-card-top">
+        <span class="listing-type ${item.type === "service" ? "service" : ""}">
+          ${typeLabel}
+        </span>
 
-        <p><strong>Amount:</strong>
-          UGX ${escapeHTML(payment.amount)}
-        </p>
-
-        <p><strong>Method:</strong>
-          ${escapeHTML(payment.payment_method)}
-        </p>
-
-        <p><strong>Transaction Reference:</strong>
-          ${escapeHTML(payment.transaction_reference)}
-        </p>
-
-        <button
-          class="btn btn-primary"
-          onclick="verifyProofnearPayment('${payment.payment_id}')">
-          ✅ Verify Payment
-        </button>
-
-        <button
-          class="btn btn-danger"
-          onclick="rejectProofnearPayment('${payment.payment_id}')">
-          ❌ Reject Payment
-        </button>
+        ${item.workType ? `
+          <span class="work-type-badge">
+            ${escapeHTML(item.workType)}
+          </span>
+        ` : ""}
       </div>
-    `).join("")}
 
-    <button onclick="showSection('admin')">
-      Back to Admin Panel
-    </button>
-  `;
-}
+      <div class="premium-card-content">
+      ${!item.isPreview ? `
+  <div class="listing-poster">
+    ${item.posterAvatar
+  ? `<img
+      class="listing-poster-avatar"
+      src="${escapeHTML(item.posterAvatar)}"
+      alt="Poster photo"
+      onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+      style="cursor:pointer;">`
+  : `<span
+      class="listing-poster-avatar listing-poster-placeholder"
+      onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+      style="cursor:pointer;">👤</span>`}
+    <span class="listing-poster-name"
+  onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+  style="cursor:pointer;">
+  ${escapeHTML(item.posterName || "PROOFNEAR Member")}
+</span>
+  </div>
+` : ""}
 
-async function verifyProofnearPayment(paymentId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
+        <h3>${escapeHTML(item.title)}</h3>
 
-  const confirmed = confirm(
-    "Have you checked and confirmed this payment in your MTN or Airtel account?"
-  );
+        ${item.category ? `
+          <span class="premium-category">
+            ${escapeHTML(item.category)}
+          </span>
+        ` : ""}
 
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "verify_proofnear_payment",
-    {
-      target_payment_id: paymentId
-    }
-  );
-
-  if (error) {
-    alert("Verification failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Payment verified successfully!");
-    loadPendingPayments();
-  } else {
-    alert("Payment was not verified. Please refresh and check its status.");
-  }
-}
-
-async function rejectProofnearPayment(paymentId) {
-  if (!isProofnearAdmin) {
-    alert("Administrator access required.");
-    return;
-  }
-
-  const confirmed = confirm(
-    "Are you sure you want to reject this payment?"
-  );
-
-  if (!confirmed) return;
-
-  const { data, error } = await supabaseClient.rpc(
-    "reject_proofnear_payment",
-    {
-      target_payment_id: paymentId
-    }
-  );
-
-  if (error) {
-    alert("Payment rejection failed: " + error.message);
-    return;
-  }
-
-  if (data === true) {
-    alert("Payment rejected successfully!");
-    loadPendingPayments();
-  } else {
-    alert("Payment was not rejected. Please refresh and check its status.");
-  }
-}
-
-
-function toggleSidebar() {
-  const sidebar = document.getElementById("dashboardSidebar");
-
-  if (!sidebar) {
-    alert("Sidebar not found!");
-    return;
-  }
-
-  sidebar.classList.toggle("expanded");
-
-  console.log(
-    "Sidebar expanded:",
-    sidebar.classList.contains("expanded")
-  );
-}
-// =================================
-// PROOFNEAR DASHBOARD CONTROLS
-// =================================
-
-// MARK ONE NOTIFICATION AS READ
-async function markNotificationRead(notificationId) {
-  if (!currentUser || !notificationId) return;
-
-  const { error } = await supabaseClient
-    .from("notifications")
-    .update({ is_read: true })
-    .eq("id", notificationId)
-    .eq("user_id", currentUser.id);
-
-  if (error) {
-    alert("Could not update notification: " + error.message);
-    return;
-  }
-
-  await loadMyNotifications();
-  await updateNotificationBadge();
-}
-
-
-// LOG OUT
-async function logoutUser() {
-  const confirmed = confirm("Are you sure you want to log out?");
-
-  if (!confirmed) return;
-
-  if (notificationChannel) {
-    await supabaseClient.removeChannel(notificationChannel);
-    notificationChannel = null;
-  }
-
-  const { error } = await supabaseClient.auth.signOut();
-
-  if (error) {
-    alert("Logout failed: " + error.message);
-    return;
-  }
-
-  window.location.href = "index.html";
-}
-
-// =================================
-// MY APPLICATIONS
-// =================================
-
-async function loadMyApplications() {
-  if (!currentUser) return;
-
-  dashboardContent.innerHTML = `
-    <h2>📝 My Applications</h2>
-    <p>Loading your applications...</p>
-  `;
-
-  const { data: applications, error } = await supabaseClient
-    .from("applications")
-    .select(`
-      id,
-      application_message,
-      status,
-      created_at,
-      job:jobs(title, location)
-    `)
-    .eq("applicant_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>📝 My Applications</h2>
-      <p>Could not load applications: ${escapeHTML(error.message)}</p>
-    `;
-    return;
-  }
-
-  if (!applications || applications.length === 0) {
-    dashboardContent.innerHTML = `
-      <h2>📝 My Applications</h2>
-      <div class="dashboard-card">
-        <h3>No applications yet</h3>
-        <p>When you apply for opportunities on PROOFNEAR,
-        your applications will appear here.</p>
-        <button class="btn btn-primary"
-          onclick="window.location.href='index.html'">
-          Explore Opportunities
-        </button>
-      </div>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>📝 My Applications</h2>
-    <p>Track the opportunities you have applied for.</p>
-
-    ${applications.map(application => `
-      <div class="dashboard-card">
-        <h3>${escapeHTML(application.job?.title || "Opportunity")}</h3>
-
-        <p>📍 ${escapeHTML(application.job?.location || "Location not specified")}</p>
-
-        <p>📅 Applied:
-          ${new Date(application.created_at).toLocaleDateString()}
+        <p class="premium-description">
+          ${escapeHTML(item.description)}
         </p>
 
-        <p>📌 Status:
-          <strong>${escapeHTML(application.status || "Pending")}</strong>
-        </p>
-
-        <p>${escapeHTML(application.application_message || "")}</p>
       </div>
-    `).join("")}
-  `;
-}
-// START THE DASHBOARD
-initializeDashboard();
 
-async function loadVerificationRequests() {
+      <div class="premium-card-location">
+        <span>📍</span>
+        <span>${escapeHTML(item.location)}</span>
+      </div>
 
-  dashboardContent.innerHTML = `
-    <h2>🏅 Verification Centre</h2>
-    <p>Loading applications...</p>
-  `;
+      <div class="premium-card-footer">
 
-  const { data: isAdmin, error: adminError } =
-    await supabaseClient.rpc("is_proofnear_admin");
-
-  if (adminError || !isAdmin) {
-    dashboardContent.innerHTML = `
-      <h2>Access denied</h2>
-      <p>Administrator access required.</p>
-    `;
-    return;
-  }
-
-  const { data: requests, error } = await supabaseClient
-    .from("verification_requests")
-    .select("*")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    dashboardContent.innerHTML = `
-      <h2>Verification Centre</h2>
-      <p>${escapeHTML(error.message)}</p>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>🏅 Verification Centre</h2>
-    <p>Pending applications: ${requests.length}</p>
-
-    ${requests.length === 0
-      ? "<p>No pending applications.</p>"
-      : requests.map(request => `
-        <div class="dashboard-card">
-          <h3>${escapeHTML(request.full_name)}</h3>
-          <p>Type: ${escapeHTML(request.request_type)}</p>
-          <p>Reason: ${escapeHTML(request.reason || "Not provided")}</p>
-          <p>Submitted: ${new Date(request.created_at).toLocaleDateString()}</p>
-
-          <button class="btn btn-primary"
-            onclick="reviewVerificationRequest('${request.id}', 'approved')">
-            Approve
-          </button>
-
-          <button class="btn btn-secondary"
-            onclick="reviewVerificationRequest('${request.id}', 'rejected')">
-            Reject
-          </button>
+        <div class="premium-pay">
+          <small>PAYMENT / BUDGET</small>
+          <strong>${escapeHTML(item.pay)}</strong>
         </div>
-      `).join("")}
-  `;
-}
-async function reviewVerificationRequest(requestId, decision) {
-  if (!currentUser) return;
 
-  const confirmed = confirm(
-    `Are you sure you want to ${decision} this application?`
+        <button class="text-button premium-detail-button"
+          data-detail="${escapeHTML(item.id)}">
+          View details →
+        </button>
+
+      </div>
+
+      ${!item.isPreview ? `
+        <div class="premium-card-status">
+          <span class="availability-badge">
+            ${escapeHTML(item.availability_status || "OPEN")}
+          </span>
+        </div>
+      ` : `
+        <p class="preview-note">PROOFNEAR SAMPLE PREVIEW</p>
+      `}
+    `;
+
+    grid.appendChild(card);
+  });
+
+  const loadMoreWrap = document.getElementById("loadMoreWrap");
+
+  if (loadMoreWrap) {
+    loadMoreWrap.hidden = visibleItems.length >= items.length;
+  }
+}
+
+document.getElementById("loadMoreBtn").addEventListener("click", () => {
+  visibleListingsCount += LISTINGS_PER_PAGE;
+  renderListings(filteredListings, false);
+});
+
+loadApprovedOpportunities();
+// PROOFNEAR ACCOUNT REGISTRATION
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function searchListings() {
+  const keyword = document.getElementById("keyword").value.trim().toLowerCase();
+const location = document.getElementById("location").value.trim().toLowerCase();
+  const type = document.getElementById("type").value || activeFilter;
+
+  const results = currentListings.filter(item => {
+    const text = `${item.title} ${item.category} ${item.description} ${item.location}`.toLowerCase();
+
+    return (
+      (!keyword || text.includes(keyword)) &&
+      (!location || String(item.location || "").trim().toLowerCase().includes(location)) &&
+      (type === "all" || !type || item.type === type)
+    );
+  });
+
+  renderListings(results);
+}
+
+document.getElementById("searchForm").addEventListener("submit", e => { e.preventDefault(); searchListings(); document.getElementById("jobs").scrollIntoView({behavior:"smooth"}); });
+document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active"); activeFilter = tab.dataset.filter; searchListings();
+}));
+document.querySelectorAll(".category-card").forEach(card => card.addEventListener("click", () => {
+  document.getElementById("keyword").value = card.dataset.category;
+  document.getElementById("type").value = "";
+  activeFilter = "all"; document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
+  searchListings(); document.getElementById("jobs").scrollIntoView({behavior:"smooth"});
+}));
+function showToast(message) {
+  toast.textContent = message; toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
+function openModal(kind) {
+  const forms = {
+    post: `<h2>Post an opportunity</h2><p>Submit your opportunity for review. It will appear publicly after approval.</p><form class="form-stack" id="postForm">
+      <label>What are you posting?
+  <select name="type" id="postType">
+    <option value="job">A job vacancy</option>
+    <option value="service">A request for a service provider</option>
+  </select>
+</label>
+      <label>Title<input name="title" required placeholder="e.g. Need an electrician"></label>
+      <label>Location
+  <input name="location" type="text" required
+  placeholder="Enter your district, town or area"
+  list="ugandaLocations">
+  <datalist id="ugandaLocations">
+    <option value="Kampala">
+    <option value="Wakiso">
+    <option value="Entebbe">
+    <option value="Jinja">
+    <option value="Mbarara">
+    <option value="Gulu">
+    <option value="Mbale">
+  </datalist>
+</label>
+      <p style="font-size:20px; color:#16a34a;">
+  <strong>Amount to pay: UGX 1,000</strong>
+</p>
+
+  <p id="postAirtelDetails">
+  <strong>Airtel Money</strong><br>
+  Merchant Code: 7292108<br>
+  Merchant Name: PROOFNEAR
+</p>
+
+  <p id="postMtnDetails">
+  <strong>MTN Mobile Money</strong><br>
+  Number: 0760299148<br>
+  Recipient: Malinzi John
+</p>
+
+  <p><strong>Need help?</strong><br>
+  WhatsApp Support: 0749383502</p>
+
+  <p>After paying, enter your transaction reference below.</p>
+</div>
+
+<label>Payment method
+  <select name="payment_method" id="postPaymentMethod" required>
+    <option value="">Choose payment method</option>
+    <option value="MTN">MTN Mobile Money</option>
+    <option value="AIRTEL">Airtel Money</option>
+  </select>
+</label>
+
+<label>Transaction reference
+  <input
+    name="transaction_reference"
+    required
+    placeholder="Enter payment transaction ID">
+</label>
+      <label>Description<textarea name="description" required placeholder="Describe the work, skills needed and timing"></textarea></label>
+      <label>Contact phone<input name="phone" required type="tel" placeholder="e.g. 07..."></label>
+      <button class="btn btn-primary" type="submit">Post my advert</button></form>`,
+    worker: `<h2>Create a worker profile</h2><p>Introduce your skills so people can discover the work you offer.</p><form class="form-stack" id="workerForm">
+      <label>Your name<input required name="name" placeholder="Your name"></label><label>Main skill<input required name="skill" placeholder="e.g. Electrician"></label>
+      <label>Location
+  <input name="location" type="text" required
+  placeholder="Enter your district, town or area"
+  list="workerLocations">
+  <datalist id="workerLocations">
+    <option value="Kampala">
+    <option value="Wakiso">
+    <option value="Entebbe">
+    <option value="Jinja">
+    <option value="Mbarara">
+    <option value="Gulu">
+    <option value="Mbale">
+  </datalist>
+</label>
+      <label>Phone number<input required name="phone" type="tel" placeholder="Your contact number"></label>
+      <button class="btn btn-primary" type="submit">Preview my profile</button></form>`,
+    
+signin: `
+<h2>Welcome back!</h2>
+<p>Sign in to continue to PROOFNEAR.</p>
+
+<div class="form-stack">
+  <label>Email address
+    <input id="authEmail" type="email"
+      placeholder="Enter your email" required>
+  </label>
+
+  <label>Password
+    <input id="authPassword" type="password"
+      placeholder="Enter your password" required>
+  </label>
+
+  <button class="btn btn-primary" id="loginBtn" type="button">
+    Sign in
+  </button>
+
+  <p id="authMessage" class="form-hint"></p>
+
+  <p>New to PROOFNEAR?
+    <button class="btn" id="showRegister" type="button">
+      Create an account
+    </button>
+  </p>
+</div>`,
+
+register: `
+<h2>Create your account</h2>
+<p>Join PROOFNEAR and discover opportunities.</p>
+
+<div class="form-stack">
+  <label>Full name
+    <input id="authName" placeholder="Your full name" required>
+  </label>
+
+  <label>Email address
+    <input id="authEmail" type="email"
+      placeholder="Enter your email" required>
+  </label>
+
+  <label>Password
+    <input id="authPassword" type="password"
+      placeholder="At least 6 characters" required>
+  </label>
+
+  <label>Account type
+    <select id="authType">
+      <option value="seeker">Seeker</option>
+      <option value="provider">Provider</option>
+      <option value="both">Both</option>
+    </select>
+  </label>
+
+  <button class="btn btn-primary" id="registerBtn" type="button">
+    Create account
+  </button>
+
+  <p id="authMessage" class="form-hint"></p>
+
+  <p>Already have an account?
+    <button class="btn" id="showSignin" type="button">
+      Sign in
+    </button>
+  </p>
+</div>`
+
+  };
+  modalContent.innerHTML = forms[kind] || forms.post;
+  const postTypeSelect = document.getElementById("postType");
+const postingFee = document.getElementById("postingFee");
+
+if (postTypeSelect && postingFee) {
+  postTypeSelect.addEventListener("change", () => {
+    postingFee.textContent =
+      postTypeSelect.value === "job"
+        ? "Posting fee: UGX 1,000"
+        : "Posting fee: UGX 5,000";
+  });
+}
+  if (postTypeSelect && postingFee) {
+  postTypeSelect.addEventListener("change", () => {
+    postingFee.textContent =
+      postTypeSelect.value === "job"
+        ? "Posting fee: UGX 1,000"
+        : "Posting fee: UGX 5,000";
+  });
+}
+  const postPaymentMethod = document.getElementById("postPaymentMethod");
+const postAirtelDetails = document.getElementById("postAirtelDetails");
+const postMtnDetails = document.getElementById("postMtnDetails");
+
+if (postPaymentMethod && postAirtelDetails && postMtnDetails) {
+  function updatePostPaymentDisplay() {
+    postAirtelDetails.style.border =
+      postPaymentMethod.value === "AIRTEL"
+        ? "2px solid #16a34a"
+        : "1px solid #ddd";
+
+    postMtnDetails.style.border =
+      postPaymentMethod.value === "MTN"
+        ? "2px solid #16a34a"
+        : "1px solid #ddd";
+
+    postAirtelDetails.style.padding = "10px";
+    postMtnDetails.style.padding = "10px";
+  }
+
+  postPaymentMethod.addEventListener("change", updatePostPaymentDisplay);
+  updatePostPaymentDisplay();
+}
+  dialog.showModal();
+  function bindAuthButtons() {
+  const registerBtn = document.getElementById("registerBtn");
+  if (registerBtn) registerBtn.onclick = registerUser;
+
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) loginBtn.onclick = loginUser;
+
+  const showRegister = document.getElementById("showRegister");
+  if (showRegister) {
+    showRegister.onclick = () => {
+      modalContent.innerHTML = forms.register;
+      bindAuthButtons();
+    };
+  }
+
+  const showSignin = document.getElementById("showSignin");
+  if (showSignin) {
+    showSignin.onclick = () => {
+      modalContent.innerHTML = forms.signin;
+      bindAuthButtons();
+    };
+  }
+}
+
+if (kind === "signin" || kind === "register") {
+  bindAuthButtons();
+}
+  const postForm = document.getElementById("postForm");
+  if (postForm) postForm.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const data = Object.fromEntries(
+    new FormData(postForm).entries()
   );
 
-  if (!confirmed) return;
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
 
-  const { error } = await supabaseClient.rpc(
-    "review_verification_request",
+  if (sessionError || !sessionData.session) {
+    showToast("Please sign in before posting.");
+    dialog.close();
+    openModal("signin");
+    return;
+  }
+
+  const category = data.type === "job"
+    ? "Employment"
+    : "Home services";
+
+  const { data: newJobId, error } = await supabaseClient.rpc(
+    "submit_proofnear_job",
     {
-      request_id: requestId,
-      decision: decision,
-      note: null
+      target_title: data.title,
+      target_location: data.location,
+      target_description: data.description,
+      target_category: category,
+      target_phone: data.phone,
+      target_pay: data.pay || "Pay to be agreed"
     }
   );
 
   if (error) {
-    alert("Review failed: " + error.message);
+    console.error("Posting failed:", error.message);
+    showToast("Submission failed: " + error.message);
+    return;
+  }
+    const { data: paymentId, error: paymentError } =
+  await supabaseClient.rpc(
+    "submit_proofnear_payment",
+    {
+      target_job_id: newJobId,
+      target_payment_method: data.payment_method,
+      target_transaction_reference: data.transaction_reference
+    }
+  );
+
+if (paymentError) {
+  console.error("Payment submission failed:", paymentError.message);
+
+  showToast(
+    "Opportunity saved, but payment details failed: " +
+    paymentError.message
+  );
+  return;
+}
+
+console.log("Payment submitted:", paymentId);
+
+  postForm.reset();
+  dialog.close();
+
+  showToast("Submitted successfully! Awaiting admin approval.");
+
+  console.log("Submitted opportunity:", newJobId);
+});
+
+    /* OPEN TALENT CHALLENGE ENTRY FORM */
+
+  const workerForm = document.getElementById("workerForm");
+  if (workerForm) workerForm.addEventListener("submit", e => {
+    e.preventDefault(); const data = Object.fromEntries(new FormData(workerForm).entries());
+    modalContent.innerHTML = `<h2>Profile preview</h2><p><b>${escapeHTML(data.name)}</b> · ${escapeHTML(data.skill)}</p><p>${escapeHTML(data.location)} · ${escapeHTML(data.phone)}</p><button class="btn btn-primary" id="done">Close preview</button>`;
+    document.getElementById("done").onclick = () => dialog.close();
+  });
+  const closeInfo = document.getElementById("closeInfo");
+  if (closeInfo) closeInfo.onclick = () => dialog.close();
+}
+
+async function openChallengeEntry(challengeId) {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    showToast("Please sign in to join this challenge.");
+    openModal("signin");
     return;
   }
 
-  alert(
-    decision === "approved"
-      ? "Application approved! Verified badge awarded."
-      : "Application rejected."
+  const { data: challenge, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id, title, description, rules, ends_at, status")
+    .eq("id", challengeId)
+    .eq("status", "published")
+    .single();
+
+  if (error || !challenge) {
+    showToast("This challenge is unavailable.");
+    return;
+  }
+  if (new Date(challenge.ends_at).getTime() <= Date.now()) {
+    showToast("This challenge has already closed.");
+    return;
+    }
+  modalContent.innerHTML = `
+    <h2>Join Challenge</h2>
+    <h3>${escapeHTML(challenge.title)}</h3>
+    <p>${escapeHTML(challenge.description || "")}</p>
+    <p><strong>Rules:</strong>
+      ${escapeHTML(challenge.rules || "Follow the challenge instructions.")}
+    </p>
+
+    <form id="challengeEntryForm" class="form-stack">
+      <label>Entry title
+        <input name="title" required
+          placeholder="Give your entry a title">
+      </label>
+
+      <label>Describe your entry
+        <textarea name="description" required
+          placeholder="Tell us about your entry"></textarea>
+      </label>
+
+      <label>Upload your entry
+        <input name="media" type="file" required
+          accept="image/jpeg,image/png,image/webp,audio/mpeg,audio/mp4,audio/wav,audio/ogg,video/mp4,video/webm,video/quicktime">
+      </label>
+
+      <button class="btn btn-primary" type="submit">
+        Submit Entry
+      </button>
+
+      <p id="challengeEntryMessage" class="form-hint"></p>
+    </form>
+  `;
+
+  dialog.showModal();
+
+  const entryForm = document.getElementById("challengeEntryForm");
+
+  entryForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const submitButton = entryForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const message = document.getElementById(
+      "challengeEntryMessage"
+    );
+
+    const user = sessionData.session.user;
+    const formData = new FormData(entryForm);
+
+    const title = formData.get("title").trim();
+    const description = formData.get("description").trim();
+    const file = formData.get("media");
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "audio/mpeg",
+      "audio/mp4",
+      "audio/wav",
+      "audio/ogg",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime"
+    ];
+
+    if (!file || !allowedTypes.includes(file.type)) {
+      message.textContent =
+        "Please select a supported photo, audio or video file.";
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      message.textContent = "Your file must not exceed 50 MB.";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Uploading entry...";
+
+    try {
+            const { data: latestChallenge, error: latestError } =
+        await supabaseClient
+          .from("talent_challenges")
+          .select("status, ends_at")
+          .eq("id", challengeId)
+          .single();
+
+      if (
+        latestError ||
+        !latestChallenge ||
+        latestChallenge.status !== "published" ||
+        new Date(latestChallenge.ends_at).getTime() <= Date.now()
+      ) {
+        throw new Error("This challenge is no longer accepting entries.");
+      }
+      const extension = file.name
+        .split(".")
+        .pop()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+      const filePath =
+        `${user.id}/challenge-entries/${Date.now()}.${extension}`;
+
+      const { error: uploadError } = await supabaseClient
+        .storage
+        .from("talent-media")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabaseClient
+        .storage
+        .from("talent-media")
+        .getPublicUrl(filePath);
+
+      const { error: insertError } = await supabaseClient
+        .from("challenge_entries")
+        .insert({
+          challenge_id: challengeId,
+          creator_id: user.id,
+          title: title,
+          description: description,
+          media_url: publicData.publicUrl,
+          status: "pending"
+        });
+
+      if (insertError) throw insertError;
+
+      message.textContent =
+        "Your challenge entry was submitted successfully!";
+
+      entryForm.reset();
+      submitButton.textContent = "Submitted successfully";
+
+      showToast("Your entry is awaiting approval.");
+
+    } catch (error) {
+      console.error("Challenge entry submission:", error);
+
+      message.textContent =
+        "Submission failed: " + error.message;
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Submit Entry";
+    }
+  });
+}
+
+function saveLogin(){ var n=document.getElementById("authName").value; var p=document.getElementById("authPhone").value; if(!n||!p){alert("Type name and phone dear");return;} localStorage.setItem("user",n); document.getElementById("authBtn").innerText="My Account: "+n; document.getElementById("signin").close(); showToast("Welcome "+n+"! Account saved."); }
+
+async function openListingDetails(item) {
+  const isRealJob = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(item.id));
+const posterInfo = `
+  <div class="listing-poster">
+    ${item.posterAvatar
+      ? `<img
+  class="listing-poster-avatar"
+  src="${escapeHTML(item.posterAvatar)}"
+  alt="Poster photo"
+  onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+  style="cursor:pointer;"
+>`
+      : `<span
+    class="listing-poster-avatar listing-poster-placeholder"
+    onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+    style="cursor:pointer;">
+    👤
+  </span>`}
+    <span class="listing-poster-name"
+  onclick="openPublicProfile('${escapeHTML(item.user_id)}')"
+  style="cursor:pointer;">
+  ${escapeHTML(item.posterName || "PROOFNEAR Member")}
+</span>
+  </div>
+`;
+  modalContent.innerHTML = `
+    ${posterInfo}
+<h2>${escapeHTML(item.title)}</h2>
+    <p>${escapeHTML(item.description || "")}</p>
+    <p>
+      <b>Location:</b> ${escapeHTML(item.location || "")}<br>
+      <b>Pay:</b> ${escapeHTML(item.pay || "To be agreed")}
+    </p>
+    <div id="contactUnlockArea">
+      <p>Checking contact access...</p>
+    </div>
+    <button class="btn btn-primary" id="detailClose">Close</button>
+  `;
+
+  if (!dialog.open) dialog.showModal();
+
+  document.getElementById("detailClose").onclick = () => dialog.close();
+
+  const area = document.getElementById("contactUnlockArea");
+
+  if (!isRealJob) {
+  area.innerHTML = `
+    <div class="sample-details">
+      <p><strong>PROOFNEAR SAMPLE PREVIEW</strong></p>
+
+      <p><strong>Work type:</strong> ${escapeHTML(item.workType || "Not specified")}</p>
+
+      <p><strong>Category:</strong> ${escapeHTML(item.category || "General")}</p>
+
+      <p><strong>Availability:</strong> ${escapeHTML(item.posted || "Sample opportunity")}</p>
+
+      <p>These are example opportunities demonstrating what you can discover on PROOFNEAR. They are not confirmed vacancies.</p>
+
+      <button class="btn btn-primary" id="sampleSignIn">
+        Sign in to PROOFNEAR
+      </button>
+    </div>
+  `;
+
+  document.getElementById("sampleSignIn").onclick = () => {
+    dialog.close();
+    openModal("signin");
+  };
+
+  return;
+}
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+    area.innerHTML = `
+      <p>Sign in to unlock this opportunity's contact.</p>
+      <button class="btn btn-primary" id="unlockSignIn">Sign in</button>
+    `;
+    document.getElementById("unlockSignIn").onclick = () => {
+      dialog.close();
+      openModal("signin");
+    };
+    return;
+  }
+
+  if (item.user_id === user.id) {
+    area.innerHTML = `<p>This is your own opportunity.</p>`;
+    return;
+  }
+
+  const { data: status, error } = await supabaseClient.rpc(
+    "get_proofnear_contact_unlock_status",
+    { target_job_id: item.id }
   );
 
-  loadVerificationRequests();
+  if (error) {
+    area.innerHTML = `<p>Could not check payment: ${escapeHTML(error.message)}</p>`;
+    return;
+  }
+
+  if (status === "verified") {
+    const { data: phone, error: phoneError } = await supabaseClient.rpc(
+      "get_proofnear_unlocked_contact",
+      { target_job_id: item.id }
+    );
+
+    if (phoneError) {
+      area.innerHTML = `<p>${escapeHTML(phoneError.message)}</p>`;
+      return;
+    }
+
+    const cleanPhone = String(phone || "").replace(/\D/g, "");
+    const whatsappNumber = cleanPhone.startsWith("0")
+      ? "256" + cleanPhone.slice(1)
+      : cleanPhone;
+
+    area.innerHTML = `
+      <p>Payment verified. Contact unlocked!</p>
+      <a class="btn btn-primary"
+         href="https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Hello, I saw your opportunity: " + item.title + " on PROOFNEAR. I am interested.")}"
+         target="_blank" rel="noopener"
+         style="display:block;text-align:center;text-decoration:none;">
+         Contact on WhatsApp
+      </a>
+    `;
+    return;
+  }
+
+  if (status === "pending") {
+  area.innerHTML = `<p>Your UGX 500 payment is awaiting administrator verification.</p>`;
+  return;
+}
+
+  showContactUnlockForm(item, status === "rejected"
+    ? "Your previous payment was rejected. You may submit a new payment."
+    : "");
+}
+
+function showContactUnlockForm(item, message = "") {
+  const area = document.getElementById("contactUnlockArea");
+
+  area.innerHTML = `
+    <h3>Unlock Contact – UGX 500</h3>
+    <p>${escapeHTML(message)}</p>
+    <div class="payment-instructions">
+  <h4>Payment Instructions</h4>
+
+  <p><strong>Amount to pay: UGX 500</strong></p>
+
+  <p id="unlockAirtelDetails">
+  <strong>Airtel Money:</strong><br>
+  Merchant Code: 7292108<br>
+  Merchant Name: PROOFNEAR
+</p>
+
+  <p id="unlockMtnDetails">
+  <strong>MTN Mobile Money:</strong><br>
+  Number: 0760299148<br>
+  Recipient: Malinzi John
+</p>
+
+  <p>After payment, enter your transaction reference below.</p>
+
+  <p><strong>Need help?</strong><br>
+  WhatsApp Support: 0749383502</p>
+</div>
+
+    <label>Payment method</label>
+    <select id="unlockPaymentMethod" required>
+      <option value="MTN">MTN Mobile Money</option>
+      <option value="AIRTEL">Airtel Money</option>
+    </select>
+
+    <label>Transaction reference</label>
+    <input id="unlockTransactionReference"
+      type="text" placeholder="Enter transaction reference" required>
+
+    <button class="btn btn-primary" id="submitUnlockPayment">
+      Submit Payment Details
+    </button>
+  `;
+
+  const unlockMethod = document.getElementById("unlockPaymentMethod");
+const airtelDetails = document.getElementById("unlockAirtelDetails");
+const mtnDetails = document.getElementById("unlockMtnDetails");
+
+function updateUnlockPaymentDisplay() {
+  airtelDetails.style.border =
+    unlockMethod.value === "AIRTEL" ? "2px solid #16a34a" : "1px solid #ddd";
+
+  mtnDetails.style.border =
+    unlockMethod.value === "MTN" ? "2px solid #16a34a" : "1px solid #ddd";
+
+  airtelDetails.style.padding = "10px";
+  mtnDetails.style.padding = "10px";
+}
+
+unlockMethod.addEventListener("change", updateUnlockPaymentDisplay);
+updateUnlockPaymentDisplay();
+  document.getElementById("submitUnlockPayment").onclick = async () => {
+    const method = document.getElementById("unlockPaymentMethod").value;
+    const reference = document.getElementById("unlockTransactionReference").value.trim();
+    const button = document.getElementById("submitUnlockPayment");
+
+    if (!reference) {
+      alert("Please enter your transaction reference.");
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Submitting...";
+
+    const { data, error } = await supabaseClient.rpc(
+      "submit_proofnear_contact_unlock",
+      {
+        target_job_id: item.id,
+        target_payment_method: method,
+        target_transaction_reference: reference
+      }
+    );
+
+    if (error) {
+      alert("Payment submission failed: " + error.message);
+      button.disabled = false;
+      button.textContent = "Submit Payment Details";
+      return;
+    }
+
+    area.innerHTML = `
+      <p>Payment details submitted successfully.</p>
+      <p>Your contact will unlock after administrator verification.</p>
+    `;
+  };
+}
+
+document.addEventListener("click", e => {
+  const opener = e.target.closest("[data-open]");
+  if (opener) openModal(opener.dataset.open);
+
+  const detail = e.target.closest("[data-detail]");
+  if (detail) {
+    const item = currentListings.find(
+      x => String(x.id) === String(detail.dataset.detail)
+    );
+
+    if (item) openListingDetails(item);
+  }
+});
+
+const menuToggle = document.getElementById("menuToggle");
+
+if (menuToggle) {
+  menuToggle.addEventListener("click", () => {
+    const nav = document.querySelector(".desktop-nav");
+    if (!nav) return;
+
+    const visible = nav.style.display === "flex";
+    nav.style.display = visible ? "none" : "flex";
+    nav.style.position = visible ? "" : "absolute";
+    nav.style.top = "68px";
+    nav.style.left = "0";
+    nav.style.right = "0";
+    nav.style.padding = "18px 24px";
+    nav.style.background = "#fff";
+    nav.style.flexDirection = "column";
+  });
+}
+
+renderListings();
+// PROOFNEAR ACCOUNT REGISTRATION
+
+async function registerUser() {
+  const name = document.getElementById("authName").value.trim();
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const accountType = document.getElementById("authType").value;
+  const message = document.getElementById("authMessage");
+
+  if (!name || !email || password.length < 6) {
+    message.textContent = "Enter your name, email and a password of at least 6 characters.";
+    return;
+  }
+
+  message.textContent = "Creating your account...";
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: name,
+        account_type: accountType
+      }
+    }
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  message.textContent = data.session
+    ? "Account created successfully! Welcome to PROOFNEAR."
+    : "Account created! Check your email to confirm your account.";
+}
+
+
+// PROOFNEAR LOGIN
+
+async function loginUser() {
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const message = document.getElementById("authMessage");
+
+  if (!email || !password) {
+    message.textContent = "Enter your email and password.";
+    return;
+  }
+
+  message.textContent = "Logging in...";
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  const name =
+    data.user.user_metadata.full_name || email.split("@")[0];
+
+  const accountBtn = document.getElementById("accountBtn");
+  const mobileBtn = document.getElementById("mobileAccountBtn");
+
+  if (accountBtn) accountBtn.textContent = name;
+  if (mobileBtn) mobileBtn.textContent = name;
+
+  message.textContent = "Welcome back, " + name + "!";
+
+  showToast("Welcome back, " + name + "!");
+}
+// RESTORE LOGGED-IN USER
+
+async function restoreUserSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error("Session error:", error.message);
+    return;
+  }
+
+  const user = data.session?.user;
+
+  const accountBtn = document.getElementById("accountBtn");
+  const mobileBtn = document.getElementById("mobileAccountBtn");
+
+  if (user) {
+    const name =
+      user.user_metadata.full_name || user.email.split("@")[0];
+
+    if (accountBtn) accountBtn.textContent = name;
+    if (mobileBtn) mobileBtn.textContent = name;
+  }
+}
+
+restoreUserSession();
+// PROOFNEAR MY ACCOUNT DASHBOARD
+
+
+
+async function openAccount() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.error("Account error:", error);
+      alert("Unable to check your account. Please try again.");
+      return;
+    }
+
+    if (!data.session) {
+      openModal("signin");
+      return;
+    }
+
+    window.location.href = "user-dashboard.html";
+
+  } catch (err) {
+    console.error("Open account failed:", err);
+    alert("Something went wrong. Please try again.");
+  }
+}
+
+/* PROOFNEAR COMPANY SLIDER */
+
+let companySlideIndex = 0;
+let companySlideTimer;
+
+function showCompanySlide(index) {
+  const slides = document.querySelectorAll(".company-slide");
+  const dotsContainer = document.getElementById("companyDots");
+
+  if (!slides.length || !dotsContainer) return;
+
+  companySlideIndex = (index + slides.length) % slides.length;
+
+  slides.forEach((slide, i) => {
+    slide.classList.toggle("active", i === companySlideIndex);
+  });
+
+  dotsContainer.innerHTML = "";
+
+  slides.forEach((slide, i) => {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "company-dot" + (i === companySlideIndex ? " active" : "");
+    dot.setAttribute("aria-label", "Show slide " + (i + 1));
+
+    dot.addEventListener("click", () => {
+      showCompanySlide(i);
+      restartCompanySlideTimer();
+    });
+
+    dotsContainer.appendChild(dot);
+  });
+}
+
+function changeCompanySlide(direction) {
+  showCompanySlide(companySlideIndex + direction);
+  restartCompanySlideTimer();
+}
+
+function restartCompanySlideTimer() {
+  clearInterval(companySlideTimer);
+
+  companySlideTimer = setInterval(() => {
+    showCompanySlide(companySlideIndex + 1);
+  }, 5000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  showCompanySlide(0);
+  restartCompanySlideTimer();
+});
+/* PROOFNEAR MOBILE MENU */
+
+function toggleMobileMenu() {
+  const menu = document.getElementById("mobileMenu");
+  const button = document.getElementById("menuToggle");
+
+  if (!menu || !button) return;
+
+  menu.classList.toggle("open");
+
+  button.textContent = menu.classList.contains("open") ? "✕" : "☰";
+}
+
+
+/* =================================
+   PROOFNEAR WELCOME EXPERIENCE
+================================= */
+
+(function () {
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const welcomeVoiceBtn = document.getElementById("welcomeVoiceBtn");
+
+  if (!welcomeScreen) {
+    console.error("PROOFNEAR: Welcome screen not found.");
+    return;
+  }
+
+  const welcomeMessage =
+    "Welcome to PROOFNEAR. Your opportunities, your connections, your future.";
+
+  if (welcomeVoiceBtn) {
+    welcomeVoiceBtn.onclick = function () {
+      if (!window.speechSynthesis) {
+        alert("Voice is not supported by this browser.");
+        return;
+      }
+
+      const speech = new SpeechSynthesisUtterance(welcomeMessage);
+      speech.lang = "en-US";
+      speechSynthesis.cancel();
+      speechSynthesis.speak(speech);
+    };
+  }
+
+  setTimeout(function () {
+  welcomeScreen.classList.add("welcome-hide");
+}, 6000);
+})();
+/* =================================
+   PROOFNEAR SERVICE WORKER
+================================= */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(registration => {
+        console.log("PROOFNEAR Service Worker registered", registration);
+      })
+      .catch(error => {
+        console.error("Service Worker error:", error);
+      });
+  });
+}
+
+/* =====================================
+   PROOFNEAR AUTOMATIC HERO SLIDER
+===================================== */
+(function () {
+  const slider = document.getElementById("homeSlider");
+  if (!slider) return;
+
+  const slides = slider.querySelectorAll(".hero-slide");
+  const dots = slider.querySelectorAll(".slider-dot");
+  const previous = slider.querySelector(".slider-prev");
+  const next = slider.querySelector(".slider-next");
+
+  if (!slides.length) return;
+
+  let currentSlide = 0;
+  let slideTimer;
+
+  function showSlide(index) {
+    currentSlide = (index + slides.length) % slides.length;
+
+    slides.forEach((slide, i) => {
+      slide.classList.toggle("active", i === currentSlide);
+    });
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("active", i === currentSlide);
+    });
+  }
+
+  function startSlider() {
+    clearInterval(slideTimer);
+
+    slideTimer = setInterval(() => {
+      showSlide(currentSlide + 1);
+    }, 3000);
+  }
+
+  function restartSlider() {
+    startSlider();
+  }
+
+  if (previous) {
+  previous.addEventListener("click", () => {
+    showSlide(currentSlide - 1);
+    restartSlider();
+  });
+}
+
+if (next) {
+  next.addEventListener("click", () => {
+    showSlide(currentSlide + 1);
+    restartSlider();
+  });
+}
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+      showSlide(index);
+      restartSlider();
+    });
+  });
+
+  showSlide(0);
+  startSlider();
+})();
+// OPEN POSTING FORM WHEN COMING FROM DASHBOARD
+const pageParams = new URLSearchParams(window.location.search);
+
+if (pageParams.get("open") === "post") {
+  openModal("post");
+}
+
+/* =========================================
+   PROOFNEAR TALENT ARENA — SUPABASE
+========================================= */
+
+async function getTalentUser() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    openModal("signin");
+    return null;
+  }
+
+  return data.user;
+}
+
+function setTalentMessage(form, message, isError = false) {
+  let output = form.querySelector(".talent-form-status");
+
+  if (!output) {
+    output = document.createElement("p");
+    output.className = "talent-form-status";
+    output.setAttribute("role", "status");
+    form.appendChild(output);
+  }
+
+  output.textContent = message;
+  output.style.color = isError ? "#dc2626" : "#126044";
+}
+
+function setTalentButton(button, busy, originalText) {
+  button.disabled = busy;
+  button.textContent = busy ? "Submitting..." : originalText;
+}
+
+async function uploadTalentMedia(user, file, folder) {
+  const allowedTypes = [
+    "image/jpeg", "image/png", "image/webp",
+    "audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg",
+    "video/mp4", "video/webm", "video/quicktime"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error("This file type is not supported.");
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    throw new Error("Files must not exceed 50 MB.");
+  }
+
+  const extension = file.name.split(".").pop()
+    .toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+
+  const path =
+    `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+
+  const { error } = await supabaseClient.storage
+    .from("talent-media")
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) throw error;
+
+  const { data } = supabaseClient.storage
+    .from("talent-media")
+    .getPublicUrl(path);
+
+  return data.publicUrl;
+}
+
+/* SHOW AND HIDE TALENT FORMS */
+
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-arena-action]");
+  if (!button) return;
+
+  const action = button.dataset.arenaAction;
+
+  const forms = {
+    profile: "talentProfileForm",
+    post: "talentPostForm",
+    challenge: "talentChallengeForm"
+  };
+
+  const formId = forms[action];
+  if (!formId) return;
+
+  const form = document.getElementById(formId);
+  if (!form) return;
+
+  const user = await getTalentUser();
+  if (!user) return;
+
+  form.hidden = !form.hidden;
+
+  if (!form.hidden) {
+    form.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+});
+
+/* SAVE CREATOR PROFILE */
+
+const talentProfileForm =
+  document.getElementById("talentProfileForm");
+
+if (talentProfileForm) {
+  talentProfileForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const user = await getTalentUser();
+    if (!user) return;
+
+    const button = talentProfileForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const originalText = "Save Talent Profile";
+    setTalentButton(button, true, originalText);
+
+    try {
+      const username =
+        talentProfileForm.elements.username.value.trim().replace(/^@/, "");
+
+      if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+        throw new Error(
+          "Username must be 3–30 characters using letters, numbers or underscores."
+        );
+      }
+
+      const profile = {
+        user_id: user.id,
+        username,
+        display_name:
+          talentProfileForm.elements.display_name.value.trim(),
+        talent_category:
+          talentProfileForm.elements.talent_category.value,
+        bio: talentProfileForm.elements.bio.value.trim()
+      };
+
+      const avatar =
+  talentProfileForm.elements.avatar.files[0];
+
+if (avatar) {
+  const allowedAvatarTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+  if (!allowedAvatarTypes.includes(avatar.type)) {
+    throw new Error("Please upload a JPG, PNG or WEBP profile photo.");
+  }
+
+  if (avatar.size > 5 * 1024 * 1024) {
+    throw new Error("Your profile photo must not exceed 5 MB.");
+  }
+        profile.avatar_url = await uploadTalentMedia(
+          user,
+          avatar,
+          "avatars"
+        );
+      }
+
+      const { error } = await supabaseClient
+        .from("talent_profiles")
+        .upsert(profile, { onConflict: "user_id" });
+
+      if (error) throw error;
+
+      setTalentMessage(
+        talentProfileForm,
+        "Your talent profile was saved successfully!"
+      );
+
+      await loadTalentProfiles();
+
+    } catch (error) {
+      setTalentMessage(
+        talentProfileForm,
+        error.message,
+        true
+      );
+    } finally {
+      setTalentButton(button, false, originalText);
+    }
+  });
+}
+
+
+/* LOAD PUBLIC CREATOR PROFILES */
+
+async function loadTalentProfiles() {
+  const container = document.getElementById("talentCreatorList");
+
+  if (!container) return;
+
+  container.innerHTML = "<p>Discovering creators...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("talent_profiles")
+    .select("user_id,username,display_name,bio,avatar_url,talent_category")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    container.textContent = "Could not load creator profiles.";
+    console.error("Talent profiles:", error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = `
+      <p>No creators yet. Be the first to join PROOFNEAR!</p>
+    `;
+    return;
+  }
+
+  container.innerHTML = data.map(profile => {
+    const avatar = profile.avatar_url
+      ? `<img class="talent-profile-photo"
+          src="${escapeHTML(profile.avatar_url)}"
+          alt="Creator profile">`
+      : `<div class="talent-profile-photo talent-profile-placeholder">
+          👤
+        </div>`;
+
+    return `
+      <article class="talent-creator-card">
+        ${avatar}
+
+        <div class="talent-creator-info">
+          <h4>${escapeHTML(profile.display_name || "Creator")}</h4>
+          <p class="talent-username">
+            @${escapeHTML(profile.username || "creator")}
+          </p>
+          <span class="talent-profile-category">
+            ${escapeHTML(profile.talent_category || "Other")}
+          </span>
+          <p>${escapeHTML(profile.bio || "")}</p>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+
+/* PUBLISH TALENT CONTENT */
+
+const talentPostForm =
+  document.getElementById("talentPostForm");
+
+if (talentPostForm) {
+  talentPostForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const user = await getTalentUser();
+    if (!user) return;
+
+    const button = talentPostForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const originalText = "Submit Content";
+    setTalentButton(button, true, originalText);
+
+    try {
+      const file =
+        talentPostForm.elements.media.files[0];
+
+      if (!file) throw new Error("Please select a media file.");
+
+      const mediaUrl = await uploadTalentMedia(
+        user,
+        file,
+        "posts"
+      );
+
+      const { error } = await supabaseClient
+        .from("talent_posts")
+        .insert({
+          creator_id: user.id,
+          title: talentPostForm.elements.title.value.trim(),
+          description:
+            talentPostForm.elements.description.value.trim(),
+          category: talentPostForm.elements.category.value,
+          media_type: talentPostForm.elements.media_type.value,
+          media_url: mediaUrl,
+status: "pending"
+        });
+
+      if (error) throw error;
+
+      setTalentMessage(
+        talentPostForm,
+        "Your content has been submitted. It will appear publicly after approval."
+      );
+
+      talentPostForm.reset();
+
+    } catch (error) {
+      setTalentMessage(talentPostForm, error.message, true);
+    } finally {
+      setTalentButton(button, false, originalText);
+    }
+  });
+}
+
+
+/* ==========================================
+   LOAD TALENT ARENA FEED
+========================================== */
+
+async function loadTalentPosts() {
+  const container = document.getElementById("talentPostList");
+
+  if (!container) return;
+
+  container.innerHTML = "<p>Loading creator content...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("talent_posts")
+    .select("id,creator_id,title,description,category,media_type,media_url,created_at")
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    container.textContent = "Could not load creator content.";
+    console.error("Talent posts:", error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML =
+      "<p>No creator content yet. Be the first to share your talent!</p>";
+    return;
+  }
+
+  /* LOAD CREATOR PROFILES */
+
+  const creatorIds = [
+    ...new Set(data.map(post => post.creator_id).filter(Boolean))
+  ];
+
+  let creatorProfiles = {};
+
+  if (creatorIds.length) {
+    const { data: profiles, error: profileError } =
+      await supabaseClient
+        .from("talent_profiles")
+        .select("user_id,username,display_name,avatar_url")
+        .in("user_id", creatorIds);
+
+    if (profileError) {
+      console.error("Creator profiles:", profileError.message);
+    } else if (profiles) {
+      creatorProfiles = Object.fromEntries(
+        profiles.map(profile => [profile.user_id, profile])
+      );
+    }
+  }
+  /* LOAD POST LIKES */
+
+  const postIds = data.map(post => post.id);
+
+const {
+  data: likeStats,
+  error: likesError
+} = await supabaseClient.rpc(
+  "get_talent_post_like_counts",
+  { p_post_ids: postIds }
+);
+
+if (likesError) {
+  console.error("Post likes:", likesError.message);
+}
+
+const likeCounts = {};
+const myLikedPosts = new Set();
+
+(likeStats || []).forEach(item => {
+  likeCounts[item.post_id] = Number(item.like_count) || 0;
+
+  if (item.liked_by_me) {
+    myLikedPosts.add(item.post_id);
+  }
+});
+  /* DISPLAY CREATOR CONTENT */
+
+  container.innerHTML = data.map(post => {
+    const profile = creatorProfiles[post.creator_id] || {};
+
+    const creatorName =
+      profile.display_name ||
+      profile.username ||
+      "PROOFNEAR Creator";
+
+    const username = profile.username
+      ? "@" + profile.username
+      : "@creator";
+
+    const avatar = profile.avatar_url
+      ? `<img class="talent-creator-avatar"
+          src="${escapeHTML(profile.avatar_url)}"
+          alt="Creator profile">`
+      : `<div class="talent-creator-avatar-placeholder">👤</div>`;
+
+    const url = escapeHTML(post.media_url || "");
+
+    let media = "";
+
+    if (post.media_type === "image") {
+      media = `
+        <img class="talent-feed-media"
+          src="${url}"
+          alt="Creator photo"
+          loading="lazy">
+      `;
+    } else if (post.media_type === "audio") {
+      media = `
+        <audio class="talent-feed-audio"
+          controls
+          preload="metadata">
+          <source src="${url}">
+          Your browser does not support audio.
+        </audio>
+      `;
+    } else if (post.media_type === "video") {
+      media = `
+        <video class="talent-feed-media"
+          controls
+          playsinline
+          preload="metadata">
+          <source src="${url}">
+          Your browser does not support video.
+        </video>
+      `;
+    } else {
+      media = "<p>Media format not supported.</p>";
+    }
+
+    return `
+      <article class="talent-video-card">
+
+        <div class="talent-feed-creator">
+          ${avatar}
+
+          <div>
+            <strong>${escapeHTML(creatorName)}</strong>
+            <small>${escapeHTML(username)}</small>
+          </div>
+        </div>
+
+        <div class="talent-feed-content">
+          ${media}
+        </div>
+
+        <div class="talent-feed-details">
+          <h3>${escapeHTML(post.title || "Untitled post")}</h3>
+
+          <p>${escapeHTML(post.description || "")}</p>
+
+          <span class="talent-feed-category">
+            ${escapeHTML(post.category || "Talent")}
+          </span>
+                    <div
+              class="talent-post-actions">
+            <button
+              class="btn btn-primary"
+              onclick="toggleTalentPostLike('${post.id}')">
+              ${myLikedPosts.has(post.id) ? "❤️ Liked" : "🤍 Like"}
+              (${likeCounts[post.id] || 0})
+            </button>
+                    </div>
+        </div>
+
+      </article>
+    `;
+  }).join("");
+}
+
+/* ==========================================
+   LIKE OR UNLIKE TALENT POSTS
+========================================== */
+
+async function toggleTalentPostLike(postId) {
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    alert("Please sign in to like creator posts.");
+    return;
+  }
+
+  try {
+    // Check the post and its creator
+    const { data: post, error: postError } =
+      await supabaseClient
+        .from("talent_posts")
+        .select("id,creator_id,status")
+        .eq("id", postId)
+        .single();
+
+    if (postError || !post) {
+      throw new Error("Could not find this post.");
+    }
+
+    if (post.status !== "published") {
+      throw new Error("This post is not published.");
+    }
+
+    if (post.creator_id === user.id) {
+      throw new Error("You cannot like your own post.");
+    }
+
+    // Check whether this user already liked this post
+    const { data: existingLike, error: checkError } =
+      await supabaseClient
+        .from("talent_post_likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+    if (checkError) throw checkError;
+
+    if (existingLike) {
+      // Remove existing like
+      const { error } = await supabaseClient
+        .from("talent_post_likes")
+        .delete()
+        .eq("id", existingLike.id);
+
+      if (error) throw error;
+
+    } else {
+      // Add new like
+      const { error } = await supabaseClient
+        .from("talent_post_likes")
+        .insert({
+          post_id: postId,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+    }
+
+    // Refresh the feed and like counts
+    await Promise.all([
+  loadTalentPosts(),
+  loadTalentRankings()
+]);
+
+  } catch (error) {
+    console.error("Talent like:", error.message);
+    alert(error.message || "Could not update your like.");
+  }
+}
+
+
+/* ==========================================
+   CREATE TALENT CHALLENGE
+========================================== */
+
+const talentChallengeForm =
+  document.getElementById("talentChallengeForm");
+
+if (talentChallengeForm) {
+  talentChallengeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const user = await getTalentUser();
+
+    if (!user) return;
+
+    const button = talentChallengeForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const originalText = "Submit Challenge";
+
+    setTalentButton(button, true, originalText);
+
+    try {
+      const closingDate =
+        talentChallengeForm.elements.ends_at.value;
+
+      if (
+        !closingDate ||
+        new Date(closingDate).getTime() <= Date.now()
+      ) {
+        throw new Error("Choose a future closing date.");
+      }
+
+      const { error } = await supabaseClient
+        .from("talent_challenges")
+        .insert({
+          creator_id: user.id,
+          title: talentChallengeForm.elements.title.value.trim(),
+          description:
+            talentChallengeForm.elements.description.value.trim(),
+          category: talentChallengeForm.elements.category.value,
+          rules: talentChallengeForm.elements.rules.value.trim(),
+          starts_at: new Date().toISOString(),
+          ends_at: new Date(closingDate).toISOString(),
+          status: "pending"
+        });
+
+      if (error) throw error;
+
+      setTalentMessage(
+        talentChallengeForm,
+        "Your challenge has been submitted for approval."
+      );
+
+      talentChallengeForm.reset();
+
+    } catch (error) {
+      setTalentMessage(
+        talentChallengeForm,
+        error.message,
+        true
+      );
+
+    } finally {
+      setTalentButton(button, false, originalText);
+    }
+  });
+}
+
+/* LOAD APPROVED CHALLENGES WITH VOTING AND RANKINGS */
+
+async function loadTalentChallenges() {
+  const container = document.getElementById("talentChallengeList");
+  if (!container) return;
+
+  container.innerHTML = "<p>Loading challenges...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id,title,description,category,rules,ends_at")
+    .eq("status", "published")
+    .gt("ends_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    container.textContent = "Could not load challenges.";
+    console.error("Talent challenges:", error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>No active challenges at the moment.</p>";
+    return;
+  }
+
+  // Get the signed-in user
+  const { data: authData } =
+    await supabaseClient.auth.getUser();
+
+  const currentUserId = authData?.user?.id || null;
+
+  const challengeIds = data.map(challenge => challenge.id);
+
+  // Load approved entries
+  const { data: entries, error: entriesError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,creator_id,title,description,media_url,created_at")
+      .in("challenge_id", challengeIds)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+
+  if (entriesError) {
+    container.textContent = "Could not load challenge entries.";
+    console.error("Challenge entries:", entriesError.message);
+    return;
+  }
+
+  // Load vote totals for each challenge
+  const voteResults = await Promise.all(
+    challengeIds.map(challengeId =>
+      supabaseClient.rpc(
+        "get_challenge_entry_vote_counts",
+        { p_challenge_id: challengeId }
+      )
+    )
+  );
+
+  const voteCounts = {};
+
+  voteResults.forEach((result, index) => {
+    if (result.error) {
+      console.error("Vote counts:", result.error.message);
+      return;
+    }
+
+    (result.data || []).forEach(item => {
+      voteCounts[item.entry_id] = Number(item.vote_count);
+    });
+  });
+
+  // Find entries already voted for by this user
+  const votedEntries = new Set();
+
+  if (currentUserId) {
+    const { data: myVotes, error: votesError } =
+      await supabaseClient
+        .from("challenge_votes")
+        .select("entry_id")
+        .eq("voter_id", currentUserId);
+
+    if (votesError) {
+      console.error("My votes:", votesError.message);
+    } else {
+      (myVotes || []).forEach(vote => {
+        votedEntries.add(vote.entry_id);
+      });
+    }
+  }
+
+  // Group entries by challenge
+  const entriesByChallenge = {};
+
+  (entries || []).forEach(entry => {
+    if (!entriesByChallenge[entry.challenge_id]) {
+      entriesByChallenge[entry.challenge_id] = [];
+    }
+
+    entriesByChallenge[entry.challenge_id].push(entry);
+  });
+
+  // Display challenges and ranked entries
+  container.innerHTML = data.map(challenge => {
+    const approvedEntries =
+      entriesByChallenge[challenge.id] || [];
+
+    // Highest votes appear first
+    approvedEntries.sort((a, b) => {
+      const voteDifference =
+        (voteCounts[b.id] || 0) - (voteCounts[a.id] || 0);
+
+      if (voteDifference !== 0) return voteDifference;
+
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+
+    return `
+      <article class="talent-challenge-card">
+
+        <h4>${escapeHTML(challenge.title)}</h4>
+
+        <p>${escapeHTML(challenge.description || "")}</p>
+
+        <p><strong>Category:</strong>
+          ${escapeHTML(challenge.category || "")}
+        </p>
+
+        <p><strong>Rules:</strong>
+          ${escapeHTML(challenge.rules || "See challenge description.")}
+        </p>
+
+        <p><strong>Closes:</strong>
+          ${new Date(challenge.ends_at).toLocaleString()}
+        </p>
+
+        <button class="btn btn-primary"
+          onclick="openChallengeEntry('${challenge.id}')">
+          Join Challenge
+        </button>
+
+        <div class="approved-challenge-entries">
+
+          <h4>🏆 Challenge Rankings (${approvedEntries.length})</h4>
+
+          ${
+            approvedEntries.length
+              ? approvedEntries.map((entry, index) => {
+
+                  const mediaUrl = String(entry.media_url || "");
+                  const mediaPath = mediaUrl.split("?")[0].toLowerCase();
+
+                  let mediaDisplay = "";
+
+                  if (/\.(jpg|jpeg|png|webp|gif)$/i.test(mediaPath)) {
+                    mediaDisplay = `
+                      <img src="${escapeHTML(mediaUrl)}"
+                        alt="${escapeHTML(entry.title || "Challenge entry")}"
+                        loading="lazy"
+                        style="max-width:100%;border-radius:12px;">
+                    `;
+                  } else if (/\.(mp3|wav|ogg|m4a)$/i.test(mediaPath)) {
+                    mediaDisplay = `
+                      <audio controls style="width:100%;">
+                        <source src="${escapeHTML(mediaUrl)}">
+                      </audio>
+                    `;
+                  } else if (/\.(mp4|webm|mov)$/i.test(mediaPath)) {
+                    mediaDisplay = `
+                      <video controls playsinline
+                        style="width:100%;max-height:350px;border-radius:12px;">
+                        <source src="${escapeHTML(mediaUrl)}">
+                      </video>
+                    `;
+                  } else if (mediaUrl) {
+                    mediaDisplay = `
+                      <a href="${escapeHTML(mediaUrl)}"
+                        target="_blank" rel="noopener noreferrer">
+                        View submitted entry
+                      </a>
+                    `;
+                  }
+
+                  const votes = voteCounts[entry.id] || 0;
+
+                  const isOwnEntry =
+                    currentUserId === entry.creator_id;
+
+                  const hasVoted =
+                    votedEntries.has(entry.id);
+
+                  let voteButton = "";
+
+                  if (!currentUserId) {
+                    voteButton = `
+                      <button class="btn btn-primary" disabled>
+                        Sign in to vote
+                      </button>
+                    `;
+                  } else if (isOwnEntry) {
+                    voteButton = `
+                      <button class="btn" disabled>
+                        Your entry
+                      </button>
+                    `;
+                  } else if (hasVoted) {
+                    voteButton = `
+                      <button class="btn" disabled>
+                        ✓ Voted
+                      </button>
+                    `;
+                  } else {
+                    voteButton = `
+                      <button class="btn btn-primary"
+                        onclick="voteForChallengeEntry('${entry.id}')">
+                        👍 Vote
+                      </button>
+                    `;
+                  }
+
+                  return `
+                    <div class="approved-entry-card">
+
+                      <h5>
+                        ${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "🏅"}
+                        Rank ${index + 1}
+                      </h5>
+
+                      <h4>${escapeHTML(entry.title || "Untitled entry")}</h4>
+
+                      <p>${escapeHTML(entry.description || "")}</p>
+
+                      ${mediaDisplay}
+
+                      <p>
+                        <strong>❤️ Votes:</strong> ${votes}
+                      </p>
+
+                      ${voteButton}
+
+                    </div>
+                  `;
+                }).join("")
+              : "<p>No approved entries yet. Be the first to participate!</p>"
+          }
+
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+
+/* VOTE FOR A CHALLENGE ENTRY */
+
+async function voteForChallengeEntry(entryId) {
+
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    alert("Please sign in before voting.");
+    return;
+  }
+
+  // Confirm that the entry exists and is eligible
+  const { data: entry, error: entryError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,creator_id,status")
+      .eq("id", entryId)
+      .single();
+
+  if (entryError || !entry) {
+    alert("Could not find this challenge entry.");
+    return;
+  }
+
+  if (entry.status !== "approved") {
+    alert("You can only vote for approved entries.");
+    return;
+  }
+
+  if (entry.creator_id === user.id) {
+    alert("You cannot vote for your own entry.");
+    return;
+  }
+
+  // Save vote securely through Supabase RPC
+const { data: voteSaved, error: voteError } =
+  await supabaseClient.rpc(
+    "cast_challenge_entry_vote",
+    {
+      p_entry_id: entryId
+    }
+  );
+
+if (voteError) {
+  console.error("Voting error:", voteError.message);
+  alert(voteError.message || "Your vote could not be saved.");
+  return;
+}
+
+if (!voteSaved) {
+  alert("You have already voted for this entry.");
+  return;
+}
+
+  async function voteForChallengeEntry(entryId) {
+
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    alert("Please sign in before voting.");
+    return;
+  }
+
+  const { data: entry, error: entryError } =
+    await supabaseClient
+      .from("challenge_entries")
+      .select("id,challenge_id,creator_id,status")
+      .eq("id", entryId)
+      .single();
+
+  if (entryError || !entry) {
+    alert("Could not find this challenge entry.");
+    return;
+  }
+
+  if (entry.status !== "approved") {
+    alert("You can only vote for approved entries.");
+    return;
+  }
+
+  if (entry.creator_id === user.id) {
+    alert("You cannot vote for your own entry.");
+    return;
+  }
+
+  // Save vote securely through Supabase RPC
+  const { data: voteSaved, error: voteError } =
+    await supabaseClient.rpc(
+      "cast_challenge_entry_vote",
+      {
+        p_entry_id: entryId
+      }
+    );
+
+  if (voteError) {
+    console.error("Voting error:", voteError.message);
+    alert(voteError.message || "Your vote could not be saved.");
+    return;
+  }
+
+  if (!voteSaved) {
+    alert("You have already voted for this entry.");
+    return;
+  }
+
+  alert("Your vote has been recorded! ❤️");
+
+  // Refresh challenge feed and overall rankings
+  await Promise.all([
+    loadTalentChallenges(),
+    loadTalentRankings()
+  ]);
+}
+
+  alert("Your vote has been recorded! ❤️");
+
+  // Refresh challenge feed and overall rankings
+await Promise.all([
+  loadTalentChallenges(),
+  loadTalentRankings()
+]);
+}
+
+/* ==========================================
+   LOAD TALENT ARENA RANKINGS
+========================================== */
+
+async function loadTalentRankings() {
+  const rankingMusic = document.getElementById("rankingMusic");
+  const rankingCreators = document.getElementById("rankingCreators");
+  const rankingComedy = document.getElementById("rankingComedy");
+  const rankingDance = document.getElementById("rankingDance");
+  const rankingChallenges = document.getElementById("rankingChallenges");
+
+  const containers = [
+    rankingMusic,
+    rankingCreators,
+    rankingComedy,
+    rankingDance,
+    rankingChallenges
+  ];
+
+  if (!containers.some(Boolean)) return;
+
+  containers.forEach(container => {
+    if (container) container.textContent = "Loading rankings...";
+  });
+
+  try {
+    // Load published creator posts
+    const { data: posts, error: postsError } =
+      await supabaseClient
+        .from("talent_posts")
+        .select("id,creator_id,title,category")
+        .eq("status", "published");
+
+    if (postsError) throw postsError;
+
+    if (!posts || posts.length === 0) {
+  [rankingMusic, rankingCreators, rankingComedy, rankingDance]
+    .forEach(container => {
+      if (container) {
+        container.textContent = "No published creator posts yet.";
+      }
+    });
+} else {
+
+    // Load creator profiles
+    const creatorIds = [
+      ...new Set(posts.map(post => post.creator_id).filter(Boolean))
+    ];
+
+    const { data: profiles, error: profilesError } =
+      await supabaseClient
+        .from("talent_profiles")
+        .select("user_id,username,display_name")
+        .in("user_id", creatorIds);
+
+    if (profilesError) throw profilesError;
+
+    const profileMap = Object.fromEntries(
+      (profiles || []).map(profile => [
+        profile.user_id,
+        profile
+      ])
+    );
+
+    
+// Load secure public like counts
+const postIds = posts.map(post => post.id);
+
+const {
+  data: likeStats,
+  error: likesError
+} = await supabaseClient.rpc(
+  "get_talent_post_like_counts",
+  { p_post_ids: postIds }
+);
+
+if (likesError) throw likesError;
+
+// Count likes per post and creator
+const likeCounts = {};
+
+(likeStats || []).forEach(item => {
+  likeCounts[item.post_id] =
+    Number(item.like_count) || 0;
+});
+
+
+    const creatorScores = {};
+
+    posts.forEach(post => {
+      const creatorId = post.creator_id;
+      if (!creatorId) return;
+
+      if (!creatorScores[creatorId]) {
+        creatorScores[creatorId] = {
+          likes: 0,
+          music: 0,
+          comedy: 0,
+          dance: 0
+        };
+      }
+
+      const count = likeCounts[post.id] || 0;
+      const category = String(post.category || "").toLowerCase();
+
+      creatorScores[creatorId].likes += count;
+
+      if (category.includes("music") || category.includes("song")) {
+        creatorScores[creatorId].music += count;
+      }
+
+      if (category.includes("comedy") || category.includes("comedian")) {
+        creatorScores[creatorId].comedy += count;
+      }
+
+      if (category.includes("dance") || category.includes("dancer")) {
+        creatorScores[creatorId].dance += count;
+      }
+    });
+
+    // Display each ranking
+    function renderRanking(container, scoreKey) {
+      if (!container) return;
+
+      const ranked = Object.entries(creatorScores)
+  .sort((a, b) => b[1][scoreKey] - a[1][scoreKey])
+  .slice(0, 10);
+      if (!ranked.length) {
+        container.textContent = "Rankings will appear after creators receive likes.";
+        return;
+      }
+
+      container.innerHTML = ranked.map(([creatorId, scores], index) => {
+        const profile = profileMap[creatorId] || {};
+        const name = profile.display_name || profile.username || "Creator";
+
+        return `
+          <div class="talent-ranking-item">
+            <strong>
+              ${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "🏅"}
+              ${escapeHTML(name)}
+            </strong>
+            <span>❤️ ${scores[scoreKey]} likes</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    renderRanking(rankingMusic, "music");
+    renderRanking(rankingCreators, "likes");
+    renderRanking(rankingComedy, "comedy");
+    renderRanking(rankingDance, "dance");
+    }
+
+    // Load published challenges
+    const { data: challenges, error: challengesError } =
+      await supabaseClient
+        .from("talent_challenges")
+        .select("id,title")
+.eq("status", "published")
+.gt("ends_at", new Date().toISOString());
+
+    if (challengesError) throw challengesError;
+
+    if (!challenges || challenges.length === 0) {
+      if (rankingChallenges) {
+        rankingChallenges.textContent = "No published challenges yet.";
+      }
+      return;
+    }
+
+    // Count approved entries and their votes
+    const challengeRankings = await Promise.all(
+      challenges.map(async challenge => {
+        const { data: entries, error: entriesError } =
+          await supabaseClient
+            .from("challenge_entries")
+            .select("id")
+            .eq("challenge_id", challenge.id)
+            .eq("status", "approved");
+
+        if (entriesError) throw entriesError;
+
+        const { data: voteCounts, error: voteError } =
+          await supabaseClient.rpc(
+            "get_challenge_entry_vote_counts",
+            { p_challenge_id: challenge.id }
+          );
+
+        if (voteError) throw voteError;
+
+        const approvedEntryIds = new Set(
+  (entries || []).map(entry => entry.id)
+);
+
+const totalVotes = (voteCounts || [])
+  .filter(item => approvedEntryIds.has(item.entry_id))
+  .reduce(
+    (sum, item) => sum + Number(item.vote_count || 0),
+    0
+  );
+
+        return {
+          title: challenge.title,
+          entries: (entries || []).length,
+          votes: totalVotes
+        };
+      })
+    );
+
+    challengeRankings.sort((a, b) => b.votes - a.votes);
+
+    if (rankingChallenges) {
+      rankingChallenges.innerHTML = challengeRankings
+        .slice(0, 10)
+        .map((challenge, index) => `
+          <div class="talent-ranking-item">
+            <strong>
+              ${index + 1}. ${escapeHTML(challenge.title || "Challenge")}
+            </strong>
+            <span>👍 ${challenge.votes} votes · ${challenge.entries} entries</span>
+          </div>
+        `).join("");
+    }
+
+  } catch (error) {
+    console.error("Talent rankings:", error.message);
+
+    containers.forEach(container => {
+      if (container) {
+        container.textContent = "Rankings could not be loaded.";
+      }
+    });
+  }
+}
+
+/* INITIAL TALENT ARENA LOAD */
+
+async function loadTalentArena() {
+  await Promise.all([
+    loadTalentProfiles(),
+    loadTalentPosts(),
+    loadTalentChallenges(),
+    loadTalentRankings()
+  ]);
+}
+loadTalentArena();
+
+async function openPublicProfile(userId) {
+  if (!userId) return;
+
+  modalContent.innerHTML = `
+    <h2>👤 Public Profile</h2>
+    <p>Loading profile...</p>
+  `;
+
+  if (!dialog.open) dialog.showModal();
+
+  const { data: profiles, error } = await supabaseClient.rpc(
+    "get_public_profile",
+    { target_user_id: userId }
+  );
+
+  if (error || !profiles || profiles.length === 0) {
+    modalContent.innerHTML = `
+      <h2>Profile unavailable</h2>
+      <p>We could not load this person's profile.</p>
+      <button class="btn btn-primary" onclick="dialog.close()">Close</button>
+    `;
+    return;
+  }
+
+  const profile = profiles[0];
+
+  const { data: jobs, error: jobsError } = await supabaseClient
+    .from("jobs")
+    .select("id, user_id, title, category, location, pay, description, created_at")
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+
+  modalContent.innerHTML = `
+    <div style="text-align:center;">
+      <img
+        src="${escapeHTML(profile.avatar_url || 'https://placehold.co/120x120?text=Photo')}"
+        alt="Profile photo"
+        style="width:110px;height:110px;border-radius:50%;object-fit:cover;"
+      >
+
+      <h2>${escapeHTML(profile.full_name || "PROOFNEAR Member")}</h2>
+      <p>📍 ${escapeHTML(profile.district || "District not provided")}</p>
+      <p>
+  ${profile.verification_status === "verified"
+    ? "✅ Verified Account"
+    : "⚪ Not Verified"}
+</p>
+      <p>${escapeHTML(profile.account_type || "Member")} account</p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>About Me</h3>
+      <p>${escapeHTML(profile.bio || "No biography added yet.")}</p>
+    </div>
+
+    <h3>💼 Published Opportunities</h3>
+
+    ${jobsError ? `
+      <p>Could not load opportunities.</p>
+    ` : !jobs || jobs.length === 0 ? `
+      <p>No approved opportunities published yet.</p>
+    ` : jobs.map(job => `
+  <div class="dashboard-card"
+       onclick="openListingDetails(${JSON.stringify(job).replace(/"/g, '&quot;')})"
+       style="cursor:pointer;">
+
+    <h3>${escapeHTML(job.title)}</h3>
+    <p>${escapeHTML(job.category || "General")}</p>
+    <p>📍 ${escapeHTML(job.location || "Not specified")}</p>
+    <p>${escapeHTML(job.description || "")}</p>
+
+    <small>👆 Tap to view opportunity</small>
+  </div>
+`).join("")}
+
+    <button class="btn btn-primary" onclick="dialog.close()">Close Profile</button>
+  `;
 }
