@@ -1248,3 +1248,253 @@ async function loadMyPayments() {
             : payment.payment_type === "contact_unlock"
             ? "Contact Unlock"
             : "Other"}
+        </p>
+
+        <p><strong>Amount:</strong>
+          UGX ${escapeHTML(payment.amount)}
+        </p>
+
+        <p><strong>Method:</strong>
+          ${escapeHTML(payment.payment_method)}
+        </p>
+
+        <p><strong>Transaction reference:</strong>
+          ${escapeHTML(payment.transaction_reference)}
+        </p>
+
+        <p><strong>Status:</strong>
+          ${escapeHTML(payment.status.toUpperCase())}
+        </p>
+
+        <p><strong>Submitted:</strong>
+          ${new Date(payment.created_at).toLocaleString()}
+        </p>
+
+        ${payment.verified_at ? `
+          <p><strong>Verified:</strong>
+            ${new Date(payment.verified_at).toLocaleString()}
+          </p>
+        ` : ""}
+      </div>
+    `).join("")}
+  `;
+}
+
+async function loadMyOpportunities() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>💼 My Opportunities</h2>
+    <p>Loading your opportunities...</p>
+  `;
+
+  const { data: jobs, error } = await supabaseClient
+    .from("jobs")
+    .select(`
+      id,
+      title,
+      description,
+      location,
+      category,
+      pay,
+      status,
+      availability_status,
+      created_at
+    `)
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>💼 My Opportunities</h2>
+      <p>Could not load opportunities:
+        ${escapeHTML(error.message)}
+      </p>
+    `;
+    return;
+  }
+
+  if (!jobs || jobs.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>💼 My Opportunities</h2>
+      <div class="dashboard-card">
+        <p>You have not posted any opportunities yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>💼 My Opportunities</h2>
+
+    ${jobs.map(job => `
+      <div class="dashboard-card" data-job-id="${escapeHTML(job.id)}">
+
+        <div class="job-details">
+          <h3>${escapeHTML(job.title)}</h3>
+
+          <p><strong>Category:</strong>
+            ${escapeHTML(job.category || "Not specified")}
+          </p>
+
+          <p><strong>Location:</strong>
+            ${escapeHTML(job.location || "Not specified")}
+          </p>
+
+          <p><strong>Payment:</strong>
+            ${escapeHTML(job.pay ?? "Not specified")}
+          </p>
+
+          <p><strong>Approval:</strong>
+            ${escapeHTML(job.status || "Pending").toUpperCase()}
+          </p>
+
+          <p><strong>Availability:</strong>
+            ${escapeHTML(job.availability_status || "OPEN").toUpperCase()}
+          </p>
+
+          <p>${escapeHTML(job.description || "")}</p>
+
+          <p><strong>Posted:</strong>
+            ${new Date(job.created_at).toLocaleDateString()}
+          </p>
+
+          <button class="btn btn-primary edit-job-btn">
+            ✏️ Edit
+          </button>
+
+          <button class="btn btn-primary delete-job-btn">
+            🗑️ Delete
+          </button>
+        </div>
+
+      </div>
+    `).join("")}
+  `;
+
+
+  // EDIT OPPORTUNITY
+  dashboardContent.querySelectorAll(".edit-job-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      const card = button.closest("[data-job-id]");
+      const job = jobs.find(item => item.id === card?.dataset.jobId);
+
+      if (!job || !currentUser) {
+        alert("Could not find this opportunity.");
+        return;
+      }
+
+      card.innerHTML = `
+        <h3>✏️ Edit Opportunity</h3>
+
+        <form class="edit-job-form">
+          <label>Title</label>
+          <input name="title" value="${escapeHTML(job.title || "")}" required>
+
+          <label>Category</label>
+          <input name="category" value="${escapeHTML(job.category || "")}">
+
+          <label>Location</label>
+          <input name="location" value="${escapeHTML(job.location || "")}">
+
+          <label>Payment</label>
+          <input name="pay" value="${escapeHTML(job.pay ?? "")}">
+
+          <label>Description</label>
+          <textarea name="description" required>${escapeHTML(job.description || "")}</textarea>
+
+          <label>Availability</label>
+          <select name="availability_status">
+            <option value="OPEN" ${job.availability_status === "OPEN" ? "selected" : ""}>Open</option>
+            <option value="FILLED" ${job.availability_status === "FILLED" ? "selected" : ""}>Filled</option>
+            <option value="ON HOLD" ${job.availability_status === "ON HOLD" ? "selected" : ""}>On Hold</option>
+          </select>
+
+          <button class="btn btn-primary" type="submit">
+            💾 Save Changes
+          </button>
+
+          <button class="btn btn-primary cancel-edit-btn" type="button">
+            Cancel
+          </button>
+        </form>
+      `;
+
+      card.querySelector(".cancel-edit-btn").addEventListener("click", () => {
+        loadMyOpportunities();
+      });
+
+      card.querySelector(".edit-job-form").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+
+        const updates = {
+          title: formData.get("title").trim(),
+          category: formData.get("category").trim(),
+          location: formData.get("location").trim(),
+          pay: formData.get("pay").trim(),
+          description: formData.get("description").trim(),
+          availability_status: formData.get("availability_status")
+        };
+
+        const saveButton = form.querySelector('button[type="submit"]');
+        saveButton.disabled = true;
+        saveButton.textContent = "Saving...";
+
+        try {
+          const { error } = await supabaseClient
+            .from("jobs")
+            .update(updates)
+            .eq("id", job.id)
+            .eq("user_id", currentUser.id);
+
+          if (error) throw error;
+
+          alert("Opportunity updated successfully!");
+          await loadMyOpportunities();
+
+        } catch (error) {
+          alert("Could not save changes: " + error.message);
+          saveButton.disabled = false;
+          saveButton.textContent = "💾 Save Changes";
+        }
+      });
+    });
+  });
+
+
+  // DELETE OPPORTUNITY
+
+dashboardContent.querySelectorAll(".delete-job-btn").forEach(button => {
+  button.addEventListener("click", async () => {
+    const card = button.closest("[data-job-id]");
+    const jobId = card?.dataset.jobId;
+
+    if (!jobId || !currentUser) return;
+
+    const confirmed = confirm(
+      "Are you sure you want to permanently delete this opportunity?"
+    );
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = "Deleting...";
+
+    try {
+      const { error } = await supabaseClient
+        .from("jobs")
+        .delete()
+        .eq("id", jobId)
+        .eq("user_id", currentUser.id);
+
+      if (error) throw error;
+
+      alert("Opportunity deleted successfully!");
+      await loadMyOpportunities();
+
+    } catch (error) {
+      alert("Could not delete opportunity: " + error.message);
+      button.disabled = false;
