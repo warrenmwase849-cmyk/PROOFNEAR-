@@ -168,6 +168,16 @@ else if (section === "verification") {
     Open Earnings Dashboard
   </button>
 </div>
+
+<div class="dashboard-card" style="border-top:4px solid #2878c8;">
+  <h3>🌍 CEO Platform Overview</h3>
+  <p>Monitor PROOFNEAR users and opportunity activity.</p>
+  <button class="btn btn-primary"
+    onclick="loadAdminPlatformOverview()">
+    Open Platform Overview
+  </button>
+</div>
+
 <div class="dashboard-card">
   <h3>🎤 Pending Talent Content</h3>
   <p>Review music, videos, photos and other creator submissions.</p>
