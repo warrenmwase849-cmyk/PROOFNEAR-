@@ -248,6 +248,65 @@ async function loadAdminEarnings() {
     `;
     return;
   }
+  
+  const { data: trends, error: trendsError } =
+    await supabaseClient.rpc(
+      "get_proofnear_admin_earnings_trends"
+    );
+
+  if (trendsError) {
+    console.error("Earnings trends error:", trendsError);
+  }
+
+  const dailyTrends = trends?.daily || [];
+  const monthlyTrends = trends?.monthly || [];
+  const methodTrends = trends?.methods || [];
+
+  const maxDaily = Math.max(
+    1,
+    ...dailyTrends.map(item => Number(item.amount || 0))
+  );
+
+  const maxMonthly = Math.max(
+    1,
+    ...monthlyTrends.map(item => Number(item.amount || 0))
+  );
+
+  const dailyChart = dailyTrends.map(item => `
+    <div style="flex:1;min-width:30px;text-align:center;">
+      <div style="
+        height:${Math.max(5, Number(item.amount || 0) / maxDaily * 110)}px;
+        background:#087f5b;
+        border-radius:5px 5px 0 0;
+      " title="${money(item.amount)}"></div>
+      <small>${item.date.slice(5)}</small>
+    </div>
+  `).join("");
+
+  const monthlyChart = monthlyTrends.map(item => `
+    <div style="flex:1;min-width:35px;text-align:center;">
+      <div style="
+        height:${Math.max(5, Number(item.amount || 0) / maxMonthly * 110)}px;
+        background:#2878c8;
+        border-radius:5px 5px 0 0;
+      " title="${money(item.amount)}"></div>
+      <small>${item.month}</small>
+    </div>
+  `).join("");
+
+  const paymentMethods = methodTrends.map(item => `
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 0;
+      border-bottom:1px solid #ddd;
+    ">
+      <strong>${escapeHTML(item.method)}</strong>
+      <span>${money(item.amount)} (${item.transactions} payments)</span>
+    </div>
+  `).join("");
+
 
   const revenue = data.revenue || {};
   const sources = data.sources || {};
