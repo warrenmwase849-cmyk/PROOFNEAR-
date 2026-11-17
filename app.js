@@ -2712,3 +2712,253 @@ async function loadApprovedJobs() {
   console.log("APPROVED JOBS:", jobs);
 
   if (!jobs.length) {
+    dashboardContent.innerHTML = `
+      <h2>Approved Opportunities</h2>
+      <p>There are currently no approved opportunities.</p>
+      <button onclick="showSection('admin')">
+        Back to Admin Panel
+      </button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>✅ Approved Opportunities</h2>
+
+    ${jobs.map(job => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(job.title)}</h3>
+        <p><strong>Category:</strong>
+          ${escapeHTML(job.category || "Not specified")}
+        </p>
+        <p><strong>Location:</strong>
+          ${escapeHTML(job.location || "Not specified")}
+        </p>
+        <p>${escapeHTML(job.description || "")}</p>
+        <p><strong>Approval:</strong> APPROVED</p>
+<p><strong>Availability:</strong> ${escapeHTML(job.availability_status || "OPEN")}</p>
+<div>
+  <button onclick="setJobAvailability('${job.id}', 'OPEN')">
+    Mark OPEN
+  </button>
+
+  <button onclick="setJobAvailability('${job.id}', 'FILLED')">
+    Mark FILLED
+  </button>
+
+  <button onclick="setJobAvailability('${job.id}', 'ON HOLD')">
+    Mark ON HOLD
+  </button>
+</div>
+        <p><strong>Published:</strong>
+          ${new Date(job.created_at).toLocaleDateString()}
+        </p>
+      </div>
+    `).join("")}
+
+    <button onclick="showSection('admin')">
+      Back to Admin Panel
+    </button>
+  `;
+}
+async function setJobAvailability(jobId, newStatus) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Change this opportunity's availability to " + newStatus + "?"
+  );
+
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "set_proofnear_job_availability",
+    {
+      target_job_id: jobId,
+      new_availability: newStatus
+    }
+  );
+
+  if (error) {
+    alert("Update failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Availability updated to " + newStatus + "! 🎉");
+    await loadApprovedJobs();
+  } else {
+    alert("Opportunity could not be updated.");
+  }
+}
+
+async function loadPendingPayments() {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>💰 Pending Payments</h2>
+    <p>Loading payment records...</p>
+  `;
+
+  const { data: payments, error } = await supabaseClient
+    .rpc("get_proofnear_pending_payments_v2");
+
+  if (error) {
+    console.error("Payment loading error:", error);
+    dashboardContent.innerHTML = `
+      <h2>Payment Verification</h2>
+      <p>Could not load payments: ${escapeHTML(error.message)}</p>
+      <button onclick="showSection('admin')">
+        Back to Admin Panel
+      </button>
+    `;
+    return;
+  }
+
+  if (!payments || payments.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>💰 Pending Payments</h2>
+      <p>No pending payments currently.</p>
+      <button onclick="showSection('admin')">
+        Back to Admin Panel
+      </button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>💰 Pending Payments</h2>
+
+    ${payments.map(payment => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(payment.opportunity_title)}</h3>
+
+        <p><strong>Payment Type:</strong>
+          ${payment.payment_type === "posting"
+            ? "Opportunity Posting"
+            : payment.payment_type === "contact_unlock"
+              ? "Contact Unlock"
+              : "Unknown"}
+        </p>
+
+        <p><strong>Payment Date:</strong>
+          ${new Date(payment.created_at).toLocaleString()}
+        </p>
+
+        <p><strong>Amount:</strong>
+          UGX ${escapeHTML(payment.amount)}
+        </p>
+
+        <p><strong>Method:</strong>
+          ${escapeHTML(payment.payment_method)}
+        </p>
+
+        <p><strong>Transaction Reference:</strong>
+          ${escapeHTML(payment.transaction_reference)}
+        </p>
+
+        <button
+          class="btn btn-primary"
+          onclick="verifyProofnearPayment('${payment.payment_id}')">
+          ✅ Verify Payment
+        </button>
+
+        <button
+          class="btn btn-danger"
+          onclick="rejectProofnearPayment('${payment.payment_id}')">
+          ❌ Reject Payment
+        </button>
+      </div>
+    `).join("")}
+
+    <button onclick="showSection('admin')">
+      Back to Admin Panel
+    </button>
+  `;
+}
+
+async function verifyProofnearPayment(paymentId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Have you checked and confirmed this payment in your MTN or Airtel account?"
+  );
+
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "verify_proofnear_payment",
+    {
+      target_payment_id: paymentId
+    }
+  );
+
+  if (error) {
+    alert("Verification failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Payment verified successfully!");
+    loadPendingPayments();
+  } else {
+    alert("Payment was not verified. Please refresh and check its status.");
+  }
+}
+
+async function rejectProofnearPayment(paymentId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Are you sure you want to reject this payment?"
+  );
+
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "reject_proofnear_payment",
+    {
+      target_payment_id: paymentId
+    }
+  );
+
+  if (error) {
+    alert("Payment rejection failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Payment rejected successfully!");
+    loadPendingPayments();
+  } else {
+    alert("Payment was not rejected. Please refresh and check its status.");
+  }
+}
+
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("dashboardSidebar");
+
+  if (!sidebar) {
+    alert("Sidebar not found!");
+    return;
+  }
+
+  sidebar.classList.toggle("expanded");
+
+  console.log(
+    "Sidebar expanded:",
+    sidebar.classList.contains("expanded")
+  );
+}
