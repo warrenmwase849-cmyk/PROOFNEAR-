@@ -914,54 +914,6 @@ dashboardContent.innerHTML = `
 <div class="dashboard-card">
   <h3>📊 Six-Month Revenue Trend</h3>
   <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
-    ${monthlyChart}
-  </div>
-</div>
-
-<div class="dashboard-card">
-  <h3>📱 MTN & Airtel Revenue</h3>
-  ${paymentMethods || "<p>No verified payments yet.</p>"}
-</div>
-
-
-    <div class="dashboard-card">
-      <h3>💳 Revenue Sources</h3>
-      <p>Opportunity Posting: <strong>${money(sources.posting)}</strong></p>
-      <p>Contact Unlocks: <strong>${money(sources.contact_unlock)}</strong></p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📈 Payment Activity</h3>
-      <p>Verified Payments: <strong>${statuses.verified || 0}</strong></p>
-      <p>Pending Payments: <strong>${statuses.pending || 0}</strong></p>
-      <p>Rejected Payments: <strong>${statuses.rejected || 0}</strong></p>
-      <p>Paying Users: <strong>${data.paying_users || 0}</strong></p>
-      <p>Total Verified Transactions:
-        <strong>${data.verified_transactions || 0}</strong>
-      </p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📊 Previous Period Comparison</h3>
-      <p>Yesterday: <strong>${money(revenue.yesterday)}</strong></p>
-      <p>Last Week: <strong>${money(revenue.last_week)}</strong></p>
-      <p>Last Month: <strong>${money(revenue.last_month)}</strong></p>
-    </div>
-
-    <p style="font-size:12px;color:#71817d;">
-      Report generated: ${
-        data.generated_at
-          ? new Date(data.generated_at).toLocaleString()
-          : "Not available"
-      }
-    </p>
-
-    <button class="btn btn-primary"
-      onclick="showSection('admin')">
-      ← Back to Admin Panel
-    </button>
-  `;
-}
 
 async function loadDashboardOverview() {
   if (!currentUser) return;
