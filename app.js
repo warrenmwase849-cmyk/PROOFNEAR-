@@ -999,3 +999,252 @@ dashboardContent.innerHTML = `
         Your opportunities. Your progress. Your future.
         Everything you need to manage your PROOFNEAR account is here.
       </p>
+        <div class="welcome-account">
+        👤 ${escapeHTML(accountType)} account
+        &nbsp; • &nbsp;
+        ✉️ ${escapeHTML(currentUser.email)}
+      </div>
+    </div>
+
+
+    <div class="dashboard-card">
+      <h3>👤 Account Information</h3>
+      <p><strong>Email:</strong> ${escapeHTML(currentUser.email)}</p>
+      <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
+    </div>
+
+    <h3 style="margin:24px 0 14px;">📊 Your Activity</h3>
+
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:14px;
+      margin-bottom:24px;
+    ">
+
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #087f70;">
+        <p style="margin:0;color:#71817d;">💼 Total Opportunities</p>
+        <h2 id="totalOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #d6a84b;">
+        <p style="margin:0;color:#71817d;">⏳ Pending</p>
+        <h2 id="pendingOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+     <div class="stats-progress">
+  <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
+</div>
+      </div>
+
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
+        <p style="margin:0;color:#71817d;">✅ Approved</p>
+        <h2 id="approvedOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
+      <div class="stats-progress">
+  <div id="approvedProgress" class="stats-progress-fill"></div>
+</div>
+      </div>
+
+          </div>
+
+      <!-- Applications Received -->
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #2878c8;">
+        <p style="margin:0;color:#71817d;">📨 Applications Received</p>
+        <h2 id="receivedApplications" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
+      <!-- My Applications -->
+      <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
+        <p style="margin:0;color:#71817d;">📝 My Applications</p>
+        <h2 id="myApplicationsCount" style="font-size:30px;margin:12px 0 0;">...</h2>
+      </div>
+
+    </div>
+
+    <div class="dashboard-card">
+      <h3>🚀 Quick Actions</h3>
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+        gap:10px;
+      ">
+
+        <button class="btn btn-primary"
+          onclick="showSection('post')">
+          ➕ Post Opportunity
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('opportunities')">
+          💼 My Opportunities
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('payments')">
+          💰 My Payments
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('notifications')">
+          🔔 Notifications
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('messages')">
+          ✉️ Messages
+        </button>
+
+        <button class="btn btn-primary"
+          onclick="showSection('profile')">
+          👤 Edit Profile
+        </button>
+
+      </div>
+    </div>
+  `;
+
+  const { count: total, error: totalError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id);
+
+  const { count: pending, error: pendingError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id)
+      .eq("status", "pending");
+
+  const { count: approved, error: approvedError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id)
+      .eq("status", "approved");
+
+  // Applications received for jobs posted by this user
+  const { data: myJobIds, error: myJobsError } =
+    await supabaseClient
+      .from("jobs")
+      .select("id")
+      .eq("user_id", currentUser.id);
+
+  let received = 0;
+  let receivedError = myJobsError;
+
+  if (!myJobsError && myJobIds?.length > 0) {
+    const result = await supabaseClient
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .in("job_id", myJobIds.map(job => job.id));
+
+    received = result.count ?? 0;
+    receivedError = result.error;
+  }
+
+  // Applications submitted by this user
+  const { count: myApplications, error: myApplicationsError } =
+    await supabaseClient
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .eq("applicant_id", currentUser.id);
+
+  // Check for errors
+  if (
+    totalError ||
+    pendingError ||
+    approvedError ||
+    receivedError ||
+    myApplicationsError
+  ) {
+    console.error("Dashboard statistics error:", {
+      totalError,
+      pendingError,
+      approvedError,
+      receivedError,
+      myApplicationsError
+    });
+
+    document.getElementById("totalOpportunities").textContent = "—";
+    document.getElementById("pendingOpportunities").textContent = "—";
+    document.getElementById("approvedOpportunities").textContent = "—";
+    document.getElementById("receivedApplications").textContent = "—";
+    document.getElementById("myApplicationsCount").textContent = "—";
+
+    return;
+  }
+
+
+  document.getElementById("totalOpportunities").textContent =
+    total ?? 0;
+
+  document.getElementById("pendingOpportunities").textContent =
+    pending ?? 0;
+
+  document.getElementById("approvedOpportunities").textContent =
+    approved ?? 0;
+    document.getElementById("receivedApplications").textContent =
+    received;
+
+  document.getElementById("myApplicationsCount").textContent =
+    myApplications ?? 0;
+    const totalCount = total ?? 0;
+
+  const pendingPercent = totalCount > 0
+    ? ((pending ?? 0) / totalCount) * 100
+    : 0;
+
+  const approvedPercent = totalCount > 0
+    ? ((approved ?? 0) / totalCount) * 100
+    : 0;
+
+  document.getElementById("pendingProgress").style.width =
+    `${pendingPercent}%`;
+
+  document.getElementById("approvedProgress").style.width =
+    `${approvedPercent}%`;
+}
+
+async function loadMyPayments() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>💰 My Payments</h2>
+    <p>Loading your payment history...</p>
+  `;
+
+  const { data: payments, error } = await supabaseClient.rpc(
+    "get_my_proofnear_payments"
+  );
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>💰 My Payments</h2>
+      <p>Could not load payments: ${escapeHTML(error.message)}</p>
+    `;
+    return;
+  }
+
+  if (!payments || payments.length === 0) {
+    dashboardContent.innerHTML = `
+      <h2>💰 My Payments</h2>
+      <div class="dashboard-card">
+        <p>You have not submitted any payments yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>💰 My Payments</h2>
+
+    ${payments.map(payment => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(payment.opportunity_title)}</h3>
+
+        <p><strong>Type:</strong>
+          ${payment.payment_type === "posting"
+            ? "Opportunity Posting"
+            : payment.payment_type === "contact_unlock"
+            ? "Contact Unlock"
+            : "Other"}
