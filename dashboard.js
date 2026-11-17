@@ -405,6 +405,26 @@ async function loadAdminEarnings() {
         ${hourlyBars}
       </div>
     </div>
+    
+<div class="dashboard-card">
+  <h3>📈 Last 7 Days Revenue</h3>
+  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
+    ${dailyChart}
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <h3>📊 Six-Month Revenue Trend</h3>
+  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
+    ${monthlyChart}
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <h3>📱 MTN & Airtel Revenue</h3>
+  ${paymentMethods || "<p>No verified payments yet.</p>"}
+</div>
+
 
     <div class="dashboard-card">
       <h3>💳 Revenue Sources</h3>
