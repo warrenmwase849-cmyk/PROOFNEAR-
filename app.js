@@ -1748,6 +1748,256 @@ async function loadMyProfile() {
     width="120"
     height="120"
     style="border-radius:50%;object-fit:cover;"
+    >
+
+  <br>
+
+  <label for="profilePhoto">Choose profile photo</label>
+  <input
+    type="file"
+    id="profilePhoto"
+    accept="image/png,image/jpeg,image/webp"
+    onchange="previewProfilePhoto(event)"
+  >
+  <button
+  class="btn btn-primary"
+  onclick="uploadProfilePhoto()">
+  Upload Profile Photo
+</button>
+
+<p id="profilePhotoMessage"></p>
+</div>
+      <label>Full name</label>
+      <input
+        type="text"
+        id="profileFullName"
+        value="${escapeHTML(savedProfile.full_name || currentUser.user_metadata.full_name || "")}"
+      >
+
+      <label>Email address</label>
+      <input
+        type="email"
+        value="${escapeHTML(currentUser.email || "")}"
+        disabled
+      >
+
+      <label>District</label>
+      <input
+        type="text"
+        id="profileDistrict"
+        value="${escapeHTML(savedProfile.district || "")}"
+        placeholder="Enter your district"
+      >
+
+      <label>About me</label>
+      <textarea
+        id="profileBio"
+        placeholder="Tell people a little about yourself"
+      >${escapeHTML(savedProfile.bio || "")}</textarea>
+
+      <label>Account type</label>
+      <select id="profileAccountType">
+        <option value="seeker" ${savedProfile.account_type === "seeker" ? "selected" : ""}>Seeker</option>
+        <option value="provider" ${savedProfile.account_type === "provider" ? "selected" : ""}>Provider</option>
+        <option value="both" ${(!savedProfile.account_type || savedProfile.account_type === "both") ? "selected" : ""}>Both</option>
+      </select>
+
+      <p><strong>Verification:</strong>
+        ${escapeHTML(savedProfile.verification_status || "Not verified")}
+      </p>
+      <div class="dashboard-card">
+  <h3>🏅 Apply for Verification</h3>
+  <p>Request a PROOFNEAR verification badge.</p>
+
+  <label>Verification type</label>
+  <select id="verificationType">
+    <option value="identity">Personal Identity</option>
+    <option value="business">Business Verification</option>
+  </select>
+
+  <label>Full name</label>
+  <input
+    type="text"
+    id="verificationFullName"
+    value="${escapeHTML(savedProfile.full_name || currentUser.user_metadata.full_name || "")}"
+    placeholder="Your real full name"
+  >
+
+  <label>Why should we verify you?</label>
+  <textarea
+    id="verificationReason"
+    placeholder="Briefly explain your verification request"
+  ></textarea>
+
+  <button class="btn btn-primary"
+    onclick="submitVerificationRequest()">
+    Submit Verification Request
+  </button>
+
+  <p id="verificationMessage"></p>
+</div>
+
+      <button class="btn btn-primary" onclick="saveMyProfile()">
+        Save Profile
+      </button>
+
+      <p id="profileMessage"></p>
+    </div>
+  `;
+}
+async function submitVerificationRequest() {
+  if (!currentUser) return;
+
+  const message = document.getElementById("verificationMessage");
+  const fullName = document.getElementById("verificationFullName").value.trim();
+  const requestType = document.getElementById("verificationType").value;
+  const reason = document.getElementById("verificationReason").value.trim();
+
+  if (!fullName) {
+    message.textContent = "Please enter your full name.";
+    return;
+  }
+
+  message.textContent = "Submitting request...";
+
+  const { error } = await supabaseClient
+    .from("verification_requests")
+    .insert({
+      user_id: currentUser.id,
+      request_type: requestType,
+      full_name: fullName,
+      reason: reason
+    });
+
+  if (error) {
+    message.textContent = error.code === "23505"
+      ? "You already have a pending verification request."
+      : "Submission failed: " + error.message;
+    return;
+  }
+
+  message.textContent = "Verification request submitted successfully! ❤️";
+}
+async function uploadProfilePhoto() {
+  if (!currentUser) return;
+
+  const input = document.getElementById("profilePhoto");
+  const message = document.getElementById("profilePhotoMessage");
+  const file = input.files[0];
+
+  if (!file) {
+    message.textContent = "Please choose a photo first.";
+    return;
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    message.textContent = "Photo must be smaller than 3 MB.";
+    return;
+  }
+
+  message.textContent = "Uploading photo...";
+
+  const extension = file.type === "image/png" ? "png" :
+    file.type === "image/webp" ? "webp" : "jpg";
+
+  const filePath = `${currentUser.id}/${Date.now()}.${extension}`;
+
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from("profile-photos")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type
+    });
+
+  if (uploadError) {
+    message.textContent = "Upload failed: " + uploadError.message;
+    return;
+  }
+
+  const { data } = supabaseClient
+    .storage
+    .from("profile-photos")
+    .getPublicUrl(filePath);
+
+  const { error: profileError } = await supabaseClient
+    .from("profiles")
+    .update({ avatar_url: data.publicUrl })
+    .eq("id", currentUser.id);
+
+  if (profileError) {
+    message.textContent = "Photo uploaded, but profile update failed: " + profileError.message;
+    return;
+  }
+
+  document.getElementById("profilePhotoPreview").src = data.publicUrl;
+  message.textContent = "Profile photo updated successfully! ❤️";
+  input.value = "";
+}
+
+function loadAccountSettings() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>⚙️ Account Settings</h2>
+
+    <div class="dashboard-card">
+      <h3>🔐 Change Password</h3>
+      <p>Update your PROOFNEAR account password.</p>
+
+      <label>New Password</label>
+      <input
+        type="password"
+        id="newAccountPassword"
+        placeholder="Enter new password"
+      >
+
+      <label>Confirm New Password</label>
+      <input
+        type="password"
+        id="confirmAccountPassword"
+        placeholder="Confirm new password"
+      >
+
+      <button class="btn btn-primary" onclick="changeAccountPassword()">
+        Update Password
+      </button>
+
+      <p id="passwordMessage"></p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📧 Email Address</h3>
+      <p>${escapeHTML(currentUser.email || "")}</p>
+      <p>Email changes can be requested through account security settings.</p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>🛡️ Account Security</h3>
+      <p>Your account is protected by Supabase authentication.</p>
+      <p>Never share your password or secret API keys.</p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>🔑 PROOFNEAR Configuration</h3>
+      <p>Frontend configuration uses your Supabase publishable key.</p>
+      <p>Secret keys must remain private and server-side.</p>
+    </div>
+  `;
+}
+
+async function changeAccountPassword() {
+  if (!currentUser) return;
+
+  const password = document.getElementById("newAccountPassword").value;
+  const confirmPassword = document.getElementById("confirmAccountPassword").value;
+  const message = document.getElementById("passwordMessage");
+
+  if (password.length < 8) {
+    message.textContent = "Password must contain at least 8 characters.";
+    return;
+  }
   if (password !== confirmPassword) {
     message.textContent = "Passwords do not match.";
     return;
