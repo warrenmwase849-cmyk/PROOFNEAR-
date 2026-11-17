@@ -712,13 +712,17 @@ async function loadAdminEarnings() {
     </button>
   `;
 }
+// ==========================================
+// PROOFNEAR DASHBOARD OVERVIEW
+// ==========================================
 
 async function loadDashboardOverview() {
   if (!currentUser) return;
 
   const name =
-    currentUser.user_metadata.full_name ||
-    currentUser.email.split("@")[0];
+    currentUser.user_metadata?.full_name ||
+    currentUser.email?.split("@")[0] ||
+    "User";
 
   const { data: accountProfile, error: accountProfileError } =
     await supabaseClient
@@ -733,213 +737,10 @@ async function loadDashboardOverview() {
 
   const accountType =
     accountProfile?.account_type ||
-    currentUser.user_metadata.account_type ||
+    currentUser.user_metadata?.account_type ||
     "both";
-
-
-dashboardContent.innerHTML = `
-    <div class="dashboard-welcome">
-      <span class="welcome-tag">YOUR PROOFNEAR DASHBOARD</span>
-
-      <h2>
-        Welcome back, ${escapeHTML(name)}! 👋
-      </h2>
-
-      <p>
-        Your opportunities. Your progress. Your future.
-        Everything you need to manage your PROOFNEAR account is here.
-      </p>
-        const sources = data.sources || {};
-  const statuses = data.statuses || {};
-  const growth = data.growth || {};
-  const hourly = data.hourly || [];
-
-  const money = value =>
-    "UGX " + Number(value || 0).toLocaleString("en-UG");
-
-  const growthText = value => {
-    if (value === null || value === undefined) {
-      return "No previous-period baseline";
-    }
-    return `${value > 0 ? "+" : ""}${value}%`;
-  };
-
-  const { data: trends, error: trendsError } =
-    await supabaseClient.rpc(
-      "get_proofnear_admin_earnings_trends"
-    );
-
-  if (trendsError) {
-    console.error("Earnings trends error:", trendsError);
-  }
-
-  const dailyTrends = trends?.daily || [];
-  const monthlyTrends = trends?.monthly || [];
-  const methodTrends = trends?.methods || [];
-
-  const maxDaily = Math.max(
-    1,
-    ...dailyTrends.map(item => Number(item.amount || 0))
-  );
-
-  const maxMonthly = Math.max(
-    1,
-    ...monthlyTrends.map(item => Number(item.amount || 0))
-  );
-
-  const dailyChart = dailyTrends.map(item => `
-    <div style="flex:1;min-width:30px;text-align:center;">
-      <div style="
-        height:${Math.max(5, Number(item.amount || 0) / maxDaily * 110)}px;
-        background:#087f5b;
-        border-radius:5px 5px 0 0;
-      " title="${money(item.amount)}"></div>
-      <small>${item.date.slice(5)}</small>
-    </div>
-  `).join("");
-
-  const monthlyChart = monthlyTrends.map(item => `
-    <div style="flex:1;min-width:35px;text-align:center;">
-      <div style="
-        height:${Math.max(5, Number(item.amount || 0) / maxMonthly * 110)}px;
-        background:#2878c8;
-        border-radius:5px 5px 0 0;
-      " title="${money(item.amount)}"></div>
-      <small>${item.month}</small>
-    </div>
-  `).join("");
-
-  const paymentMethods = methodTrends.map(item => `
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 0;
-      border-bottom:1px solid #ddd;
-    ">
-      <strong>${escapeHTML(item.method)}</strong>
-      <span>${money(item.amount)} (${item.transactions} payments)</span>
-    </div>
-  `).join("");
-
-  const maxHourly = Math.max(
-    1,
-    ...hourly.map(item => Number(item.amount || 0))
-  );
-
-  const hourlyBars = hourly.map(item => `
-    <div style="
-      flex:1;
-      min-width:12px;
-      text-align:center;
-    ">
-      <div title="${item.hour}:00 — ${money(item.amount)}"
-        style="
-          height:${Math.max(
-            4,
-            Number(item.amount || 0) / maxHourly * 120
-          )}px;
-          background:#087f5b;
-          border-radius:5px 5px 0 0;
-          margin-top:auto;
-        ">
-      </div>
-      <small style="font-size:10px;">
-        ${String(item.hour).padStart(2, "0")}
-      </small>
-    </div>
-  `).join("");
 
   dashboardContent.innerHTML = `
-    <h2>📊 CEO Earnings & Analytics</h2>
-    <p>Private PROOFNEAR financial overview</p>
-
-    <button class="btn btn-primary"
-      onclick="loadAdminEarnings()">
-      🔄 Refresh Analytics
-    </button>
-
-    <div style="
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-      gap:14px;
-      margin:20px 0;
-    ">
-      <div class="dashboard-card" style="border-top:4px solid #087f5b;">
-        <p>💰 Lifetime Earnings</p>
-        <h2>${money(revenue.lifetime)}</h2>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #269b65;">
-        <p>📅 Today's Earnings</p>
-        <h2>${money(revenue.today)}</h2>
-        <small>Growth: ${growthText(growth.daily)}</small>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #2878c8;">
-        <p>📆 This Week</p>
-        <h2>${money(revenue.this_week)}</h2>
-        <small>Growth: ${growthText(growth.weekly)}</small>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #8055b7;">
-        <p>🗓️ This Month</p>
-        <h2>${money(revenue.this_month)}</h2>
-        <small>Growth: ${growthText(growth.monthly)}</small>
-      </div>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>⏰ Today's Hourly Earnings</h3>
-      <p>Revenue by Uganda local time (00:00–23:00).</p>
-      <div style="
-        display:flex;
-        align-items:flex-end;
-        gap:5px;
-        height:155px;
-        overflow-x:auto;
-        padding:12px 4px;
-      ">
-        ${hourlyBars}
-      </div>
-    </div>
-
-<div class="dashboard-card">
-  <h3>📈 Last 7 Days Revenue</h3>
-  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
-    ${dailyChart}
-  </div>
-</div>
-
-<div class="dashboard-card">
-  <h3>📊 Six-Month Revenue Trend</h3>
-  <div style="display:flex;align-items:flex-end;gap:8px;height:145px;overflow-x:auto;padding:12px 4px;">
-
-async function loadDashboardOverview() {
-  if (!currentUser) return;
-
-  const name =
-    currentUser.user_metadata.full_name ||
-    currentUser.email.split("@")[0];
-
-  const { data: accountProfile, error: accountProfileError } =
-    await supabaseClient
-      .from("profiles")
-      .select("account_type")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
-  if (accountProfileError) {
-    console.error("Account type loading error:", accountProfileError);
-  }
-
-  const accountType =
-    accountProfile?.account_type ||
-    currentUser.user_metadata.account_type ||
-    "both";
-
-
-dashboardContent.innerHTML = `
     <div class="dashboard-welcome">
       <span class="welcome-tag">YOUR PROOFNEAR DASHBOARD</span>
 
@@ -951,17 +752,17 @@ dashboardContent.innerHTML = `
         Your opportunities. Your progress. Your future.
         Everything you need to manage your PROOFNEAR account is here.
       </p>
-        <div class="welcome-account">
+
+      <div class="welcome-account">
         👤 ${escapeHTML(accountType)} account
         &nbsp; • &nbsp;
-        ✉️ ${escapeHTML(currentUser.email)}
+        ✉️ ${escapeHTML(currentUser.email || "")}
       </div>
     </div>
-
 
     <div class="dashboard-card">
       <h3>👤 Account Information</h3>
-      <p><strong>Email:</strong> ${escapeHTML(currentUser.email)}</p>
+      <p><strong>Email:</strong> ${escapeHTML(currentUser.email || "")}</p>
       <p><strong>Account type:</strong> ${escapeHTML(accountType)}</p>
     </div>
 
@@ -982,28 +783,24 @@ dashboardContent.innerHTML = `
       <div class="dashboard-card" style="margin:0;border-top:4px solid #d6a84b;">
         <p style="margin:0;color:#71817d;">⏳ Pending</p>
         <h2 id="pendingOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-     <div class="stats-progress">
-  <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
-</div>
+        <div class="stats-progress">
+          <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
+        </div>
       </div>
 
       <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
         <p style="margin:0;color:#71817d;">✅ Approved</p>
         <h2 id="approvedOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-      <div class="stats-progress">
-  <div id="approvedProgress" class="stats-progress-fill"></div>
-</div>
+        <div class="stats-progress">
+          <div id="approvedProgress" class="stats-progress-fill"></div>
+        </div>
       </div>
 
-          </div>
-
-      <!-- Applications Received -->
       <div class="dashboard-card" style="margin:0;border-top:4px solid #2878c8;">
         <p style="margin:0;color:#71817d;">📨 Applications Received</p>
         <h2 id="receivedApplications" style="font-size:30px;margin:12px 0 0;">...</h2>
       </div>
 
-      <!-- My Applications -->
       <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
         <p style="margin:0;color:#71817d;">📝 My Applications</p>
         <h2 id="myApplicationsCount" style="font-size:30px;margin:12px 0 0;">...</h2>
@@ -1031,6 +828,11 @@ dashboardContent.innerHTML = `
         </button>
 
         <button class="btn btn-primary"
+          onclick="showSection('applications')">
+          📝 My Applications
+        </button>
+
+        <button class="btn btn-primary"
           onclick="showSection('payments')">
           💰 My Payments
         </button>
@@ -1054,12 +856,14 @@ dashboardContent.innerHTML = `
     </div>
   `;
 
+  // Load total opportunities
   const { count: total, error: totalError } =
     await supabaseClient
       .from("jobs")
       .select("id", { count: "exact", head: true })
       .eq("user_id", currentUser.id);
 
+  // Load pending opportunities
   const { count: pending, error: pendingError } =
     await supabaseClient
       .from("jobs")
@@ -1067,6 +871,7 @@ dashboardContent.innerHTML = `
       .eq("user_id", currentUser.id)
       .eq("status", "pending");
 
+  // Load approved opportunities
   const { count: approved, error: approvedError } =
     await supabaseClient
       .from("jobs")
@@ -1074,13 +879,14 @@ dashboardContent.innerHTML = `
       .eq("user_id", currentUser.id)
       .eq("status", "approved");
 
-  // Applications received for jobs posted by this user
+  // Find opportunities posted by this user
   const { data: myJobIds, error: myJobsError } =
     await supabaseClient
       .from("jobs")
       .select("id")
       .eq("user_id", currentUser.id);
 
+  // Count applications received
   let received = 0;
   let receivedError = myJobsError;
 
@@ -1094,14 +900,14 @@ dashboardContent.innerHTML = `
     receivedError = result.error;
   }
 
-  // Applications submitted by this user
+  // Count applications submitted by this user
   const { count: myApplications, error: myApplicationsError } =
     await supabaseClient
       .from("applications")
       .select("id", { count: "exact", head: true })
       .eq("applicant_id", currentUser.id);
 
-  // Check for errors
+  // Check database errors
   if (
     totalError ||
     pendingError ||
@@ -1126,7 +932,7 @@ dashboardContent.innerHTML = `
     return;
   }
 
-
+  // Display statistics
   document.getElementById("totalOpportunities").textContent =
     total ?? 0;
 
@@ -1135,12 +941,15 @@ dashboardContent.innerHTML = `
 
   document.getElementById("approvedOpportunities").textContent =
     approved ?? 0;
-    document.getElementById("receivedApplications").textContent =
+
+  document.getElementById("receivedApplications").textContent =
     received;
 
   document.getElementById("myApplicationsCount").textContent =
     myApplications ?? 0;
-    const totalCount = total ?? 0;
+
+  // Update progress bars
+  const totalCount = total ?? 0;
 
   const pendingPercent = totalCount > 0
     ? ((pending ?? 0) / totalCount) * 100
@@ -1156,7 +965,6 @@ dashboardContent.innerHTML = `
   document.getElementById("approvedProgress").style.width =
     `${approvedPercent}%`;
 }
-
 async function loadMyPayments() {
   if (!currentUser) return;
 
