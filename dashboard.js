@@ -169,6 +169,15 @@ else if (section === "verification") {
   </button>
 </div>
 
+<div class="dashboard-card" style="border-top:4px solid #8b5cf6;">
+  <h3>📈 CEO Growth Analytics</h3>
+  <p>Track registrations and opportunity growth over 30 days.</p>
+  <button class="btn btn-primary"
+    onclick="loadAdminGrowthAnalytics()">
+    Open Growth Analytics
+  </button>
+</div>
+
 <div class="dashboard-card" style="border-top:4px solid #2878c8;">
   <h3>🌍 CEO Platform Overview</h3>
   <p>Monitor PROOFNEAR users and opportunity activity.</p>
