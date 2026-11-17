@@ -249,3 +249,253 @@ async function loadAdminPlatformOverview() {
   dashboardContent.innerHTML = `
     <h2>🌍 CEO Platform Overview</h2>
     <p>Loading PROOFNEAR platform statistics...</p>
+  `;
+
+  try {
+    const { data, error } = await supabaseClient.rpc(
+      "get_proofnear_admin_overview"
+    );
+
+    if (error) throw error;
+
+    const overview = data || {};
+    const totalUsers = Number(overview.total_users || 0);
+    const totalOpportunities = Number(overview.total_opportunities || 0);
+    const statuses = overview.opportunities_by_status || {};
+
+    dashboardContent.innerHTML = `
+      <h2>🌍 CEO Platform Overview</h2>
+      <p>PROOFNEAR platform performance</p>
+
+      <div class="dashboard-card">
+        <h3>👥 Registered Users</h3>
+        <h2>${totalUsers.toLocaleString()}</h2>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>💼 Total Opportunities</h3>
+        <h2>${totalOpportunities.toLocaleString()}</h2>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>📊 Opportunities by Status</h3>
+        <p>Approved: ${Number(statuses.APPROVED || 0).toLocaleString()}</p>
+        <p>Pending: ${Number(statuses.PENDING || 0).toLocaleString()}</p>
+      </div>
+
+      <button class="btn btn-primary"
+        onclick="loadAdminPlatformOverview()">
+        🔄 Refresh Overview
+      </button>
+
+      <button class="btn btn-primary"
+        onclick="showSection('admin')">
+        ← Back to Admin Panel
+      </button>
+    `;
+  } catch (error) {
+    console.error("Platform overview error:", error);
+
+    dashboardContent.innerHTML = `
+      <h2>🌍 CEO Platform Overview</h2>
+      <div class="dashboard-card">
+        <p>Unable to load platform statistics.</p>
+        <p>${escapeHTML(error?.message || "An unexpected error occurred.")}</p>
+        <button class="btn btn-primary"
+          onclick="loadAdminPlatformOverview()">
+          🔄 Try Again
+        </button>
+        <button class="btn btn-primary"
+          onclick="showSection('admin')">
+          ← Back to Admin Panel
+        </button>
+      </div>
+    `;
+  }
+}
+
+async function loadAdminGrowthAnalytics() {
+  if (!isProofnearAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access Denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>📈 CEO Growth Analytics</h2>
+    <p>Loading PROOFNEAR growth data...</p>
+  `;
+
+  try {
+    const { data, error } = await supabaseClient.rpc(
+      "get_proofnear_admin_growth"
+    );
+
+    if (error) throw error;
+
+    const report = data || {};
+
+    const growthText = value =>
+      value === null || value === undefined
+        ? "No previous-period baseline"
+        : `${value > 0 ? "+" : ""}${value}%`;
+
+    const daily = Array.isArray(report.daily) ? report.daily : [];
+
+    const maxValue = Math.max(
+      1,
+      ...daily.map(day =>
+        Math.max(
+          Number(day.users || 0),
+          Number(day.opportunities || 0)
+        )
+      )
+    );
+
+    const chart = daily.map(day => {
+      const users = Number(day.users || 0);
+      const opportunities = Number(day.opportunities || 0);
+      const dateLabel = String(day.date || "").slice(5);
+
+      return `
+        <div style="min-width:42px;text-align:center;">
+          <div style="
+            height:120px;
+            display:flex;
+            align-items:flex-end;
+            justify-content:center;
+            gap:4px;
+          ">
+            <div title="Users: ${users}"
+              style="
+                width:15px;
+                height:${Math.max(3, users / maxValue * 110)}px;
+                background:#087f5b;
+                border-radius:4px 4px 0 0;
+              ">
+            </div>
+
+            <div title="Opportunities: ${opportunities}"
+              style="
+                width:15px;
+                height:${Math.max(3, opportunities / maxValue * 110)}px;
+                background:#2878c8;
+                border-radius:4px 4px 0 0;
+              ">
+            </div>
+          </div>
+          <small>${escapeHTML(dateLabel || "—")}</small>
+        </div>
+      `;
+    }).join("");
+
+    dashboardContent.innerHTML = `
+      <h2>📈 CEO Growth Analytics</h2>
+      <p>PROOFNEAR growth over the last 30 days</p>
+
+      <button class="btn btn-primary"
+        onclick="loadAdminGrowthAnalytics()">
+        🔄 Refresh Growth
+      </button>
+
+      <div class="dashboard-card">
+        <h3>👥 New Registered Users</h3>
+        <h2>${Number(report.users_30_days || 0).toLocaleString()}</h2>
+        <p>Growth: ${growthText(report.users_growth)}</p>
+        <small>
+          Previous 30 days:
+          ${Number(report.users_previous_30_days || 0).toLocaleString()}
+        </small>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>💼 New Opportunities</h3>
+        <h2>${Number(report.jobs_30_days || 0).toLocaleString()}</h2>
+        <p>Growth: ${growthText(report.jobs_growth)}</p>
+        <small>
+          Previous 30 days:
+          ${Number(report.jobs_previous_30_days || 0).toLocaleString()}
+        </small>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>📊 Daily Activity — Last 30 Days</h3>
+        <p>
+          <span style="color:#087f5b;">■ Users</span>
+          &nbsp;
+          <span style="color:#2878c8;">■ Opportunities</span>
+        </p>
+
+        <div style="
+          display:flex;
+          align-items:flex-end;
+          gap:8px;
+          overflow-x:auto;
+          padding:12px 4px;
+        ">
+          ${chart || "<p>No daily activity data available yet.</p>"}
+        </div>
+      </div>
+
+      <button class="btn btn-primary"
+        onclick="showSection('admin')">
+        ← Back to Admin Panel
+      </button>
+    `;
+  } catch (error) {
+    console.error("Growth analytics error:", error);
+
+    dashboardContent.innerHTML = `
+      <h2>📈 CEO Growth Analytics</h2>
+      <div class="dashboard-card">
+        <p>Unable to load growth analytics.</p>
+        <p>${escapeHTML(error?.message || "An unexpected error occurred.")}</p>
+        <button class="btn btn-primary"
+          onclick="loadAdminGrowthAnalytics()">
+          🔄 Try Again
+        </button>
+        <button class="btn btn-primary"
+          onclick="showSection('admin')">
+          ← Back to Admin Panel
+        </button>
+      </div>
+    `;
+  }
+}
+
+async function loadAdminEarnings() {
+  if (!isProofnearAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access Denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>📊 CEO Earnings & Analytics</h2>
+    <p>Loading your financial report...</p>
+  `;
+
+  const { data, error } = await supabaseClient.rpc(
+    "get_proofnear_admin_earnings"
+  );
+
+  if (error) {
+    console.error("CEO earnings error:", error);
+    dashboardContent.innerHTML = `
+      <h2>📊 CEO Earnings & Analytics</h2>
+      <div class="dashboard-card">
+        <p>Unable to load financial data.</p>
+        <p>${escapeHTML(error.message)}</p>
+        <button class="btn btn-primary"
+          onclick="loadAdminEarnings()">Try Again</button>
+      </div>
+    `;
+    return;
+  }
+
+
+  const revenue = data.revenue || {};
