@@ -2213,3 +2213,252 @@ async function logoutUser() {
 
   window.location.href = "index.html";
 }
+        <p><strong>Pay / Budget:</strong> ${job.pay ? "UGX " + escapeHTML(job.pay) : "Not specified"}</p>
+        <p>${escapeHTML(job.description || "")}</p>
+        <p><strong>Status:</strong> ${escapeHTML(job.status)}</p>
+        <button
+  class="btn btn-primary"
+  onclick="approveJob('${job.id}')">
+  Approve Opportunity
+</button>
+<button
+  class="btn btn-danger"
+  onclick="rejectJob('${job.id}')">
+  Reject Opportunity
+</button>
+      </div>
+    `).join("")}
+    <button onclick="showSection('admin')">Back to Admin Panel</button>
+  `;
+}
+
+async function approveJob(jobId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Are you sure you want to approve this opportunity?"
+  );
+
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "approve_proofnear_job",
+    { target_job_id: jobId }
+  );
+
+  if (error) {
+    alert("Approval failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Opportunity approved successfully! 🎉");
+    await loadPendingJobs();
+  } else {
+    alert("This opportunity was not pending or has already been processed.");
+  }
+}
+async function rejectJob(jobId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Are you sure you want to reject this opportunity?"
+  );
+
+  if (!confirmed) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "reject_proofnear_job",
+    { target_job_id: jobId }
+  );
+
+  if (error) {
+    alert("Rejection failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Opportunity rejected successfully.");
+    await loadPendingJobs();
+  } else {
+    alert("This opportunity was already processed.");
+  }
+}
+
+/* TALENT ARENA ADMIN MODERATION */
+
+async function loadPendingTalentPosts() {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const { data: posts, error } = await supabaseClient
+    .from("talent_posts")
+    .select("id, title, description, category, media_type, media_url, created_at, status")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Pending talent posts:", error);
+    alert("Could not load pending talent content.");
+    return;
+  }
+
+  if (!posts.length) {
+    dashboardContent.innerHTML = `
+      <h2>🎤 Pending Talent Content</h2>
+      <p>There are currently no pending talent submissions.</p>
+      <button onclick="showSection('admin')">Back to Admin Panel</button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🎤 Pending Talent Content</h2>
+
+    ${posts.map(post => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(post.title)}</h3>
+        <p><strong>Category:</strong>
+          ${escapeHTML(post.category || "Not specified")}</p>
+        <p><strong>Type:</strong>
+          ${escapeHTML(post.media_type || "Not specified")}</p>
+        <p>${escapeHTML(post.description || "")}</p>
+        <p><strong>Status:</strong> Pending approval</p>
+
+        ${post.media_type === "image" ? `
+          <img src="${escapeHTML(post.media_url || "")}"
+            alt="Talent submission"
+            style="width:100%;max-width:350px;border-radius:12px;">
+        ` : ""}
+
+        ${post.media_type === "audio" ? `
+          <audio controls style="width:100%;">
+            <source src="${escapeHTML(post.media_url || "")}">
+          </audio>
+        ` : ""}
+
+        ${post.media_type === "video" ? `
+          <video controls playsinline
+            style="width:100%;max-width:350px;border-radius:12px;">
+            <source src="${escapeHTML(post.media_url || "")}">
+          </video>
+        ` : ""}
+
+        <button class="btn btn-primary"
+          onclick="approveTalentPost('${post.id}')">
+          Approve
+        </button>
+
+        <button class="btn btn-danger"
+          onclick="rejectTalentPost('${post.id}')">
+          Reject
+        </button>
+      </div>
+    `).join("")}
+
+    <button onclick="showSection('admin')">Back to Admin Panel</button>
+  `;
+}
+
+async function approveTalentPost(postId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  if (!confirm("Approve this talent submission?")) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "approve_talent_post",
+    { target_post_id: postId }
+  );
+
+  if (error) {
+    alert("Approval failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Talent content approved successfully!");
+    await loadPendingTalentPosts();
+  } else {
+    alert("This submission is no longer pending.");
+  }
+}
+
+async function rejectTalentPost(postId) {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  if (!confirm("Reject this talent submission?")) return;
+
+  const { data, error } = await supabaseClient.rpc(
+    "reject_talent_post",
+    { target_post_id: postId }
+  );
+
+  if (error) {
+    alert("Rejection failed: " + error.message);
+    return;
+  }
+
+  if (data === true) {
+    alert("Talent content rejected.");
+    await loadPendingTalentPosts();
+  } else {
+    alert("This submission is no longer pending.");
+  }
+}
+/* TALENT ARENA CHALLENGE MODERATION */
+
+async function loadPendingTalentChallenges() {
+  if (!isProofnearAdmin) {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const { data: challenges, error } = await supabaseClient
+    .from("talent_challenges")
+    .select("id, title, description, category, rules, ends_at, created_at, status")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Pending challenges:", error);
+    alert("Could not load pending challenges.");
+    return;
+  }
+
+  if (!challenges.length) {
+    dashboardContent.innerHTML = `
+      <h2>🏆 Pending Talent Challenges</h2>
+      <p>There are currently no pending challenges.</p>
+      <button onclick="showSection('admin')">Back to Admin Panel</button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🏆 Pending Talent Challenges</h2>
+
+    ${challenges.map(challenge => `
+      <div class="dashboard-card">
+        <h3>${escapeHTML(challenge.title)}</h3>
+
+        <p><strong>Category:</strong>
+          ${escapeHTML(challenge.category || "Not specified")}</p>
+
+        <p>${escapeHTML(challenge.description || "")}</p>
+
+        <p><strong>Rules:</strong>
+          ${escapeHTML(challenge.rules || "No rules provided")}</p>
