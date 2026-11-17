@@ -1498,3 +1498,253 @@ dashboardContent.querySelectorAll(".delete-job-btn").forEach(button => {
     } catch (error) {
       alert("Could not delete opportunity: " + error.message);
       button.disabled = false;
+            button.textContent = "🗑️ Delete";
+    }
+  });
+});
+}
+
+
+async function openNotificationOpportunity(jobId) {
+  if (!currentUser || !jobId) return;
+
+  dashboardContent.innerHTML = `
+    <h2>💼 Opportunity Details</h2>
+    <p>Loading opportunity...</p>
+  `;
+
+  const { data: job, error } = await supabaseClient
+    .from("jobs")
+    .select(`
+      id,
+      title,
+      description,
+      location,
+      category,
+      pay,
+      status,
+      availability_status,
+      created_at
+    `)
+    .eq("id", jobId)
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (error || !job) {
+    dashboardContent.innerHTML = `
+      <h2>💼 Opportunity Details</h2>
+      <p>Could not find this opportunity.</p>
+      <button class="btn btn-primary"
+        onclick="loadMyNotifications()">
+        Back to Notifications
+      </button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>💼 Opportunity Details</h2>
+
+    <div class="dashboard-card">
+      <h3>${escapeHTML(job.title)}</h3>
+
+      <p><strong>Category:</strong>
+        ${escapeHTML(job.category || "Not specified")}
+      </p>
+
+      <p><strong>Location:</strong>
+        ${escapeHTML(job.location || "Not specified")}
+      </p>
+
+      <p><strong>Payment:</strong>
+        ${escapeHTML(job.pay || "Not specified")}
+      </p>
+
+      <p><strong>Approval:</strong>
+        ${escapeHTML(job.status || "Pending").toUpperCase()}
+      </p>
+
+      <p><strong>Availability:</strong>
+        ${escapeHTML(job.availability_status || "OPEN").toUpperCase()}
+      </p>
+
+      <p>${escapeHTML(job.description || "")}</p>
+
+      <p><strong>Posted:</strong>
+        ${new Date(job.created_at).toLocaleDateString()}
+      </p>
+    </div>
+
+    <button class="btn btn-primary"
+      onclick="loadMyOpportunities()">
+      Back to My Opportunities
+    </button>
+
+    <button class="btn btn-primary"
+      onclick="loadMyNotifications()">
+      Back to Notifications
+    </button>
+  `;
+}
+
+
+async function openNotificationPayment(paymentId) {
+  if (!currentUser || !paymentId) return;
+
+  dashboardContent.innerHTML = `
+    <h2>💳 Payment Details</h2>
+    <p>Loading payment...</p>
+  `;
+
+  const { data: payments, error } = await supabaseClient
+    .rpc("get_my_proofnear_payments");
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>💳 Payment Details</h2>
+      <p>Could not load payment:
+        ${escapeHTML(error.message)}
+      </p>
+      <button class="btn btn-primary"
+        onclick="loadMyNotifications()">
+        Back to Notifications
+      </button>
+    `;
+    return;
+  }
+
+  const payment = (payments || []).find(
+    item => String(item.payment_id) === String(paymentId)
+  );
+
+  if (!payment) {
+    dashboardContent.innerHTML = `
+      <h2>💳 Payment Details</h2>
+      <p>Payment not found in your payment history.</p>
+      <button class="btn btn-primary"
+        onclick="loadMyPayments()">
+        View My Payments
+      </button>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>💳 Payment Details</h2>
+
+    <div class="dashboard-card">
+      <h3>${escapeHTML(payment.opportunity_title || "PROOFNEAR Payment")}</h3>
+
+      <p><strong>Amount:</strong>
+        UGX ${Number(payment.amount).toLocaleString()}
+      </p>
+
+      <p><strong>Payment Type:</strong>
+        ${escapeHTML(payment.payment_type || "Not specified")}
+      </p>
+
+      <p><strong>Status:</strong>
+        ${escapeHTML(payment.status || "Unknown").toUpperCase()}
+      </p>
+
+      <p><strong>Payment Method:</strong>
+        ${escapeHTML(payment.payment_method || "Not specified")}
+      </p>
+
+      <p><strong>Transaction Reference:</strong>
+        ${escapeHTML(payment.transaction_reference || "Not specified")}
+      </p>
+
+      <p><strong>Date:</strong>
+        ${payment.created_at
+          ? new Date(payment.created_at).toLocaleString()
+          : "Not specified"}
+      </p>
+
+      <p><strong>Verified At:</strong>
+        ${payment.verified_at
+          ? new Date(payment.verified_at).toLocaleString()
+          : "Not yet verified"}
+      </p>
+    </div>
+
+    <button class="btn btn-primary"
+      onclick="loadMyPayments()">
+      Back to My Payments
+    </button>
+
+    <button class="btn btn-primary"
+      onclick="loadMyNotifications()">
+      Back to Notifications
+    </button>
+  `;
+}
+
+
+
+async function loadMyProfile() {
+  if (!currentUser) return;
+
+  dashboardContent.innerHTML = `
+    <h2>👤 My Profile</h2>
+    <p>Loading your profile...</p>
+  `;
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("full_name, district, bio, account_type, verification_status, avatar_url")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    dashboardContent.innerHTML = `
+      <h2>My Profile</h2>
+      <p>Could not load profile: ${escapeHTML(error.message)}</p>
+    `;
+    return;
+  }
+
+  const savedProfile = profile || {};
+
+  const profileFields = [
+    savedProfile.full_name || currentUser.user_metadata.full_name,
+    currentUser.email,
+    savedProfile.district,
+    savedProfile.bio,
+    savedProfile.account_type
+  ];
+
+  const completedFields = profileFields.filter(
+    value => value && String(value).trim() !== ""
+  ).length;
+
+  const completionPercent = Math.round(
+    (completedFields / profileFields.length) * 100
+  );
+  dashboardContent.innerHTML = `
+    <h2>👤 My Profile</h2>
+
+<div class="dashboard-card profile-completion">
+  <h3>📈 Profile Completion</h3>
+
+  <h2>${completionPercent}%</h2>
+
+  <div class="stats-progress">
+    <div
+      class="stats-progress-fill"
+      style="width:${completionPercent}%">
+    </div>
+  </div>
+
+  <p>Complete your profile to help people know you better.</p>
+</div>
+
+<div class="dashboard-card">
+<div class="profile-photo-section">
+  <img
+    id="profilePhotoPreview"
+    src="${escapeHTML(savedProfile.avatar_url || 'https://placehold.co/120x120?text=Photo')}"
+    alt="Profile photo"
+    width="120"
+    height="120"
+    style="border-radius:50%;object-fit:cover;"
