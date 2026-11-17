@@ -216,6 +216,176 @@ async function loadAdminApplicationStats() {
   document.getElementById("adminUniqueApplicants").textContent =
     stats?.unique_applicants ?? 0;
 }
+
+async function loadAdminEarnings() {
+  if (!isProofnearAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access Denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>📊 CEO Earnings & Analytics</h2>
+    <p>Loading your financial report...</p>
+  `;
+
+  const { data, error } = await supabaseClient.rpc(
+    "get_proofnear_admin_earnings"
+  );
+
+  if (error) {
+    console.error("CEO earnings error:", error);
+    dashboardContent.innerHTML = `
+      <h2>📊 CEO Earnings & Analytics</h2>
+      <div class="dashboard-card">
+        <p>Unable to load financial data.</p>
+        <p>${escapeHTML(error.message)}</p>
+        <button class="btn btn-primary"
+          onclick="loadAdminEarnings()">Try Again</button>
+      </div>
+    `;
+    return;
+  }
+
+  const revenue = data.revenue || {};
+  const sources = data.sources || {};
+  const statuses = data.statuses || {};
+  const growth = data.growth || {};
+  const hourly = data.hourly || [];
+
+  const money = value =>
+    "UGX " + Number(value || 0).toLocaleString("en-UG");
+
+  const growthText = value => {
+    if (value === null || value === undefined) {
+      return "No previous-period baseline";
+    }
+    return `${value > 0 ? "+" : ""}${value}%`;
+  };
+
+  const maxHourly = Math.max(
+    1,
+    ...hourly.map(item => Number(item.amount || 0))
+  );
+
+  const hourlyBars = hourly.map(item => `
+    <div style="
+      flex:1;
+      min-width:12px;
+      text-align:center;
+    ">
+      <div title="${item.hour}:00 — ${money(item.amount)}"
+        style="
+          height:${Math.max(
+            4,
+            Number(item.amount || 0) / maxHourly * 120
+          )}px;
+          background:#087f5b;
+          border-radius:5px 5px 0 0;
+          margin-top:auto;
+        ">
+      </div>
+      <small style="font-size:10px;">
+        ${String(item.hour).padStart(2, "0")}
+      </small>
+    </div>
+  `).join("");
+
+  dashboardContent.innerHTML = `
+    <h2>📊 CEO Earnings & Analytics</h2>
+    <p>Private PROOFNEAR financial overview</p>
+
+    <button class="btn btn-primary"
+      onclick="loadAdminEarnings()">
+      🔄 Refresh Analytics
+    </button>
+
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:14px;
+      margin:20px 0;
+    ">
+      <div class="dashboard-card" style="border-top:4px solid #087f5b;">
+        <p>💰 Lifetime Earnings</p>
+        <h2>${money(revenue.lifetime)}</h2>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #269b65;">
+        <p>📅 Today's Earnings</p>
+        <h2>${money(revenue.today)}</h2>
+        <small>Growth: ${growthText(growth.daily)}</small>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #2878c8;">
+        <p>📆 This Week</p>
+        <h2>${money(revenue.this_week)}</h2>
+        <small>Growth: ${growthText(growth.weekly)}</small>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #8055b7;">
+        <p>🗓️ This Month</p>
+        <h2>${money(revenue.this_month)}</h2>
+        <small>Growth: ${growthText(growth.monthly)}</small>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>⏰ Today's Hourly Earnings</h3>
+      <p>Revenue by Uganda local time (00:00–23:00).</p>
+      <div style="
+        display:flex;
+        align-items:flex-end;
+        gap:5px;
+        height:155px;
+        overflow-x:auto;
+        padding:12px 4px;
+      ">
+        ${hourlyBars}
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>💳 Revenue Sources</h3>
+      <p>Opportunity Posting: <strong>${money(sources.posting)}</strong></p>
+      <p>Contact Unlocks: <strong>${money(sources.contact_unlock)}</strong></p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📈 Payment Activity</h3>
+      <p>Verified Payments: <strong>${statuses.verified || 0}</strong></p>
+      <p>Pending Payments: <strong>${statuses.pending || 0}</strong></p>
+      <p>Rejected Payments: <strong>${statuses.rejected || 0}</strong></p>
+      <p>Paying Users: <strong>${data.paying_users || 0}</strong></p>
+      <p>Total Verified Transactions:
+        <strong>${data.verified_transactions || 0}</strong>
+      </p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📊 Previous Period Comparison</h3>
+      <p>Yesterday: <strong>${money(revenue.yesterday)}</strong></p>
+      <p>Last Week: <strong>${money(revenue.last_week)}</strong></p>
+      <p>Last Month: <strong>${money(revenue.last_month)}</strong></p>
+    </div>
+
+    <p style="font-size:12px;color:#71817d;">
+      Report generated: ${
+        data.generated_at
+          ? new Date(data.generated_at).toLocaleString()
+          : "Not available"
+      }
+    </p>
+
+    <button class="btn btn-primary"
+      onclick="showSection('admin')">
+      ← Back to Admin Panel
+    </button>
+  `;
+}
+
 async function loadDashboardOverview() {
   if (!currentUser) return;
 
