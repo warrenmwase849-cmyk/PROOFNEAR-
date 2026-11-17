@@ -249,6 +249,23 @@ async function loadAdminEarnings() {
     return;
   }
   
+  
+  const revenue = data.revenue || {};
+  const sources = data.sources || {};
+  const statuses = data.statuses || {};
+  const growth = data.growth || {};
+  const hourly = data.hourly || [];
+
+  const money = value =>
+    "UGX " + Number(value || 0).toLocaleString("en-UG");
+
+  const growthText = value => {
+    if (value === null || value === undefined) {
+      return "No previous-period baseline";
+    }
+    return `${value > 0 ? "+" : ""}${value}%`;
+  };
+
   const { data: trends, error: trendsError } =
     await supabaseClient.rpc(
       "get_proofnear_admin_earnings_trends"
@@ -306,23 +323,6 @@ async function loadAdminEarnings() {
       <span>${money(item.amount)} (${item.transactions} payments)</span>
     </div>
   `).join("");
-
-
-  const revenue = data.revenue || {};
-  const sources = data.sources || {};
-  const statuses = data.statuses || {};
-  const growth = data.growth || {};
-  const hourly = data.hourly || [];
-
-  const money = value =>
-    "UGX " + Number(value || 0).toLocaleString("en-UG");
-
-  const growthText = value => {
-    if (value === null || value === undefined) {
-      return "No previous-period baseline";
-    }
-    return `${value > 0 ? "+" : ""}${value}%`;
-  };
 
   const maxHourly = Math.max(
     1,
