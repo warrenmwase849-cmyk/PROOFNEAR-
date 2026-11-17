@@ -158,7 +158,16 @@ else if (section === "verification") {
     Manage Payments
   </button>
 </div>
-
+<div class="dashboard-card" style="border-top:4px solid #087f5b;">
+  <h3>📊 CEO Earnings & Analytics</h3>
+  <p>
+    Monitor PROOFNEAR revenue, payment activity,
+    financial growth and platform performance.
+  </p>
+  <button class="btn btn-primary" onclick="loadAdminEarnings()">
+    Open Earnings Dashboard
+  </button>
+</div>
 <div class="dashboard-card">
   <h3>🎤 Pending Talent Content</h3>
   <p>Review music, videos, photos and other creator submissions.</p>
