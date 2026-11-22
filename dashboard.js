@@ -31,8 +31,7 @@ async function initializeDashboard() {
   startNotificationListener();
   
 const { data: isAdmin, error: adminError } =
-  await supabaseClient.rpc("is_proofnear_admin");
-
+  await supabaseClient.rpc("is_proofnear_marketplace_admin");
 if (adminError) {
   console.error("Admin check failed:", adminError.message);
   isProofnearAdmin = false;
