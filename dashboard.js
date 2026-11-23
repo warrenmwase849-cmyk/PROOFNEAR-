@@ -663,46 +663,6 @@ async function loadAdminEarnings() {
   `;
 }
 
-async function loadDashboardOverview() {
-  if (!currentUser) return;
-
-  const name =
-    currentUser.user_metadata.full_name ||
-    currentUser.email.split("@")[0];
-
-  const { data: accountProfile, error: accountProfileError } =
-    await supabaseClient
-      .from("profiles")
-      .select("account_type")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
-  if (accountProfileError) {
-    console.error("Account type loading error:", accountProfileError);
-  }
-
-  const accountType =
-    accountProfile?.account_type ||
-    currentUser.user_metadata.account_type ||
-    "both";
-
-  
-dashboardContent.innerHTML = `
-    <div class="dashboard-welcome">
-      <span class="welcome-tag">YOUR PROOFNEAR DASHBOARD</span>
-
-      <h2>
-        Welcome back, ${escapeHTML(name)}! 👋
-      </h2>
-
-      <p>
-        Your opportunities. Your progre
-      ← Back to Admin Panel
-    </button>
-  `;
-}
-
-
 async function loadAdminGrowthAnalytics() {
   if (!isProofnearAdmin) {
     dashboardContent.innerHTML = `
