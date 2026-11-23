@@ -88,11 +88,39 @@ function showSection(section) {
 }
 
   else if (section === "messages") {
-    dashboardContent.innerHTML = `
-      <h2>Messages</h2>
-      <p>Your messages will appear here when messaging is connected.</p>
-    `;
-  }
+  dashboardContent.innerHTML = `
+    <div class="messages-page">
+      <h2>💬 PROOFNEAR Messages</h2>
+      <p>Connect directly with other PROOFNEAR members.</p>
+
+      <div class="messages-search">
+        <input
+          type="text"
+          id="messageMemberSearch"
+          placeholder="Search members by name..."
+        >
+        <button id="searchMessageMembers">Search</button>
+      </div>
+
+      <div id="messageSearchResults"></div>
+
+      <div id="messageConversation" style="display:none;">
+        <div id="messageConversationHeader"></div>
+        <div id="messageHistory"></div>
+
+        <form id="sendMessageForm">
+          <textarea
+            id="messageBody"
+            maxlength="2000"
+            placeholder="Write your message..."
+            required
+          ></textarea>
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
 
   else if (section === "notifications") {
   loadMyNotifications();
