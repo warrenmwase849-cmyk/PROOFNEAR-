@@ -1029,18 +1029,16 @@ dashboardContent.innerHTML = `
 
   document.getElementById("totalOpportunities").textContent =
     total ?? 0;
-
-  document.getElementById("pendingOpportunities").textContent =
-    pending ?? 0;
-
   document.getElementById("approvedOpportunities").textContent =
     approved ?? 0;
-    document.getElementById("receivedApplications").textContent =
+
+  document.getElementById("receivedApplications").textContent =
     received;
 
   document.getElementById("myApplicationsCount").textContent =
     myApplications ?? 0;
-    const totalCount = total ?? 0;
+
+  const totalCount = total ?? 0;
 
   const pendingPercent = totalCount > 0
     ? ((pending ?? 0) / totalCount) * 100
