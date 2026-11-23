@@ -758,7 +758,13 @@ async function loadAdminPlatformOverview() {
 
 
 async function loadAdminGrowthAnalytics() {
-  if (!isProofnearAdmin) return;
+  if (!isProofnearAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access Denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
 
   dashboardContent.innerHTML = `
     <h2>📈 CEO Growth Analytics</h2>
@@ -811,25 +817,25 @@ async function loadAdminGrowthAnalytics() {
         justify-content:center;
         gap:4px;
       ">
-        <div title="Users: ${d.users}"
+        <div title="Users: ${Number(d.users || 0)}"
           style="
             width:15px;
-            height:${Math.max(3,Number(d.users || 0)/maxValue*110)}px;
+            height:${Math.max(3, Number(d.users || 0) / maxValue * 110)}px;
             background:#087f5b;
             border-radius:4px 4px 0 0;
           ">
         </div>
 
-        <div title="Opportunities: ${d.opportunities}"
+        <div title="Opportunities: ${Number(d.opportunities || 0)}"
           style="
             width:15px;
-            height:${Math.max(3,Number(d.opportunities || 0)/maxValue*110)}px;
+            height:${Math.max(3, Number(d.opportunities || 0) / maxValue * 110)}px;
             background:#2878c8;
             border-radius:4px 4px 0 0;
           ">
         </div>
       </div>
-      <small>${String(d.date).slice(5)}</small>
+      <small>${escapeHTML(String(d.date || "").slice(5))}</small>
     </div>
   `).join("");
 
@@ -842,28 +848,63 @@ async function loadAdminGrowthAnalytics() {
       🔄 Refresh Growth
     </button>
 
-    <div class="dashboard-card">
-      <h3>👥 New Registered Users</h3>
-      <h2>${Number(data.users_30_days || 0).toLocaleString()}</h2>
-      <p>Growth: ${growthText(data.users_growth)}</p>
-      <small>
-        Previous 30 days:
-        ${Number(data.users_previous_30_days || 0)}
-      </small>
-    </div>
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      margin:20px 0;
+    ">
+      <div class="dashboard-card">
+        <h3>👥 New Registered Users</h3>
+        <h2>${Number(data.users_30_days || 0).toLocaleString()}</h2>
+        <p>Growth: ${growthText(data.users_growth)}</p>
+        <small>
+          Previous 30 days:
+          ${Number(data.users_previous_30_days || 0).toLocaleString()}
+        </small>
+      </div>
 
-    <div class="dashboard-card">
-      <h3>💼 New Opportunities</h3>
-      <h2>${Number(data.jobs_30_days || 0).toLocaleString()}</h2>
-      <p>Growth: ${growthText(data.jobs_growth)}</p>
-      <small>
-        Previous 30 days:
-        ${Number(data.jobs_previous_30_days || 0)}
-      </small>
+      <div class="dashboard-card">
+        <h3>💼 New Opportunities</h3>
+        <h2>${Number(data.jobs_30_days || 0).toLocaleString()}</h2>
+        <p>Growth: ${growthText(data.jobs_growth)}</p>
+        <small>
+          Previous 30 days:
+          ${Number(data.jobs_previous_30_days || 0).toLocaleString()}
+        </small>
+      </div>
     </div>
 
     <div class="dashboard-card">
       <h3>📊 Daily Activity — Last 30 Days</h3>
+
+      <div style="
+        display:flex;
+        gap:16px;
+        flex-wrap:wrap;
+        margin:12px 0;
+      ">
+        <span>🟢 Users</span>
+        <span>🔵 Opportunities</span>
+      </div>
+
+      <div style="
+        display:flex;
+        align-items:flex-end;
+        gap:8px;
+        overflow-x:auto;
+        padding:15px 5px;
+      ">
+        ${chart || "<p>No daily activity recorded yet.</p>"}
+      </div>
+    </div>
+
+    <button class="btn btn-primary"
+      onclick="showSection('admin')">
+      ← Back to Admin Panel
+    </button>
+  `;
+}
 
 async function loadAdminEarnings() {
   if (!isProofnearAdmin) {
