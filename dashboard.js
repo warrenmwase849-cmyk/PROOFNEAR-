@@ -663,63 +663,6 @@ async function loadAdminEarnings() {
   `;
 }
 
-async function loadAdminGrowthAnalytics() {
-  if (!isProofnearAdmin) {
-    dashboardContent.innerHTML = `
-      <h2>Access Denied</h2>
-      <p>Administrator access required.</p>
-    `;
-    return;
-  }
-
-  dashboardContent.innerHTML = `
-    <h2>📈 CEO Growth Analytics</h2>
-    <p>Loading PROOFNEAR growth data...</p>
-  `;
-
-  const { data, error } = await supabaseClient.rpc(
-    "get_proofnear_admin_growth"
-  );
-
-  if (error) {
-    console.error("Growth analytics error:", error);
-    dashboardContent.innerHTML = `
-      <h2>CEO Growth Analytics</h2>
-      <p>Unable to load growth analytics.</p>
-      <p>${error.message}</p>
-      <button class="btn btn-primary"
-        onclick="loadAdminGrowthAnalytics()">
-        🔄 Try Again
-      </button>
-    `;
-    return;
-  }
-
-  const growthText = value =>
-    value === null || value === undefined
-      ? "No previous-period baseline"
-      : `${value > 0 ? "+" : ""}${value}%`;
-
-  const daily = data.daily || [];
-
-  const maxValue = Math.max(
-    1,
-    ...daily.map(d =>
-      Math.max(
-        Number(d.users || 0),
-        Number(d.opportunities || 0)
-      )
-    )
-  );
-
-  const chart = daily.map(d => `
-    <div style="min-width:42px;text-align:center;">
-      <div style="
-        height:120px;
-        display:flex;
-        align-items:flex-end;
-        justify-content:center;
-
 async function loadAdminPlatformOverview() {
   if (!isProofnearAdmin) {
     dashboardContent.innerHTML = `
