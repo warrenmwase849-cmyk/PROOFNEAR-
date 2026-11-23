@@ -94,11 +94,8 @@ function showSection(section) {
       <p>Connect directly with other PROOFNEAR members.</p>
 
       <div class="messages-search">
-        <input
-          type="text"
-          id="messageMemberSearch"
-          placeholder="Search members by name..."
-        >
+        <input type="text" id="messageMemberSearch"
+          placeholder="Search members by name...">
         <button id="searchMessageMembers">Search</button>
       </div>
 
@@ -107,19 +104,83 @@ function showSection(section) {
       <div id="messageConversation" style="display:none;">
         <div id="messageConversationHeader"></div>
         <div id="messageHistory"></div>
-
         <form id="sendMessageForm">
-          <textarea
-            id="messageBody"
-            maxlength="2000"
-            placeholder="Write your message..."
-            required
-          ></textarea>
+          <textarea id="messageBody" maxlength="2000"
+            placeholder="Write your message..." required></textarea>
           <button type="submit">Send Message</button>
         </form>
       </div>
     </div>
   `;
+
+  const searchButton = document.getElementById("searchMessageMembers");
+  const searchInput = document.getElementById("messageMemberSearch");
+  const resultsBox = document.getElementById("messageSearchResults");
+
+  async function searchMembers() {
+    const term = searchInput.value.trim();
+
+    if (term.length < 2) {
+      resultsBox.textContent = "Enter at least 2 characters.";
+      return;
+    }
+
+    resultsBox.textContent = "Searching members...";
+
+    const { data, error } = await supabaseClient.rpc(
+      "search_proofnear_members",
+      {
+        target_search: term,
+        target_limit: 20
+      }
+    );
+
+    if (error) {
+      resultsBox.textContent = "Search failed: " + error.message;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      resultsBox.textContent = "No matching members found.";
+      return;
+    }
+
+    resultsBox.innerHTML = data.map(member => `
+      <div class="message-member-result">
+        <strong>${escapeHTML(member.full_name || "PROOFNEAR Member")}</strong>
+        <p>${escapeHTML(member.district || "District not provided")}</p>
+        <button
+          type="button"
+          data-message-user="${escapeHTML(member.user_id)}"
+          data-message-name="${escapeHTML(member.full_name || "PROOFNEAR Member")}">
+          Select Member
+        </button>
+      </div>
+    `).join("");
+  }
+
+  searchButton.addEventListener("click", searchMembers);
+
+  searchInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchMembers();
+    }
+  });
+
+  resultsBox.addEventListener("click", event => {
+    const button = event.target.closest("[data-message-user]");
+    if (!button) return;
+
+    const userId = button.dataset.messageUser;
+    const name = button.dataset.messageName;
+
+    window.proofnearSelectedMessageUser = userId;
+
+    document.getElementById("messageConversation").style.display = "block";
+    document.getElementById("messageConversationHeader").textContent =
+      "Conversation with " + name;
+  });
 }
 
   else if (section === "notifications") {
