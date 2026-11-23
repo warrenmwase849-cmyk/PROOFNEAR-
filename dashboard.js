@@ -1070,29 +1070,7 @@ async function loadAdminGrowthAnalytics() {
 
     <div class="dashboard-card">
       <h3>📊 Daily Activity — Last 30 Days</h3>
-      <p>
-        <span style="color:#087f5b;">■ Users</span>
-        &nbsp;
-        <span style="color:#2878c8;">■ Opportunities</span>
-      </p>
 
-      <div style="
-        display:flex;
-        align-items:flex-end;
-        gap:8px;
-        overflow-x:auto;
-        padding:12px 4px;
-      ">
-        ${chart}
-      </div>
-    </div>
-
-    <button class="btn btn-primary"
-      onclick="showSection('admin')">
-      ← Back to Admin Panel
-    </button>
-  `;
-}
 async function loadAdminEarnings() {
   if (!isProofnearAdmin) {
     dashboardContent.innerHTML = `
