@@ -484,36 +484,6 @@ async function loadAdminGrowthAnalytics() {
         <h2>${Number(data.total_opportunities || 0).toLocaleString()}</h2>
       </div>
 
-      <div class="dashboard-card" style="border-top:4px solid #269b65;">
-        <p>✅ Approved Opportunities</p>
-        <h2>${Number(statuses.approved || 0).toLocaleString()}</h2>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #d6a84b;">
-        <p>⏳ Pending Opportunities</p>
-        <h2>${Number(statuses.pending || 0).toLocaleString()}</h2>
-      </div>
-
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📊 Opportunity Status Breakdown</h3>
-      ${
-        Object.entries(statuses).map(([status, count]) => `
-          <p>
-            ${escapeHTML(status.toUpperCase())}:
-            <strong>${Number(count).toLocaleString()}</strong>
-          </p>
-        `).join("") || "<p>No opportunities recorded yet.</p>"
-      }
-    </div>
-
-    <button class="btn btn-primary"
-      onclick="showSection('admin')">
-      ← Back to Admin Panel
-    </button>
-  `;
-}
 
 async function loadAdminEarnings() {
   if (!isProofnearAdmin) {
@@ -937,7 +907,36 @@ async function loadAdminGrowthAnalytics() {
     </button>
   `;
 }
+      <div class="dashboard-card" style="border-top:4px solid #269b65;">
+        <p>✅ Approved Opportunities</p>
+        <h2>${Number(statuses.approved || 0).toLocaleString()}</h2>
+      </div>
 
+      <div class="dashboard-card" style="border-top:4px solid #d6a84b;">
+        <p>⏳ Pending Opportunities</p>
+        <h2>${Number(statuses.pending || 0).toLocaleString()}</h2>
+      </div>
+
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📊 Opportunity Status Breakdown</h3>
+      ${
+        Object.entries(statuses).map(([status, count]) => `
+          <p>
+            ${escapeHTML(status.toUpperCase())}:
+            <strong>${Number(count).toLocaleString()}</strong>
+          </p>
+        `).join("") || "<p>No opportunities recorded yet.</p>"
+      }
+    </div>
+
+    <button class="btn btn-primary"
+      onclick="showSection('admin')">
+      ← Back to Admin Panel
+    </button>
+  `;
+        }
 async function loadAdminEarnings() {
   if (!isProofnearAdmin) {
     dashboardContent.innerHTML = `
