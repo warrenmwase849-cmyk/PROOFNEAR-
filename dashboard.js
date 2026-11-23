@@ -869,6 +869,192 @@ async function loadAdminGrowthAnalytics() {
       <small>
         Previous 30 days:
         ${Number(data.users_previous_30_days || 0)}
+async function loadAdminPlatformOverview() {
+  if (!isProofnearAdmin) {
+    dashboardContent.innerHTML = `
+      <h2>Access Denied</h2>
+      <p>Administrator access required.</p>
+    `;
+    return;
+  }
+
+  dashboardContent.innerHTML = `
+    <h2>🌍 CEO Platform Overview</h2>
+    <p>Loading PROOFNEAR platform statistics...</p>
+  `;
+
+  const { data, error } = await supabaseClient.rpc(
+    "get_proofnear_admin_overview"
+  );
+
+  if (error) {
+    console.error("Platform overview error:", error);
+    dashboardContent.innerHTML = `
+      <h2>🌍 CEO Platform Overview</h2>
+      <div class="dashboard-card">
+        <p>Unable to load platform statistics.</p>
+        <p>${escapeHTML(error.message)}</p>
+        <button class="btn btn-primary"
+          onclick="loadAdminPlatformOverview()">
+          Try Again
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const statuses = data.opportunities_by_status || {};
+
+  dashboardContent.innerHTML = `
+    <h2>🌍 CEO Platform Overview</h2>
+    <p>Private PROOFNEAR business statistics</p>
+
+    <button class="btn btn-primary"
+      onclick="loadAdminPlatformOverview()">
+      🔄 Refresh Overview
+    </button>
+
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+      margin:20px 0;
+    ">
+
+      <div class="dashboard-card" style="border-top:4px solid #087f5b;">
+        <p>👥 Registered Users</p>
+        <h2>${Number(data.total_users || 0).toLocaleString()}</h2>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #2878c8;">
+        <p>💼 Total Opportunities</p>
+        <h2>${Number(data.total_opportunities || 0).toLocaleString()}</h2>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #269b65;">
+        <p>✅ Approved Opportunities</p>
+        <h2>${Number(statuses.approved || 0).toLocaleString()}</h2>
+      </div>
+
+      <div class="dashboard-card" style="border-top:4px solid #d6a84b;">
+        <p>⏳ Pending Opportunities</p>
+        <h2>${Number(statuses.pending || 0).toLocaleString()}</h2>
+      </div>
+
+    </div>
+
+    <div class="dashboard-card">
+      <h3>📊 Opportunity Status Breakdown</h3>
+      ${
+        Object.entries(statuses).map(([status, count]) => `
+          <p>
+            ${escapeHTML(status.toUpperCase())}:
+            <strong>${Number(count).toLocaleString()}</strong>
+          </p>
+        `).join("") || "<p>No opportunities recorded yet.</p>"
+      }
+    </div>
+
+    <button class="btn btn-primary"
+      onclick="showSection('admin')">
+      ← Back to Admin Panel
+    </button>
+  `;
+}
+
+
+async function loadAdminGrowthAnalytics() {
+  if (!isProofnearAdmin) return;
+
+  dashboardContent.innerHTML = `
+    <h2>📈 CEO Growth Analytics</h2>
+    <p>Loading growth report...</p>
+  `;
+
+  const { data, error } = await supabaseClient.rpc(
+    "get_proofnear_admin_growth"
+  );
+
+  if (error) {
+    console.error("Growth analytics error:", error);
+    dashboardContent.innerHTML = `
+      <h2>📈 CEO Growth Analytics</h2>
+      <div class="dashboard-card">
+        <p>Unable to load growth report.</p>
+        <p>${escapeHTML(error.message)}</p>
+        <button class="btn btn-primary"
+          onclick="loadAdminGrowthAnalytics()">
+          Try Again
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const growthText = value =>
+    value === null || value === undefined
+      ? "No previous-period baseline"
+      : `${value > 0 ? "+" : ""}${value}%`;
+
+  const daily = data.daily || [];
+
+  const maxValue = Math.max(
+    1,
+    ...daily.map(d =>
+      Math.max(
+        Number(d.users || 0),
+        Number(d.opportunities || 0)
+      )
+    )
+  );
+
+  const chart = daily.map(d => `
+    <div style="min-width:42px;text-align:center;">
+      <div style="
+        height:120px;
+        display:flex;
+        align-items:flex-end;
+        justify-content:center;
+        gap:4px;
+      ">
+        <div title="Users: ${d.users}"
+          style="
+            width:15px;
+            height:${Math.max(3,Number(d.users || 0)/maxValue*110)}px;
+            background:#087f5b;
+            border-radius:4px 4px 0 0;
+          ">
+        </div>
+
+        <div title="Opportunities: ${d.opportunities}"
+          style="
+            width:15px;
+            height:${Math.max(3,Number(d.opportunities || 0)/maxValue*110)}px;
+            background:#2878c8;
+            border-radius:4px 4px 0 0;
+          ">
+        </div>
+      </div>
+      <small>${String(d.date).slice(5)}</small>
+    </div>
+  `).join("");
+
+  dashboardContent.innerHTML = `
+    <h2>📈 CEO Growth Analytics</h2>
+    <p>PROOFNEAR growth over the last 30 days</p>
+
+    <button class="btn btn-primary"
+      onclick="loadAdminGrowthAnalytics()">
+      🔄 Refresh Growth
+    </button>
+
+    <div class="dashboard-card">
+      <h3>👥 New Registered Users</h3>
+      <h2>${Number(data.users_30_days || 0).toLocaleString()}</h2>
+      <p>Growth: ${growthText(data.users_growth)}</p>
+      <small>
+        Previous 30 days:
+        ${Number(data.users_previous_30_days || 0)}
       </small>
     </div>
 
@@ -907,36 +1093,6 @@ async function loadAdminGrowthAnalytics() {
     </button>
   `;
 }
-      <div class="dashboard-card" style="border-top:4px solid #269b65;">
-        <p>✅ Approved Opportunities</p>
-        <h2>${Number(statuses.approved || 0).toLocaleString()}</h2>
-      </div>
-
-      <div class="dashboard-card" style="border-top:4px solid #d6a84b;">
-        <p>⏳ Pending Opportunities</p>
-        <h2>${Number(statuses.pending || 0).toLocaleString()}</h2>
-      </div>
-
-    </div>
-
-    <div class="dashboard-card">
-      <h3>📊 Opportunity Status Breakdown</h3>
-      ${
-        Object.entries(statuses).map(([status, count]) => `
-          <p>
-            ${escapeHTML(status.toUpperCase())}:
-            <strong>${Number(count).toLocaleString()}</strong>
-          </p>
-        `).join("") || "<p>No opportunities recorded yet.</p>"
-      }
-    </div>
-
-    <button class="btn btn-primary"
-      onclick="showSection('admin')">
-      ← Back to Admin Panel
-    </button>
-  `;
-        }
 async function loadAdminEarnings() {
   if (!isProofnearAdmin) {
     dashboardContent.innerHTML = `
