@@ -869,6 +869,7 @@ dashboardContent.innerHTML = `
 
     <h3 style="margin:24px 0 14px;">📊 Your Activity</h3>
 
+    
     <div style="
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -884,34 +885,31 @@ dashboardContent.innerHTML = `
       <div class="dashboard-card" style="margin:0;border-top:4px solid #d6a84b;">
         <p style="margin:0;color:#71817d;">⏳ Pending</p>
         <h2 id="pendingOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-     <div class="stats-progress">
-  <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
-</div>
+        <div class="stats-progress">
+          <div id="pendingProgress" class="stats-progress-fill pending-fill"></div>
+        </div>
       </div>
 
       <div class="dashboard-card" style="margin:0;border-top:4px solid #269b65;">
         <p style="margin:0;color:#71817d;">✅ Approved</p>
         <h2 id="approvedOpportunities" style="font-size:30px;margin:12px 0 0;">...</h2>
-      <div class="stats-progress">
-  <div id="approvedProgress" class="stats-progress-fill"></div>
-</div>
+        <div class="stats-progress">
+          <div id="approvedProgress" class="stats-progress-fill"></div>
+        </div>
       </div>
 
-          </div>
-
-      <!-- Applications Received -->
       <div class="dashboard-card" style="margin:0;border-top:4px solid #2878c8;">
         <p style="margin:0;color:#71817d;">📨 Applications Received</p>
         <h2 id="receivedApplications" style="font-size:30px;margin:12px 0 0;">...</h2>
       </div>
 
-      <!-- My Applications -->
       <div class="dashboard-card" style="margin:0;border-top:4px solid #8055b7;">
         <p style="margin:0;color:#71817d;">📝 My Applications</p>
         <h2 id="myApplicationsCount" style="font-size:30px;margin:12px 0 0;">...</h2>
       </div>
 
     </div>
+
 
     <div class="dashboard-card">
       <h3>🚀 Quick Actions</h3>
