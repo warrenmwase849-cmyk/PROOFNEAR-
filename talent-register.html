@@ -1,1 +1,154 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102c25">
+
+  <title>Creator Registration | PROOFNEAR</title>
+
+  <meta name="description" content="Register as a creator on PROOFNEAR Talent Arena and showcase your talent.">
+
+  <link rel="stylesheet" href="talent-register.css">
+</head>
+
+<body>
+
+  <header class="register-header">
+    <a href="talent-arena.html" class="brand">
+      <span class="brand-mark">P</span>
+      <span>
+        PROOFNEAR
+        <small>TALENT ARENA</small>
+      </span>
+    </a>
+
+    <a href="talent-arena.html" class="back-link">
+      ← Back to Arena
+    </a>
+  </header>
+
+  <main class="register-container">
+
+    <section class="register-intro">
+      <span class="eyebrow">YOUR JOURNEY STARTS HERE</span>
+
+      <h1>Become a Creator</h1>
+
+      <p>
+        Introduce yourself to the PROOFNEAR Talent Arena.
+        Create your profile and prepare to showcase your abilities
+        to a wider audience.
+      </p>
+    </section>
+
+    <section class="register-card">
+
+      <div class="form-heading">
+        <h2>Creator Profile</h2>
+        <p>Complete your details below.</p>
+      </div>
+
+      <div id="authNotice" class="notice">
+        You must sign in to your PROOFNEAR account before registering.
+      </div>
+
+      <form id="creatorRegistrationForm">
+
+        <div class="form-group">
+          <label for="stageName">Stage name / Display name *</label>
+          <input
+            type="text"
+            id="stageName"
+            name="stageName"
+            placeholder="Enter your creator name"
+            minlength="2"
+            maxlength="60"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="talentCategory">Talent category *</label>
+
+          <select id="talentCategory" name="talentCategory" required>
+            <option value="">Select your talent</option>
+            <option value="Singer & Vocalist">Singer & Vocalist</option>
+            <option value="Musician">Musician</option>
+            <option value="Performer & Creator">Performer & Creator</option>
+            <option value="Creative Artist">Creative Artist</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="creatorBio">About you</label>
+          <textarea
+            id="creatorBio"
+            name="creatorBio"
+            rows="5"
+            maxlength="500"
+            placeholder="Tell people about your talent, experience and creative journey..."
+          ></textarea>
+          <small>Maximum 500 characters.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="creatorDistrict">District</label>
+          <input
+            type="text"
+            id="creatorDistrict"
+            name="creatorDistrict"
+            placeholder="For example, Kampala"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="profilePhoto">Profile photo URL</label>
+          <input
+            type="url"
+            id="profilePhoto"
+            name="profilePhoto"
+            placeholder="https://example.com/photo.jpg"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="portfolioUrl">Portfolio / Social media link</label>
+          <input
+            type="url"
+            id="portfolioUrl"
+            name="portfolioUrl"
+            placeholder="https://example.com/your-work"
+          >
+        </div>
+
+        <button type="submit" id="creatorSubmitButton">
+          Submit Creator Registration
+        </button>
+
+        <p class="form-footnote">
+          Your profile will remain pending until reviewed by
+          the PROOFNEAR administration team.
+        </p>
+
+        <div id="registrationMessage" role="status" aria-live="polite"></div>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <footer class="register-footer">
+    <a href="talent-arena.html">PROOFNEAR Talent Arena</a>
+    <p>Discover talent. Create opportunities.</p>
+    <p>© 2026 PROOFNEAR</p>
+  </footer>
+
+  <script src="talent-register.js"></script>
+
+</body>
+    </html>
+
