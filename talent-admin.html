@@ -1,1 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Talent Admin | PROOFNEAR</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f2f5f3;
+      color: #17352b;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: auto;
+    }
+
+    header, .creator-card {
+      background: white;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 15px #0000000d;
+    }
+
+    h1 { margin-top: 0; }
+    .muted { color: #687a71; }
+
+    .creator-card h3 { margin-bottom: 8px; }
+
+    .status {
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    button {
+      border: 0;
+      padding: 12px 18px;
+      margin: 8px 8px 0 0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+    }
+
+    .approve { background: #16834d; }
+    .reject { background: #bd3030; }
+    .refresh { background: #173d31; }
+
+    #message {
+      margin: 18px 0;
+      font-weight: bold;
+    }
+
+    a { color: #176b50; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <header>
+    <h1>PROOFNEAR</h1>
+    <h2>Talent Arena Administration</h2>
+    <p class="muted">Review creator registrations and manage approvals.</p>
+    <p id="adminIdentity"></p>
+    <button class="refresh" id="refreshButton">Refresh Applications</button>
+    <p id="message">Checking administrator access...</p>
+  </header>
+
+  <section id="creatorList"></section>
+
+</div>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const ADMIN_EMAIL = "maxdon849@gmail.com";
+
+const adminSupabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const message = document.getElementById("message");
+const creatorList = document.getElementById("creatorList");
+
+function showMessage(text, error = false) {
+  message.textContent = text;
+  message.style.color = error ? "#bd3030" : "#16834d";
+}
+
+function safeLink(value, label) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+
+    const link = document.createElement("a");
+    link.href = url.href;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = label;
+    return link;
+  } catch {
+    return null;
+  }
+}
+
+async function checkAdmin() {
+  const { data, error } = await adminSupabase.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage("Please sign in to your PROOFNEAR account first.", true);
+    return false;
+  }
+
+  const email = (data.user.email || "").toLowerCase();
+
+  if (email !== ADMIN_EMAIL) {
+    showMessage("Access denied. Administrator account required.", true);
+    return false;
+  }
+
+  document.getElementById("adminIdentity").textContent =
+    "Administrator: " + email;
+
+  return true;
+}
+
+function renderCreators(creators) {
+  creatorList.replaceChildren();
+
+  if (!creators.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No creator registrations found.";
+    creatorList.appendChild(empty);
+    return;
+  }
+
+  creators.forEach(creator => {
+    const card = document.createElement("article");
+    card.className = "creator-card";
+
+    const title = document.createElement("h3");
+    title.textContent = creator.stage_name;
+
+    const category = document.createElement("p");
+    category.textContent = "Category: " + creator.talent_category;
+
+    const bio = document.createElement("p");
+    bio.textContent = "About: " + (creator.bio || "Not provided");
+
+    const district = document.createElement("p");
+    district.textContent = "District: " + (creator.district || "Not provided");
+
+    const status = document.createElement("p");
+    status.className = "status";
+    status.textContent = "Status: " + creator.approval_status;
+
+    card.append(title, category, bio, district, status);
+
+    const photo = safeLink(
+      creator.profile_photo_url,
+      "View profile photo"
+    );
+
+    const portfolio = safeLink(
+      creator.portfolio_url,
+      "View portfolio"
+    );
+
+    if (photo) card.appendChild(photo);
+    if (portfolio) {
+      card.appendChild(document.createTextNode(" | "));
+      card.appendChild(portfolio);
+    }
+
+    if (creator.approval_status === "pending") {
+      const approve = document.createElement("button");
+      approve.className = "approve";
+      approve.textContent = "Approve Creator";
+      approve.addEventListener("click", () =>
+        reviewCreator(creator.user_id, "approved", approve)
+      );
+
+      const reject = document.createElement("button");
+      reject.className = "reject";
+      reject.textContent = "Reject Creator";
+      reject.addEventListener("click", () =>
+        reviewCreator(creator.user_id, "rejected", reject)
+      );
+
+      card.append(approve, reject);
+    }
+
+    creatorList.appendChild(card);
+  });
+}
+
+async function loadCreators() {
+  creatorList.replaceChildren();
+  showMessage("Loading creator applications...");
+
+  const { data, error } = await adminSupabase
+    .from("creator_profiles")
+    .select(
+      "user_id,stage_name,talent_category,bio,district,profile_photo_url,portfolio_url,approval_status,created_at"
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showMessage("Could not load applications: " + error.message, true);
+    return;
+  }
+
+  renderCreators(data || []);
+  showMessage("Creator applications loaded: " + (data || []).length);
+}
+
+async function reviewCreator(userId, status, button) {
+  const action = status === "approved" ? "approve" : "reject";
+
+  if (!confirm("Are you sure you want to " + action + " this creator?")) {
+    return;
+  }
+
+  button.disabled = true;
+  showMessage("Updating creator application...");
+
+  const { error } = await adminSupabase.rpc(
+    "review_creator_profile",
+    {
+      p_user_id: userId,
+      p_status: status
+    }
+  );
+
+  if (error) {
+    button.disabled = false;
+    showMessage("Review failed: " + error.message, true);
+    return;
+  }
+
+  showMessage("Creator " + status + " successfully.");
+  await loadCreators();
+}
+
+document.getElementById("refreshButton").addEventListener(
+  "click",
+  async () => {
+    if (await checkAdmin()) await loadCreators();
+  }
+);
+
+(async function startAdmin() {
+  if (await checkAdmin()) await loadCreators();
+})();
+</script>
+
+</body>
+</html>
