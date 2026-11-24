@@ -5,46 +5,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#102c25">
-
   <title>Creator Registration | PROOFNEAR</title>
-
   <meta name="description" content="Register as a creator on PROOFNEAR Talent Arena and showcase your talent.">
-
   <link rel="stylesheet" href="talent-register.css">
 </head>
-
 <body>
-
   <header class="register-header">
     <a href="talent-arena.html" class="brand">
       <span class="brand-mark">P</span>
-      <span>
-        PROOFNEAR
-        <small>TALENT ARENA</small>
-      </span>
+      <span>PROOFNEAR<small>TALENT ARENA</small></span>
     </a>
-
-    <a href="talent-arena.html" class="back-link">
-      ← Back to Arena
-    </a>
+    <a href="talent-arena.html" class="back-link">← Back to Arena</a>
   </header>
 
   <main class="register-container">
-
     <section class="register-intro">
       <span class="eyebrow">YOUR JOURNEY STARTS HERE</span>
-
       <h1>Become a Creator</h1>
-
-      <p>
-        Introduce yourself to the PROOFNEAR Talent Arena.
-        Create your profile and prepare to showcase your abilities
-        to a wider audience.
-      </p>
+      <p>Introduce yourself to the PROOFNEAR Talent Arena. Create your profile and prepare to showcase your abilities to a wider audience.</p>
     </section>
 
     <section class="register-card">
-
       <div class="form-heading">
         <h2>Creator Profile</h2>
         <p>Complete your details below.</p>
@@ -55,23 +36,13 @@
       </div>
 
       <form id="creatorRegistrationForm">
-
         <div class="form-group">
           <label for="stageName">Stage name / Display name *</label>
-          <input
-            type="text"
-            id="stageName"
-            name="stageName"
-            placeholder="Enter your creator name"
-            minlength="2"
-            maxlength="60"
-            required
-          >
+          <input type="text" id="stageName" name="stageName" placeholder="Enter your creator name" minlength="2" maxlength="60" required>
         </div>
 
         <div class="form-group">
           <label for="talentCategory">Talent category *</label>
-
           <select id="talentCategory" name="talentCategory" required>
             <option value="">Select your talent</option>
             <option value="Singer & Vocalist">Singer & Vocalist</option>
@@ -84,61 +55,40 @@
 
         <div class="form-group">
           <label for="creatorBio">About you</label>
-          <textarea
-            id="creatorBio"
-            name="creatorBio"
-            rows="5"
-            maxlength="500"
-            placeholder="Tell people about your talent, experience and creative journey..."
-          ></textarea>
+          <textarea id="creatorBio" name="creatorBio" rows="5" maxlength="500" placeholder="Tell people about your talent, experience and creative journey..."></textarea>
           <small>Maximum 500 characters.</small>
         </div>
 
         <div class="form-group">
           <label for="creatorDistrict">District</label>
-          <input
-            type="text"
-            id="creatorDistrict"
-            name="creatorDistrict"
-            placeholder="For example, Kampala"
-          >
+          <input type="text" id="creatorDistrict" name="creatorDistrict" placeholder="For example, Kampala">
         </div>
 
         <div class="form-group">
-          <label for="profilePhoto">Profile photo URL</label>
-          <input
-            type="url"
-            id="profilePhoto"
-            name="profilePhoto"
-            placeholder="https://example.com/photo.jpg"
-          >
+          <label for="profilePhoto">Profile photo</label>
+          <input type="file" id="profilePhoto" name="profilePhoto" accept="image/jpeg,image/png,image/webp">
+          <small>Choose a JPG, PNG or WebP image. Maximum size: 5 MB.</small>
+
+          <div id="photoPreviewContainer" class="photo-preview-container" hidden>
+            <img id="photoPreview" class="photo-preview" alt="Selected profile photo preview">
+            <button type="button" id="removePhotoButton" class="remove-photo-button">Remove photo</button>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="portfolioUrl">Portfolio / Social media link</label>
-          <input
-            type="url"
-            id="portfolioUrl"
-            name="portfolioUrl"
-            placeholder="https://example.com/your-work"
-          >
+          <input type="url" id="portfolioUrl" name="portfolioUrl" placeholder="https://example.com/your-work">
         </div>
 
-        <button type="submit" id="creatorSubmitButton">
-          Submit Creator Registration
-        </button>
+        <button type="submit" id="creatorSubmitButton">Submit Creator Registration</button>
 
         <p class="form-footnote">
-          Your profile will remain pending until reviewed by
-          the PROOFNEAR administration team.
+          Your profile will remain pending until reviewed by the PROOFNEAR administration team.
         </p>
 
         <div id="registrationMessage" role="status" aria-live="polite"></div>
-
       </form>
-
     </section>
-
   </main>
 
   <footer class="register-footer">
@@ -148,8 +98,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="talent-register.js"></script>
-
+  <script src="talent-register.js"></script>
 </body>
-    </html>
-
+</html>
