@@ -1,1 +1,353 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creator Notifications | PROOFNEAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f2f6f3;
+  color:#17352b;
+}
+
+header {
+  background:#123c2e;
+  color:white;
+  text-align:center;
+  padding:25px 15px;
+}
+
+nav {
+  background:white;
+  padding:15px;
+  text-align:center;
+}
+
+nav a {
+  color:#176b50;
+  text-decoration:none;
+  font-weight:bold;
+  margin:0 8px;
+}
+
+.container {
+  max-width:800px;
+  margin:25px auto;
+  padding:0 16px;
+}
+
+.panel {
+  background:white;
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 3px 14px #0000000d;
+}
+
+.counter {
+  display:inline-block;
+  background:#16834d;
+  color:white;
+  padding:8px 13px;
+  border-radius:20px;
+  font-weight:bold;
+}
+
+.notification {
+  border:1px solid #e1e9e3;
+  border-radius:10px;
+  padding:16px;
+  margin-top:14px;
+  overflow-wrap:anywhere;
+}
+
+.notification.unread {
+  border-left:5px solid #16834d;
+  background:#f5fbf6;
+}
+
+.notification h3 { margin-top:0; }
+
+.notification small { color:#687a71; }
+
+button {
+  border:0;
+  border-radius:7px;
+  padding:11px 15px;
+  margin-top:12px;
+  background:#16834d;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:disabled {
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.secondary { background:#173c30; }
+
+#message {
+  font-weight:bold;
+  margin:15px 0;
+  overflow-wrap:anywhere;
+}
+
+footer {
+  text-align:center;
+  padding:25px;
+  color:#687a71;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Creator Notifications</h2>
+  <p>Never miss a booking or collaboration request.</p>
+</header>
+
+<nav>
+  <a href="creator-inbox.html">Creator Inbox</a>
+  <a href="talent-creators.html">Discover Creators</a>
+  <a href="talent-arena.html">Talent Arena</a>
+</nav>
+
+<main class="container">
+  <section class="panel">
+    <h2>Your Notifications</h2>
+
+    <p>
+      Unread notifications:
+      <span class="counter" id="unreadCount">0</span>
+    </p>
+
+    <button class="secondary" id="refreshButton">
+      Refresh Notifications
+    </button>
+
+    <button id="markAllButton">
+      Mark All as Read
+    </button>
+
+    <p id="message">Checking your account...</p>
+
+    <section id="notificationList"></section>
+  </section>
+</main>
+
+<footer>
+  © 2026 PROOFNEAR. All rights reserved.
+</footer>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const message = document.getElementById("message");
+const notificationList =
+  document.getElementById("notificationList");
+
+let currentUser = null;
+let notifications = [];
+
+function showMessage(text, error = false) {
+  message.textContent = text;
+  message.style.color = error ? "#bd3030" : "#16834d";
+}
+
+function renderNotifications() {
+  notificationList.replaceChildren();
+
+  const unread = notifications.filter(n => !n.is_read).length;
+
+  document.getElementById("unreadCount").textContent = unread;
+
+  if (!notifications.length) {
+    showMessage("You have no notifications yet.");
+    return;
+  }
+
+  showMessage("You have " + notifications.length + " notification(s).");
+
+  notifications.forEach(item => {
+    const card = document.createElement("article");
+
+    card.className =
+      "notification" + (item.is_read ? "" : " unread");
+
+    const heading = document.createElement("h3");
+    heading.textContent = item.title;
+
+    const details = document.createElement("p");
+    details.textContent = item.message;
+
+    const date = document.createElement("small");
+    date.textContent = new Date(item.created_at).toLocaleString();
+
+    card.append(heading, details, date);
+
+    if (!item.is_read) {
+      const button = document.createElement("button");
+      button.textContent = "Mark as Read";
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+
+        const { data, error } = await supabaseClient
+          .from("creator_notifications")
+          .update({ is_read: true })
+          .eq("id", item.id)
+          .eq("recipient_user_id", currentUser.id)
+          .eq("is_read", false)
+          .select("id");
+
+        if (error || !data || !data.length) {
+          button.disabled = false;
+          showMessage(
+            "Unable to update notification: " +
+            (error ? error.message : "Please refresh."),
+            true
+          );
+          return;
+        }
+
+        await loadNotifications();
+      });
+
+      card.appendChild(button);
+    }
+
+    notificationList.appendChild(card);
+  });
+}
+
+async function loadNotifications() {
+  showMessage("Loading notifications...");
+
+  const { data, error } = await supabaseClient
+    .from("creator_notifications")
+    .select("id,title,message,is_read,created_at")
+    .eq("recipient_user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showMessage("Unable to load notifications: " + error.message, true);
+    return;
+  }
+
+  notifications = data || [];
+  renderNotifications();
+}
+
+async function markAllAsRead() {
+  const unread = notifications.filter(n => !n.is_read);
+
+  if (!unread.length) {
+    showMessage("All notifications are already read.");
+    return;
+  }
+
+  const button = document.getElementById("markAllButton");
+  button.disabled = true;
+
+  const { error } = await supabaseClient
+    .from("creator_notifications")
+    .update({ is_read: true })
+    .eq("recipient_user_id", currentUser.id)
+    .eq("is_read", false);
+
+  button.disabled = false;
+
+  if (error) {
+    showMessage("Update failed: " + error.message, true);
+    return;
+  }
+
+  await loadNotifications();
+}
+
+async function initialize() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage(
+      "Please sign in to your PROOFNEAR account to view notifications.",
+      true
+    );
+    return;
+  }
+
+  currentUser = data.user;
+
+  const { data: creator, error: creatorError } =
+    await supabaseClient
+      .from("creator_profiles")
+      .select("approval_status")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+  if (creatorError) {
+    showMessage("Unable to check creator account: " +
+      creatorError.message, true);
+    return;
+  }
+
+  if (!creator || creator.approval_status !== "approved") {
+    showMessage(
+      "Your creator profile must be approved to access notifications.",
+      true
+    );
+    return;
+  }
+
+  await loadNotifications();
+
+  // Receive new notifications without refreshing.
+  supabaseClient
+    .channel("creator-notifications-" + currentUser.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "creator_notifications",
+        filter: "recipient_user_id=eq." + currentUser.id
+      },
+      () => loadNotifications()
+    )
+    .subscribe();
+}
+
+document.getElementById("refreshButton")
+  .addEventListener("click", () => {
+    if (currentUser) loadNotifications();
+    else initialize();
+  });
+
+document.getElementById("markAllButton")
+  .addEventListener("click", markAllAsRead);
+
+initialize();
+</script>
+
+</body>
+  </html>
+
