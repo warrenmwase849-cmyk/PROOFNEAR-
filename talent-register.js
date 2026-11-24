@@ -186,7 +186,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         district: district || null,
         profile_photo_url: photoUrl || null,
         portfolio_url: portfolioUrl || null,
-        updated_at: new Date().toISOString()
       };
 
       // Check whether this user already has a creator profile.
