@@ -1,1 +1,263 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discover Creators | PROOFNEAR</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f6f3;
+      color: #17352b;
+    }
+
+    header {
+      background: #123c2e;
+      color: white;
+      padding: 28px 18px;
+      text-align: center;
+    }
+
+    header h1 { margin: 0 0 8px; }
+
+    nav {
+      padding: 14px;
+      text-align: center;
+      background: white;
+    }
+
+    nav a {
+      color: #176b50;
+      font-weight: bold;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: 25px auto;
+      padding: 0 16px;
+    }
+
+    .intro { text-align: center; }
+
+    #creatorGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+      margin-top: 25px;
+    }
+
+    .creator-card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 14px #0000000d;
+      overflow-wrap: anywhere;
+    }
+
+    .creator-card img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #e5eee8;
+    }
+
+    .creator-card h3 { margin-bottom: 6px; }
+
+    .category {
+      color: #16834d;
+      font-weight: bold;
+    }
+
+    .portfolio {
+      display: inline-block;
+      margin-top: 12px;
+      color: #176b50;
+      font-weight: bold;
+    }
+
+    #message {
+      text-align: center;
+      padding: 25px;
+      font-weight: bold;
+    }
+
+    .register {
+      display: inline-block;
+      background: #d6a832;
+      color: #17352b;
+      padding: 13px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #687a71;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Talent Search Arena</h2>
+  <p>Discover talented people. Explore creativity. Find your next star.</p>
+</header>
+
+<nav>
+  <a href="talent-arena.html">Talent Arena</a>
+  <a href="talent-register.html">Become a Creator</a>
+  <a href="index.html">Marketplace</a>
+</nav>
+
+<main class="container">
+
+  <section class="intro">
+    <h2>Discover Creators</h2>
+    <p>Explore approved singers, musicians, performers and creative artists.</p>
+    <a class="register" href="talent-register.html">
+      Register as a Creator
+    </a>
+  </section>
+
+  <p id="message">Loading approved creators...</p>
+
+  <section id="creatorGrid"></section>
+
+</main>
+
+<footer>
+  © <span id="year"></span> PROOFNEAR. All rights reserved.
+</footer>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const message = document.getElementById("message");
+const creatorGrid = document.getElementById("creatorGrid");
+
+document.getElementById("year").textContent =
+  new Date().getFullYear();
+
+function validLink(value) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+
+    if (url.protocol === "https:" || url.protocol === "http:") {
+      return url.href;
+    }
+  } catch {}
+
+  return null;
+}
+
+function displayCreators(creators) {
+  creatorGrid.replaceChildren();
+
+  if (!creators.length) {
+    message.textContent =
+      "No approved creators yet. Be among the first to join PROOFNEAR Talent Arena!";
+    return;
+  }
+
+  message.textContent =
+    "Discover " + creators.length + " approved creator(s).";
+
+  creators.forEach(creator => {
+    const card = document.createElement("article");
+    card.className = "creator-card";
+
+    const photoUrl = validLink(creator.profile_photo_url);
+
+    if (photoUrl) {
+      const image = document.createElement("img");
+      image.src = photoUrl;
+      image.alt = creator.stage_name;
+      image.loading = "lazy";
+      image.onerror = () => image.remove();
+      card.appendChild(image);
+    }
+
+    const name = document.createElement("h3");
+    name.textContent = creator.stage_name;
+
+    const category = document.createElement("p");
+    category.className = "category";
+    category.textContent = creator.talent_category;
+
+    const district = document.createElement("p");
+    district.textContent =
+      "District: " + (creator.district || "Not provided");
+
+    const bio = document.createElement("p");
+    bio.textContent = creator.bio || "Creator profile";
+
+    card.append(name, category, district, bio);
+
+    const portfolioUrl = validLink(creator.portfolio_url);
+
+    if (portfolioUrl) {
+      const portfolio = document.createElement("a");
+      portfolio.className = "portfolio";
+      portfolio.href = portfolioUrl;
+      portfolio.target = "_blank";
+      portfolio.rel = "noopener noreferrer";
+      portfolio.textContent = "View Portfolio";
+      card.appendChild(portfolio);
+    }
+
+    creatorGrid.appendChild(card);
+  });
+}
+
+async function loadApprovedCreators() {
+  message.textContent = "Loading approved creators...";
+
+  const { data, error } = await supabaseClient
+    .from("creator_profiles")
+    .select(
+      "stage_name,talent_category,bio,district,profile_photo_url,portfolio_url"
+    )
+    .eq("approval_status", "approved")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    message.textContent =
+      "Unable to load creators: " + error.message;
+    return;
+  }
+
+  displayCreators(data || []);
+}
+
+loadApprovedCreators();
+</script>
+
+</body>
+</html>
+
