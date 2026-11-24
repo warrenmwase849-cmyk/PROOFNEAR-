@@ -1,1 +1,314 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact Creator | PROOFNEAR</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f2f6f3;
+      color: #17352b;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      background: #123c2e;
+      color: white;
+      text-align: center;
+      padding: 25px 15px;
+    }
+
+    nav {
+      background: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav a {
+      color: #176b50;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 8px;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 25px auto;
+      padding: 0 16px;
+    }
+
+    .form-card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 3px 15px #0000000d;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 16px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 13px;
+      margin-top: 7px;
+      border: 1px solid #cbd8d0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      background: #16834d;
+      color: white;
+      padding: 15px;
+      border: 0;
+      border-radius: 8px;
+      margin-top: 22px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    #message {
+      font-weight: bold;
+      margin-top: 18px;
+      overflow-wrap: anywhere;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #687a71;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Creator Contact & Booking</h2>
+  <p>Connect with talented creators.</p>
+</header>
+
+<nav>
+  <a href="talent-creators.html">Discover Creators</a>
+  <a href="talent-arena.html">Talent Arena</a>
+  <a href="index.html">Marketplace</a>
+</nav>
+
+<main class="container">
+
+  <section class="form-card">
+    <h2>Send a Request</h2>
+
+    <p id="creatorInfo">Loading creator information...</p>
+
+    <form id="requestForm" hidden>
+
+      <label for="requesterName">Your Full Name</label>
+      <input id="requesterName" maxlength="100" required>
+
+      <label for="requesterEmail">Your Account Email</label>
+      <input id="requesterEmail" type="email" readonly required>
+
+      <label for="requesterPhone">Phone Number (Optional)</label>
+      <input id="requesterPhone" type="tel" maxlength="30">
+
+      <label for="requestType">Type of Request</label>
+      <select id="requestType" required>
+        <option value="">Select request type</option>
+        <option value="Performance Booking">Performance Booking</option>
+        <option value="Music Collaboration">Music Collaboration</option>
+        <option value="Creative Collaboration">Creative Collaboration</option>
+        <option value="General Enquiry">General Enquiry</option>
+      </select>
+
+      <label for="eventDate">Event Date (Optional)</label>
+      <input id="eventDate" type="date">
+
+      <label for="requestMessage">Describe Your Request</label>
+      <textarea
+        id="requestMessage"
+        minlength="10"
+        maxlength="2000"
+        placeholder="Tell the creator what you have in mind..."
+        required
+      ></textarea>
+
+      <button id="submitButton" type="submit">
+        Send Request
+      </button>
+
+    </form>
+
+    <p id="message"></p>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 PROOFNEAR. All rights reserved.
+</footer>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_G2EnYQpGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const form = document.getElementById("requestForm");
+const message = document.getElementById("message");
+const creatorInfo = document.getElementById("creatorInfo");
+const submitButton = document.getElementById("submitButton");
+
+let currentUser = null;
+let creatorId = null;
+
+function showMessage(text, error = false) {
+  message.textContent = text;
+  message.style.color = error ? "#bd3030" : "#16834d";
+}
+
+async function initializePage() {
+  const params = new URLSearchParams(window.location.search);
+  creatorId = params.get("id");
+
+  if (!creatorId) {
+    creatorInfo.textContent = "No creator was specified.";
+    return;
+  }
+
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  if (authError || !authData.user) {
+    creatorInfo.textContent =
+      "Please sign in to your PROOFNEAR account before sending a request.";
+    return;
+  }
+
+  currentUser = authData.user;
+
+  const { data: creator, error } = await supabaseClient
+    .from("creator_profiles")
+    .select("user_id,stage_name,talent_category")
+    .eq("user_id", creatorId)
+    .eq("approval_status", "approved")
+    .maybeSingle();
+
+  if (error) {
+    creatorInfo.textContent =
+      "Unable to load creator information: " + error.message;
+    return;
+  }
+
+  if (!creator) {
+    creatorInfo.textContent =
+      "This creator is unavailable or has not been approved.";
+    return;
+  }
+
+  if (creator.user_id === currentUser.id) {
+    creatorInfo.textContent =
+      "You cannot send a booking request to your own profile.";
+    return;
+  }
+
+  creatorInfo.textContent =
+    "Sending a request to " + creator.stage_name +
+    " (" + creator.talent_category + ").";
+
+  document.getElementById("requesterEmail").value =
+    currentUser.email || "";
+
+  form.hidden = false;
+}
+
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  if (!currentUser || !creatorId) {
+    showMessage("Please sign in and select an approved creator.", true);
+    return;
+  }
+
+  const requestData = {
+    creator_user_id: creatorId,
+    requester_user_id: currentUser.id,
+    requester_name:
+      document.getElementById("requesterName").value.trim(),
+    requester_email: currentUser.email,
+    requester_phone:
+      document.getElementById("requesterPhone").value.trim() || null,
+    request_type:
+      document.getElementById("requestType").value,
+    event_date:
+      document.getElementById("eventDate").value || null,
+    message:
+      document.getElementById("requestMessage").value.trim()
+  };
+
+  if (requestData.message.length < 10) {
+    showMessage("Please enter at least 10 characters.", true);
+    return;
+  }
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Sending Request...";
+
+  const { error } = await supabaseClient
+    .from("creator_requests")
+    .insert(requestData);
+
+  if (error) {
+    showMessage("Request failed: " + error.message, true);
+    submitButton.disabled = false;
+    submitButton.textContent = "Send Request";
+    return;
+  }
+
+  form.reset();
+  document.getElementById("requesterEmail").value =
+    currentUser.email || "";
+
+  showMessage(
+    "Your request has been sent successfully! The creator can now review it."
+  );
+
+  submitButton.disabled = false;
+  submitButton.textContent = "Send Request";
+});
+
+initializePage();
+</script>
+
+</body>
+  </html>
+
