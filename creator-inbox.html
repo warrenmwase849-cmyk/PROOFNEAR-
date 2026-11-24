@@ -1,1 +1,315 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creator Inbox | PROOFNEAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f2f6f3;
+      color: #17352b;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      background: #123c2e;
+      color: white;
+      text-align: center;
+      padding: 25px 15px;
+    }
+
+    nav {
+      background: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav a {
+      color: #176b50;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 9px;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 25px auto;
+      padding: 0 16px;
+    }
+
+    .request-card {
+      background: white;
+      border-radius: 13px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 3px 14px #0000000d;
+      overflow-wrap: anywhere;
+    }
+
+    .request-card h3 { margin-top: 0; }
+
+    .status {
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .pending { color: #b27b0c; }
+    .accepted { color: #16834d; }
+    .declined { color: #bd3030; }
+
+    button {
+      padding: 12px 17px;
+      margin: 10px 8px 0 0;
+      border: 0;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .accept { background: #16834d; }
+    .decline { background: #bd3030; }
+    .refresh { background: #173d31; }
+
+    #message {
+      font-weight: bold;
+      padding: 15px 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #687a71;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Creator Inbox</h2>
+  <p>Manage your bookings and collaboration requests.</p>
+</header>
+
+<nav>
+  <a href="talent-arena.html">Talent Arena</a>
+  <a href="talent-creators.html">Discover Creators</a>
+  <a href="index.html">Marketplace</a>
+</nav>
+
+<main class="container">
+  <h2>Incoming Requests</h2>
+  <p id="creatorIdentity"></p>
+
+  <button class="refresh" id="refreshButton">
+    Refresh Inbox
+  </button>
+
+  <p id="message">Checking your account...</p>
+
+  <section id="requestList"></section>
+</main>
+
+<footer>
+  © 2026 PROOFNEAR. All rights reserved.
+</footer>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_G2EnYQpGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const message = document.getElementById("message");
+const requestList = document.getElementById("requestList");
+
+let currentUser = null;
+
+function showMessage(text, error = false) {
+  message.textContent = text;
+  message.style.color = error ? "#bd3030" : "#16834d";
+}
+
+function renderRequests(requests) {
+  requestList.replaceChildren();
+
+  if (!requests.length) {
+    showMessage("You have no incoming requests yet.");
+    return;
+  }
+
+  showMessage("You have " + requests.length + " request(s).");
+
+  requests.forEach(request => {
+    const card = document.createElement("article");
+    card.className = "request-card";
+
+    const title = document.createElement("h3");
+    title.textContent = request.request_type;
+
+    const sender = document.createElement("p");
+    sender.textContent = "From: " + request.requester_name;
+
+    const email = document.createElement("p");
+    email.textContent = "Email: " + request.requester_email;
+
+    const phone = document.createElement("p");
+    phone.textContent =
+      "Phone: " + (request.requester_phone || "Not provided");
+
+    const date = document.createElement("p");
+    date.textContent =
+      "Event date: " + (request.event_date || "Not specified");
+
+    const details = document.createElement("p");
+    details.textContent = "Message: " + request.message;
+
+    const status = document.createElement("p");
+    status.className = "status " + request.status;
+    status.textContent = "Status: " + request.status;
+
+    card.append(title, sender, email, phone, date, details, status);
+
+    if (request.status === "pending") {
+      const accept = document.createElement("button");
+      accept.className = "accept";
+      accept.textContent = "Accept Request";
+      accept.addEventListener("click", () =>
+        updateRequest(request.id, "accepted", accept)
+      );
+
+      const decline = document.createElement("button");
+      decline.className = "decline";
+      decline.textContent = "Decline Request";
+      decline.addEventListener("click", () =>
+        updateRequest(request.id, "declined", decline)
+      );
+
+      card.append(accept, decline);
+    }
+
+    requestList.appendChild(card);
+  });
+}
+
+async function loadInbox() {
+  requestList.replaceChildren();
+  showMessage("Loading your requests...");
+
+  const { data, error } = await supabaseClient
+    .from("creator_requests")
+    .select(
+      "id,requester_name,requester_email,requester_phone,request_type,event_date,message,status,created_at"
+    )
+    .eq("creator_user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showMessage("Unable to load inbox: " + error.message, true);
+    return;
+  }
+
+  renderRequests(data || []);
+}
+
+async function updateRequest(requestId, newStatus, button) {
+  const action = newStatus === "accepted" ? "accept" : "decline";
+
+  if (!confirm("Are you sure you want to " + action + " this request?")) {
+    return;
+  }
+
+  button.disabled = true;
+  showMessage("Updating request...");
+
+  const { data, error } = await supabaseClient
+    .from("creator_requests")
+    .update({ status: newStatus })
+    .eq("id", requestId)
+    .eq("creator_user_id", currentUser.id)
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) {
+    button.disabled = false;
+    showMessage("Update failed: " + error.message, true);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    showMessage("Request was not updated. Refresh and check its status.", true);
+    await loadInbox();
+    return;
+  }
+
+  showMessage("Request " + newStatus + " successfully.");
+  await loadInbox();
+}
+
+async function initializeInbox() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage(
+      "Please sign in to your PROOFNEAR account to view your inbox.",
+      true
+    );
+    return;
+  }
+
+  currentUser = data.user;
+
+  const { data: creator, error: creatorError } = await supabaseClient
+    .from("creator_profiles")
+    .select("stage_name,approval_status")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (creatorError) {
+    showMessage("Unable to check creator profile: " + creatorError.message, true);
+    return;
+  }
+
+  if (!creator || creator.approval_status !== "approved") {
+    showMessage("Your creator profile must be approved to use the Creator Inbox.", true);
+    return;
+  }
+
+  document.getElementById("creatorIdentity").textContent =
+    "Signed in as: " + creator.stage_name;
+
+  await loadInbox();
+}
+
+document.getElementById("refreshButton").addEventListener(
+  "click",
+  async () => {
+    if (currentUser) await loadInbox();
+    else await initializeInbox();
+  }
+);
+
+initializeInbox();
+</script>
+
+</body>
+  </html>
+
