@@ -1029,6 +1029,8 @@ dashboardContent.innerHTML = `
 
   document.getElementById("totalOpportunities").textContent =
     total ?? 0;
+  document.getElementById("pendingOpportunities").textContent =
+  pending ?? 0;
   document.getElementById("approvedOpportunities").textContent =
     approved ?? 0;
 
