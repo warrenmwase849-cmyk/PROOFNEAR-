@@ -1,7 +1,7 @@
 
 /* =========================================
    PROOFNEAR TALENT ARENA
-   Creator Registration
+   Creator Registration + Profile Photo Upload
 ========================================= */
 
 const SUPABASE_URL =
@@ -10,27 +10,45 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
 
+const PROFILE_PHOTO_BUCKET = "profile-photos";
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp"
+];
+
 const talentSupabase = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
 
 document.addEventListener("DOMContentLoaded", async function () {
-
-  const form = document.getElementById(
-    "creatorRegistrationForm"
-  );
-
+  const form = document.getElementById("creatorRegistrationForm");
   const authNotice = document.getElementById("authNotice");
   const message = document.getElementById("registrationMessage");
   const submitButton = document.getElementById("creatorSubmitButton");
+  const photoInput = document.getElementById("profilePhoto");
+  const photoPreviewContainer = document.getElementById("photoPreviewContainer");
+  const photoPreview = document.getElementById("photoPreview");
+  const removePhotoButton = document.getElementById("removePhotoButton");
 
-  if (!form || !message || !submitButton) {
+  if (
+    !form ||
+    !authNotice ||
+    !message ||
+    !submitButton ||
+    !photoInput ||
+    !photoPreviewContainer ||
+    !photoPreview ||
+    !removePhotoButton
+  ) {
     console.error("Creator registration form elements are missing.");
     return;
   }
 
   let currentUser = null;
+  let previewObjectUrl = null;
 
   function showMessage(text, isError = false) {
     message.textContent = text;
@@ -43,46 +61,90 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  // Check the existing PROOFNEAR login session.
+  function clearPhotoPreview() {
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+
+    photoPreview.removeAttribute("src");
+    photoPreviewContainer.hidden = true;
+  }
+
+  function validatePhoto(file) {
+    if (!file) return null;
+
+    if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      return "Please choose a JPG, PNG or WebP image.";
+    }
+
+    if (file.size > MAX_PHOTO_SIZE) {
+      return "Your profile photo must be 5 MB or smaller.";
+    }
+
+    return null;
+  }
+
+  photoInput.addEventListener("change", function () {
+    const file = photoInput.files && photoInput.files[0];
+
+    if (!file) {
+      clearPhotoPreview();
+      return;
+    }
+
+    const validationError = validatePhoto(file);
+
+    if (validationError) {
+      photoInput.value = "";
+      clearPhotoPreview();
+      showMessage(validationError, true);
+      return;
+    }
+
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+    }
+
+    previewObjectUrl = URL.createObjectURL(file);
+    photoPreview.src = previewObjectUrl;
+    photoPreviewContainer.hidden = false;
+    showMessage("Photo selected. Preview it below before submitting.");
+  });
+
+  removePhotoButton.addEventListener("click", function () {
+    photoInput.value = "";
+    clearPhotoPreview();
+    showMessage("Selected photo removed.");
+  });
+
   async function checkLogin() {
-    const { data, error } =
-      await talentSupabase.auth.getUser();
+    const { data, error } = await talentSupabase.auth.getUser();
 
     if (error || !data.user) {
       currentUser = null;
-
       authNotice.textContent =
         "Please sign in to your PROOFNEAR account before registering.";
-
       authNotice.style.display = "block";
       setFormEnabled(false);
-
       return false;
     }
 
     currentUser = data.user;
-
     authNotice.textContent =
       "Signed in successfully. You can create your creator profile.";
-
     authNotice.style.background = "#e8f4ed";
     authNotice.style.color = "#176b50";
-
     setFormEnabled(true);
-
     return true;
   }
 
   const loggedIn = await checkLogin();
 
   if (!loggedIn) {
-    showMessage(
-      "Sign in to your PROOFNEAR account first.",
-      true
-    );
+    showMessage("Sign in to your PROOFNEAR account first.", true);
   }
 
-  // Register or update the signed-in creator's profile.
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
@@ -94,23 +156,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    const stageName =
-      document.getElementById("stageName").value.trim();
-
-    const talentCategory =
-      document.getElementById("talentCategory").value;
-
-    const bio =
-      document.getElementById("creatorBio").value.trim();
-
-    const district =
-      document.getElementById("creatorDistrict").value.trim();
-
-    const photoUrl =
-      document.getElementById("profilePhoto").value.trim();
-
-    const portfolioUrl =
-      document.getElementById("portfolioUrl").value.trim();
+    const stageName = document.getElementById("stageName").value.trim();
+    const talentCategory = document.getElementById("talentCategory").value;
+    const bio = document.getElementById("creatorBio").value.trim();
+    const district = document.getElementById("creatorDistrict").value.trim();
+    const portfolioUrl = document.getElementById("portfolioUrl").value.trim();
+    const selectedPhoto = photoInput.files && photoInput.files[0];
 
     const allowedCategories = [
       "Singer & Vocalist",
@@ -134,40 +185,36 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     if (bio.length > 500) {
-      showMessage(
-        "Your biography cannot exceed 500 characters.",
-        true
-      );
+      showMessage("Your biography cannot exceed 500 characters.", true);
       return;
     }
 
-    const validUrl = value => {
-      if (!value) return true;
-
+    if (portfolioUrl) {
       try {
-        const url = new URL(value);
-        return url.protocol === "https:" || url.protocol === "http:";
+        const url = new URL(portfolioUrl);
+        if (url.protocol !== "https:" && url.protocol !== "http:") {
+          throw new Error("Invalid protocol");
+        }
       } catch {
-        return false;
+        showMessage("Please enter a valid portfolio or social media link.", true);
+        return;
       }
-    };
+    }
 
-    if (!validUrl(photoUrl) || !validUrl(portfolioUrl)) {
-      showMessage(
-        "Please enter valid photo and portfolio links.",
-        true
-      );
+    const photoValidationError = validatePhoto(selectedPhoto);
+    if (photoValidationError) {
+      showMessage(photoValidationError, true);
       return;
     }
 
     submitButton.disabled = true;
     submitButton.textContent = "Submitting...";
 
-    showMessage("Saving your creator profile...");
+    let uploadedPhotoPath = null;
 
     try {
+      showMessage("Checking your account...");
 
-      // Confirm the authenticated user again.
       const { data: authData, error: authError } =
         await talentSupabase.auth.getUser();
 
@@ -179,20 +226,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       const userId = authData.user.id;
 
-      const profileData = {
-        stage_name: stageName,
-        talent_category: talentCategory,
-        bio: bio || null,
-        district: district || null,
-        profile_photo_url: photoUrl || null,
-        portfolio_url: portfolioUrl || null,
-      };
-
-      // Check whether this user already has a creator profile.
       const { data: existingProfile, error: lookupError } =
         await talentSupabase
           .from("creator_profiles")
-          .select("user_id")
+          .select("user_id, profile_photo_url")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -200,31 +237,73 @@ document.addEventListener("DOMContentLoaded", async function () {
         throw lookupError;
       }
 
+      let photoUrl = existingProfile?.profile_photo_url || null;
+
+      if (selectedPhoto) {
+        showMessage("Uploading your profile photo...");
+
+        const safeFileName = selectedPhoto.name
+          .toLowerCase()
+          .replace(/[^a-z0-9._-]/g, "-")
+          .replace(/-+/g, "-");
+
+        const uniqueFileName =
+          Date.now() + "-" + crypto.randomUUID() + "-" + safeFileName;
+
+        uploadedPhotoPath = userId + "/" + uniqueFileName;
+
+        const { error: uploadError } = await talentSupabase.storage
+          .from(PROFILE_PHOTO_BUCKET)
+          .upload(uploadedPhotoPath, selectedPhoto, {
+            cacheControl: "3600",
+            contentType: selectedPhoto.type,
+            upsert: false
+          });
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: publicUrlData } = talentSupabase.storage
+          .from(PROFILE_PHOTO_BUCKET)
+          .getPublicUrl(uploadedPhotoPath);
+
+        photoUrl = publicUrlData.publicUrl;
+      }
+
+      const profileData = {
+        stage_name: stageName,
+        talent_category: talentCategory,
+        bio: bio || null,
+        district: district || null,
+        profile_photo_url: photoUrl,
+        portfolio_url: portfolioUrl || null
+      };
+
+      showMessage("Saving your creator profile...");
+
       let saveResult;
 
       if (existingProfile) {
-
-        // Update profile details without changing approval status.
         saveResult = await talentSupabase
           .from("creator_profiles")
           .update(profileData)
           .eq("user_id", userId);
-
       } else {
-
-        // Create a new creator profile.
         saveResult = await talentSupabase
           .from("creator_profiles")
           .insert({
             user_id: userId,
             ...profileData
           });
-
       }
 
       if (saveResult.error) {
         throw saveResult.error;
       }
+
+      clearPhotoPreview();
+      photoInput.value = "";
 
       showMessage(
         "Success! Your creator profile has been submitted. It is awaiting administrator review."
@@ -233,8 +312,17 @@ document.addEventListener("DOMContentLoaded", async function () {
       submitButton.textContent = "Registration Submitted";
 
     } catch (error) {
-
       console.error("Creator registration error:", error);
+
+      if (uploadedPhotoPath) {
+        const { error: cleanupError } = await talentSupabase.storage
+          .from(PROFILE_PHOTO_BUCKET)
+          .remove([uploadedPhotoPath]);
+
+        if (cleanupError) {
+          console.error("Could not remove unused uploaded photo:", cleanupError);
+        }
+      }
 
       showMessage(
         error.message || "Registration failed. Please try again.",
@@ -244,13 +332,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       submitButton.disabled = false;
       submitButton.textContent = "Submit Creator Registration";
     }
-
   });
 
-  // Keep the page aware of sign-in and sign-out changes.
   talentSupabase.auth.onAuthStateChange(async function () {
     await checkLogin();
   });
-
 });
-      
