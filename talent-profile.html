@@ -192,7 +192,13 @@ function showProfile(creator) {
     link.textContent = "View Portfolio";
     profile.appendChild(link);
   }
+const bookingLink = document.createElement("a");
+bookingLink.className = "portfolio";
+bookingLink.href =
+  "creator-request.html?id=" + encodeURIComponent(creator.user_id);
+bookingLink.textContent = "Book / Contact This Creator";
 
+profile.appendChild(bookingLink);
   profile.hidden = false;
   message.textContent = "Creator profile loaded successfully.";
 }
