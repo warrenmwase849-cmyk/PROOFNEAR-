@@ -209,8 +209,8 @@ async function loadProfile() {
   const { data, error } = await supabaseClient
     .from("creator_profiles")
     .select(
-      "stage_name,talent_category,bio,district,profile_photo_url,portfolio_url"
-    )
+  "user_id,stage_name,talent_category,bio,district,profile_photo_url,portfolio_url"
+)
     .eq("user_id", userId)
     .eq("approval_status", "approved")
     .maybeSingle();
