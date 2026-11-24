@@ -1,1 +1,236 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creator Profile | PROOFNEAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f2f6f3;
+      color: #17352b;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      background: #123c2e;
+      color: white;
+      text-align: center;
+      padding: 25px 15px;
+    }
+
+    nav {
+      background: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav a {
+      color: #176b50;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 10px;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+
+    .profile {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 3px 15px #0000000d;
+      text-align: center;
+    }
+
+    .profile img {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e5eee8;
+    }
+
+    .category {
+      color: #16834d;
+      font-weight: bold;
+    }
+
+    .bio {
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .portfolio {
+      display: inline-block;
+      background: #d6a832;
+      color: #17352b;
+      padding: 13px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      margin-top: 15px;
+    }
+
+    #message {
+      text-align: center;
+      padding: 25px;
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      color: #687a71;
+      padding: 25px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>PROOFNEAR</h1>
+    <h2>Creator Profile</h2>
+    <p>Discover talent. Connect with creativity.</p>
+  </header>
+
+  <nav>
+    <a href="talent-creators.html">Discover Creators</a>
+    <a href="talent-arena.html">Talent Arena</a>
+    <a href="index.html">Marketplace</a>
+  </nav>
+
+  <main class="container">
+    <p id="message">Loading creator profile...</p>
+    <section id="profile" class="profile" hidden></section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> PROOFNEAR. All rights reserved.
+  </footer>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_G2EnYQpGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const message = document.getElementById("message");
+const profile = document.getElementById("profile");
+
+document.getElementById("year").textContent =
+  new Date().getFullYear();
+
+function safeUrl(value) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    if (url.protocol === "https:" || url.protocol === "http:") {
+      return url.href;
+    }
+  } catch {}
+
+  return null;
+}
+
+function showProfile(creator) {
+  profile.replaceChildren();
+
+  const photoUrl = safeUrl(creator.profile_photo_url);
+
+  if (photoUrl) {
+    const image = document.createElement("img");
+    image.src = photoUrl;
+    image.alt = creator.stage_name;
+    image.onerror = () => image.remove();
+    profile.appendChild(image);
+  }
+
+  const name = document.createElement("h1");
+  name.textContent = creator.stage_name;
+
+  const category = document.createElement("p");
+  category.className = "category";
+  category.textContent = creator.talent_category;
+
+  const district = document.createElement("p");
+  district.textContent =
+    "District: " + (creator.district || "Not provided");
+
+  const heading = document.createElement("h3");
+  heading.textContent = "About the Creator";
+
+  const bio = document.createElement("p");
+  bio.className = "bio";
+  bio.textContent = creator.bio || "No biography provided.";
+
+  profile.append(name, category, district, heading, bio);
+
+  const portfolioUrl = safeUrl(creator.portfolio_url);
+
+  if (portfolioUrl) {
+    const link = document.createElement("a");
+    link.className = "portfolio";
+    link.href = portfolioUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "View Portfolio";
+    profile.appendChild(link);
+  }
+
+  profile.hidden = false;
+  message.textContent = "Creator profile loaded successfully.";
+}
+
+async function loadProfile() {
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get("id");
+
+  if (!userId) {
+    message.textContent = "No creator profile was specified.";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("creator_profiles")
+    .select(
+      "stage_name,talent_category,bio,district,profile_photo_url,portfolio_url"
+    )
+    .eq("user_id", userId)
+    .eq("approval_status", "approved")
+    .maybeSingle();
+
+  if (error) {
+    message.textContent = "Unable to load this creator profile.";
+    return;
+  }
+
+  if (!data) {
+    message.textContent =
+      "This creator profile is unavailable or has not been approved.";
+    return;
+  }
+
+  showProfile(data);
+}
+
+loadProfile();
+</script>
+</body>
+</html>
+
