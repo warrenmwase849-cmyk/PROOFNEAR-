@@ -231,7 +231,16 @@ function displayCreators(creators) {
       card.appendChild(portfolio);
     }
 
-    creatorGrid.appendChild(card);
+    const profileLink = document.createElement("a");
+profileLink.href =
+  "talent-profile.html?id=" + encodeURIComponent(creator.user_id);
+profileLink.textContent = "View Full Profile";
+profileLink.style.display = "inline-block";
+profileLink.style.marginTop = "15px";
+profileLink.style.color = "#176b50";
+profileLink.style.fontWeight = "bold";
+
+card.appendChild(profileLink);
   });
 }
 
