@@ -241,8 +241,8 @@ async function loadApprovedCreators() {
   const { data, error } = await supabaseClient
     .from("creator_profiles")
     .select(
-      "stage_name,talent_category,bio,district,profile_photo_url,portfolio_url"
-    )
+  "user_id,stage_name,talent_category,bio,district,profile_photo_url,portfolio_url"
+)
     .eq("approval_status", "approved")
     .order("created_at", { ascending: false });
 
