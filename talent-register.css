@@ -1,266 +1,40 @@
 
-:root {
-  --green-dark: #102c25;
-  --green: #176b50;
-  --gold: #e5b94f;
-  --white: #ffffff;
-  --text: #24342e;
-  --muted: #718078;
-  --background: #f4f8f5;
-  --border: #e0e9e2;
-}
+/* =================================
+   PROFILE PHOTO PREVIEW
+================================= */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--background);
-  color: var(--text);
-  line-height: 1.6;
-}
-
-a {
-  text-decoration: none;
-}
-
-.register-header {
-  min-height: 75px;
-  padding: 14px 7%;
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  color: var(--green-dark);
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.brand small {
-  display: block;
-  color: var(--green);
-  font-size: 9px;
-  letter-spacing: 2px;
-}
-
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--green);
-  color: var(--white);
-  font-size: 23px;
-}
-
-.back-link {
-  color: var(--green);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.register-container {
-  width: 100%;
-  max-width: 850px;
-  margin: auto;
-  padding: 55px 22px 80px;
-}
-
-.register-intro {
-  text-align: center;
-  margin-bottom: 35px;
-}
-
-.eyebrow {
-  color: var(--green);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-.register-intro h1 {
-  color: var(--green-dark);
-  font-size: clamp(34px, 5vw, 46px);
-  margin: 12px 0;
-  line-height: 1.15;
-}
-
-.register-intro p {
-  max-width: 620px;
-  margin: auto;
-  color: var(--muted);
-  font-size: 15px;
-}
-
-.register-card {
-  background: var(--white);
-  padding: 38px;
+.photo-preview-container {
+  margin-top: 14px;
+  padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 17px;
-  box-shadow: 0 12px 40px rgba(16, 44, 37, .06);
-}
-
-.form-heading {
-  margin-bottom: 25px;
-}
-
-.form-heading h2 {
-  color: var(--green-dark);
-  font-size: 23px;
-}
-
-.form-heading p {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 5px;
-}
-
-.notice {
-  padding: 13px 15px;
-  margin-bottom: 24px;
-  background: #fff6df;
-  color: #785d1d;
-  border-radius: 9px;
-  font-size: 13px;
-}
-
-.form-group {
-  margin-bottom: 21px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--green-dark);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  display: block;
-  width: 100%;
-  padding: 13px 14px;
-  border: 1px solid #d8e2da;
-  border-radius: 9px;
+  border-radius: 12px;
   background: #fbfdfb;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 14px;
-  outline: none;
-  transition: border-color .2s, box-shadow .2s;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(23, 107, 80, .1);
+.photo-preview-container[hidden] {
+  display: none;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 120px;
-}
-
-.form-group small {
+.photo-preview {
   display: block;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-#creatorSubmitButton {
   width: 100%;
-  padding: 15px;
-  border: none;
-  border-radius: 9px;
-  background: var(--green);
-  color: var(--white);
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background .2s, transform .2s;
+  max-width: 220px;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
-#creatorSubmitButton:hover {
-  background: var(--green-dark);
-  transform: translateY(-2px);
-}
-
-#creatorSubmitButton:disabled {
-  opacity: .65;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.form-footnote {
-  margin-top: 17px;
-  color: var(--muted);
-  text-align: center;
-  font-size: 11px;
-}
-
-#registrationMessage {
-  margin-top: 18px;
-  font-size: 13px;
+.remove-photo-button {
+  padding: 9px 13px;
+  border: 1px solid #d8e2da;
+  border-radius: 8px;
+  background: #fff;
+  color: #b42318;
   font-weight: 700;
+  cursor: pointer;
 }
 
-.register-footer {
-  padding: 28px 15px;
-  background: var(--green-dark);
-  color: #c7d8ce;
-  text-align: center;
-  font-size: 12px;
+.remove-photo-button:hover {
+  background: #fff1f0;
 }
-
-.register-footer a {
-  display: inline-block;
-  color: var(--gold);
-  font-weight: 800;
-  margin-bottom: 8px;
-}
-
-.register-footer p {
-  margin-top: 5px;
-}
-
-@media (max-width: 600px) {
-  .register-header {
-    padding: 12px 5%;
-  }
-
-  .brand {
-    font-size: 14px;
-  }
-
-  .register-container {
-    padding: 40px 15px 60px;
-  }
-
-  .register-card {
-    padding: 23px 18px;
-  }
-
-  .register-intro p {
-    font-size: 13px;
-  }
-
-  .back-link {
-    font-size: 11px;
-  }
-  }
-
