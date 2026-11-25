@@ -180,7 +180,67 @@
     <p>© 2026 PROOFNEAR. All rights reserved.</p>
     <p>Discover talent. Create opportunities.</p>
   </footer>
+<script>
+const arenaSupabase = window.supabase.createClient(
+  "https://hzxaamykvnvfillpkfom.supabase.co",
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH"
+);
 
+async function loadFeaturedCreators() {
+  const grid = document.getElementById("creatorPreviewGrid");
+  const message = document.getElementById("creatorPreviewMessage");
+
+  const { data, error } = await arenaSupabase
+    .from("creator_profiles")
+    .select("user_id,stage_name,talent_category,profile_photo_url")
+    .eq("approval_status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(4);
+
+  if (error) {
+    message.textContent = "Unable to load featured creators.";
+    return;
+  }
+
+  grid.replaceChildren();
+
+  if (!data || data.length === 0) {
+    message.textContent =
+      "No approved creators yet. Register and introduce your talent!";
+    return;
+  }
+
+  message.textContent = "Meet some of our approved creators.";
+
+  data.forEach(creator => {
+    const card = document.createElement("article");
+    card.className = "creator-preview-card";
+
+    if (creator.profile_photo_url) {
+      const photo = document.createElement("img");
+      photo.src = creator.profile_photo_url;
+      photo.alt = creator.stage_name || "Creator";
+      card.appendChild(photo);
+    }
+
+    const name = document.createElement("h3");
+    name.textContent = creator.stage_name || "Creator";
+
+    const category = document.createElement("p");
+    category.textContent = creator.talent_category || "Creative talent";
+
+    const link = document.createElement("a");
+    link.href =
+      "talent-profile.html?id=" + encodeURIComponent(creator.user_id);
+    link.textContent = "View Profile";
+
+    card.append(name, category, link);
+    grid.appendChild(card);
+  });
+}
+
+loadFeaturedCreators();
+</script>
   <script src="talent-arena.js"></script>
 </body>
 </html>
