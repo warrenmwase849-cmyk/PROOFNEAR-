@@ -1,1 +1,279 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Booking History | PROOFNEAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f6f3;
+      color: #17352b;
+    }
+    header {
+      background: linear-gradient(135deg,#123c2e,#176b50);
+      color: white;
+      text-align: center;
+      padding: 25px 15px;
+    }
+    nav {
+      background: white;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    nav a {
+      color: #176b50;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .container {
+      max-width: 950px;
+      margin: 25px auto;
+      padding: 0 15px;
+    }
+    .panel, .booking-card, .stat {
+      background: white;
+      padding: 20px;
+      border-radius: 13px;
+      box-shadow: 0 3px 14px #0000000b;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      margin-top: 8px;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 20px 0;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 16px;
+      background: #176b50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button.active { background: #d6a832; color: #17352b; }
+    .booking-card { margin-bottom: 15px; overflow-wrap: anywhere; }
+    .booking-card h3 { margin-top: 0; }
+    .status { font-weight: bold; text-transform: uppercase; }
+    .pending { color: #b27b0c; }
+    .accepted { color: #16834d; }
+    .declined { color: #bd3030; }
+    #message { padding: 15px 0; font-weight: bold; }
+    .muted { color: #687a71; }
+    footer { text-align: center; padding: 25px; color: #687a71; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Creator Booking History</h2>
+  <p>Track your bookings and collaboration requests.</p>
+</header>
+
+<nav>
+  <a href="creator-dashboard.html">Dashboard</a>
+  <a href="creator-inbox.html">Inbox</a>
+  <a href="creator-notifications.html">Notifications</a>
+  <a href="talent-creators.html">Explore Creators</a>
+  <a href="talent-arena.html">Talent Arena</a>
+</nav>
+
+<main class="container">
+  <section class="panel">
+    <h2>Your Booking Overview</h2>
+    <p id="creatorName" class="muted">Checking your account...</p>
+
+    <div class="stats">
+      <div class="stat">Total Requests<strong id="totalCount">0</strong></div>
+      <div class="stat">Pending<strong id="pendingCount">0</strong></div>
+      <div class="stat">Accepted<strong id="acceptedCount">0</strong></div>
+      <div class="stat">Declined<strong id="declinedCount">0</strong></div>
+    </div>
+
+    <button id="refreshButton">Refresh History</button>
+  </section>
+
+  <div class="filters">
+    <button class="active" data-filter="all">All Requests</button>
+    <button data-filter="pending">Pending</button>
+    <button data-filter="accepted">Accepted</button>
+    <button data-filter="declined">Declined</button>
+  </div>
+
+  <p id="message">Loading booking history...</p>
+  <section id="bookingList"></section>
+</main>
+
+<footer>© 2026 PROOFNEAR. All rights reserved.</footer>
+
+<script>
+const SUPABASE_URL = "https://hzxaamykvnvfillpkfom.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const message = document.getElementById("message");
+const bookingList = document.getElementById("bookingList");
+
+let currentUser = null;
+let allBookings = [];
+let activeFilter = "all";
+
+function showMessage(text, error = false) {
+  message.textContent = text;
+  message.style.color = error ? "#bd3030" : "#176b50";
+}
+
+function updateStatistics(bookings) {
+  document.getElementById("totalCount").textContent = bookings.length;
+  document.getElementById("pendingCount").textContent =
+    bookings.filter(b => b.status === "pending").length;
+  document.getElementById("acceptedCount").textContent =
+    bookings.filter(b => b.status === "accepted").length;
+  document.getElementById("declinedCount").textContent =
+    bookings.filter(b => b.status === "declined").length;
+}
+
+function renderBookings() {
+  bookingList.replaceChildren();
+
+  const filtered = activeFilter === "all"
+    ? allBookings
+    : allBookings.filter(b => b.status === activeFilter);
+
+  if (!filtered.length) {
+    showMessage("No " + (activeFilter === "all" ? "" : activeFilter + " ") +
+      "booking requests found.");
+    return;
+  }
+
+  showMessage("Showing " + filtered.length + " booking request(s).");
+
+  filtered.forEach(booking => {
+    const card = document.createElement("article");
+    card.className = "booking-card";
+
+    function addLine(label, value) {
+      const p = document.createElement("p");
+      p.textContent = label + ": " + value;
+      card.appendChild(p);
+    }
+
+    const title = document.createElement("h3");
+    title.textContent = booking.request_type;
+    card.appendChild(title);
+
+    addLine("From", booking.requester_name);
+    addLine("Email", booking.requester_email);
+    addLine("Phone", booking.requester_phone || "Not provided");
+    addLine("Event date", booking.event_date || "Not specified");
+    addLine("Message", booking.message);
+    addLine("Received", new Date(booking.created_at).toLocaleString());
+
+    const status = document.createElement("p");
+    status.className = "status " + booking.status;
+    status.textContent = "Status: " + booking.status;
+    card.appendChild(status);
+
+    bookingList.appendChild(card);
+  });
+}
+
+async function loadHistory() {
+  bookingList.replaceChildren();
+  showMessage("Loading your booking history...");
+
+  const { data, error } = await supabaseClient
+    .from("creator_requests")
+    .select("id,requester_name,requester_email,requester_phone,request_type,event_date,message,status,created_at")
+    .eq("creator_user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showMessage("Unable to load booking history: " + error.message, true);
+    return;
+  }
+
+  allBookings = data || [];
+  updateStatistics(allBookings);
+  renderBookings();
+}
+
+async function initializePage() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage("Please sign in to view your booking history.", true);
+    return;
+  }
+
+  currentUser = data.user;
+
+  const { data: creator, error: creatorError } = await supabaseClient
+    .from("creator_profiles")
+    .select("stage_name,approval_status")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (creatorError) {
+    showMessage("Unable to check creator profile: " + creatorError.message, true);
+    return;
+  }
+
+  if (!creator || creator.approval_status !== "approved") {
+    showMessage("Your creator profile must be approved to view booking history.", true);
+    return;
+  }
+
+  document.getElementById("creatorName").textContent =
+    "Signed in as: " + creator.stage_name;
+
+  await loadHistory();
+}
+
+document.querySelectorAll("[data-filter]").forEach(button => {
+  button.addEventListener("click", () => {
+    activeFilter = button.dataset.filter;
+
+    document.querySelectorAll("[data-filter]").forEach(item => {
+      item.classList.toggle("active", item === button);
+    });
+
+    renderBookings();
+  });
+});
+
+document.getElementById("refreshButton").addEventListener("click", () => {
+  if (currentUser) loadHistory();
+  else initializePage();
+});
+
+initializePage();
+</script>
+
+</body>
+  </html>
+
