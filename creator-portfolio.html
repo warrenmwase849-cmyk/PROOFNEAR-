@@ -1,1 +1,523 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c2e">
+  <title>Creator Portfolio | PROOFNEAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f6f3;
+      color: #17352b;
+    }
+
+    header {
+      background: linear-gradient(135deg, #123c2e, #176b50);
+      color: white;
+      text-align: center;
+      padding: 28px 15px;
+    }
+
+    header h1 { margin: 0 0 8px; }
+    header p { color: #e1eee7; }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 18px;
+      padding: 15px;
+      background: white;
+    }
+
+    nav a {
+      color: #176b50;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(100% - 30px, 900px);
+      margin: 25px auto 40px;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      margin-bottom: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 14px #0000000b;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 13px;
+      margin: 7px 0 16px;
+      border: 1px solid #ccd9d0;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    textarea { resize: vertical; }
+
+    label {
+      font-weight: bold;
+      display: block;
+    }
+
+    button, .action-link {
+      display: inline-block;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #176b50;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .secondary {
+      background: #e7efe9;
+      color: #176b50;
+    }
+
+    #message {
+      padding: 13px;
+      border-radius: 8px;
+      background: #e8f4ed;
+      margin-bottom: 18px;
+    }
+
+    .creator {
+      text-align: center;
+    }
+
+    .creator img {
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e5eee8;
+    }
+
+    .creator h2 { margin-bottom: 5px; }
+
+    .category {
+      color: #16834d;
+      font-weight: bold;
+    }
+
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .item {
+      border: 1px solid #e1e9e3;
+      border-radius: 12px;
+      padding: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .item img, .item video, .item audio {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .item video { max-height: 260px; }
+
+    .item-type {
+      color: #16834d;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .item-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .item-actions button {
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+
+    .empty {
+      color: #687a71;
+      text-align: center;
+      padding: 25px 5px;
+    }
+
+    footer {
+      text-align: center;
+      color: #687a71;
+      padding: 22px;
+    }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Creator Portfolio</h2>
+  <p>Showcase your talent. Share your work. Get discovered.</p>
+</header>
+
+<nav>
+  <a href="creator-dashboard.html">Dashboard</a>
+  <a href="edit-creator-profile.html">Edit Profile</a>
+  <a href="creator-inbox.html">Inbox</a>
+  <a href="creator-booking-history.html">Booking History</a>
+  <a href="talent-creators.html">Explore Creators</a>
+  <a href="talent-arena.html">Talent Arena</a>
+</nav>
+
+<main class="container">
+
+  <div id="message" role="status" aria-live="polite">
+    Loading creator portfolio...
+  </div>
+
+  <section class="card creator" id="creatorCard" hidden>
+    <img id="creatorPhoto" alt="Creator profile photo" hidden>
+    <h2 id="creatorName"></h2>
+    <p class="category" id="creatorCategory"></p>
+    <p id="creatorDistrict"></p>
+    <p id="creatorBio"></p>
+    <a id="socialLink" class="action-link" target="_blank"
+       rel="noopener noreferrer" hidden>Visit Social / Portfolio Link</a>
+  </section>
+
+  <section class="card" id="addSection" hidden>
+    <h2>Add to Your Portfolio</h2>
+    <p>Share your music, videos, photos and creative work using a public link.</p>
+
+    <form id="portfolioForm">
+      <label for="itemTitle">Title *</label>
+      <input id="itemTitle" maxlength="100"
+        placeholder="Example: My latest music video" required>
+
+      <label for="itemType">Type of work *</label>
+      <select id="itemType" required>
+        <option value="">Choose a type</option>
+        <option value="Music">Music</option>
+        <option value="Video">Video</option>
+        <option value="Image">Image</option>
+        <option value="Audio">Audio</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="itemDescription">Description</label>
+      <textarea id="itemDescription" rows="3"
+        maxlength="500" placeholder="Tell people about this work"></textarea>
+
+      <label for="itemUrl">Public media link *</label>
+      <input id="itemUrl" type="url"
+        placeholder="https://..." required>
+
+      <button type="submit" id="saveButton">Add Portfolio Item</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>My Creative Work</h2>
+    <div id="portfolioItems" class="portfolio-grid">
+      <p class="empty">Loading portfolio items...</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 PROOFNEAR. All rights reserved.
+</footer>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const $ = id => document.getElementById(id);
+
+let currentUser = null;
+let creatorId = null;
+let isOwner = false;
+
+function showMessage(message, error = false) {
+  $("message").textContent = message;
+  $("message").style.background =
+    error ? "#fdecec" : "#e8f4ed";
+  $("message").style.color =
+    error ? "#991b1b" : "#166534";
+}
+
+function validUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol)
+      ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadPortfolio() {
+  const { data: authData } = await client.auth.getUser();
+  currentUser = authData?.user || null;
+
+  const params = new URLSearchParams(location.search);
+  creatorId = params.get("id") || currentUser?.id || null;
+
+  if (!creatorId) {
+    showMessage("Please sign in or open a creator portfolio link.", true);
+    return;
+  }
+
+  isOwner = !!currentUser && currentUser.id === creatorId;
+
+  const { data: creator, error } = await client
+    .from("creator_profiles")
+    .select("user_id,stage_name,talent_category,bio,district,profile_photo_url,portfolio_url,approval_status")
+    .eq("user_id", creatorId)
+    .eq("approval_status", "approved")
+    .maybeSingle();
+
+  if (error || !creator) {
+    showMessage("This creator profile is unavailable or not approved.", true);
+    return;
+  }
+
+  $("creatorName").textContent = creator.stage_name || "Creator";
+  $("creatorCategory").textContent = creator.talent_category || "";
+  $("creatorDistrict").textContent =
+    "District: " + (creator.district || "Not provided");
+  $("creatorBio").textContent =
+    creator.bio || "This creator has not added a biography yet.";
+
+  if (creator.profile_photo_url) {
+    const photo = validUrl(creator.profile_photo_url);
+    if (photo) {
+      $("creatorPhoto").src = photo;
+      $("creatorPhoto").hidden = false;
+    }
+  }
+
+  const social = validUrl(creator.portfolio_url);
+  if (social) {
+    $("socialLink").href = social;
+    $("socialLink").hidden = false;
+  }
+
+  $("creatorCard").hidden = false;
+
+  if (isOwner) {
+    $("addSection").hidden = false;
+  }
+
+  await loadItems();
+}
+
+async function loadItems() {
+  const container = $("portfolioItems");
+  container.replaceChildren();
+
+  const { data, error } = await client
+    .from("creator_portfolio_items")
+    .select("id,creator_user_id,title,description,media_type,media_url,created_at")
+    .eq("creator_user_id", creatorId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showMessage(
+      "Your portfolio page is ready, but the portfolio database table must be set up next.",
+      true
+    );
+    container.innerHTML =
+      '<p class="empty">Portfolio storage is not configured yet.</p>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML =
+      '<p class="empty">No portfolio items have been added yet.</p>';
+    return;
+  }
+
+  data.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "item";
+
+    const type = document.createElement("p");
+    type.className = "item-type";
+    type.textContent = item.media_type;
+
+    const title = document.createElement("h3");
+    title.textContent = item.title;
+
+    const description = document.createElement("p");
+    description.textContent = item.description || "";
+
+    card.append(type, title);
+
+    const url = validUrl(item.media_url);
+
+    if (url && item.media_type === "Image") {
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = item.title;
+      img.loading = "lazy";
+      card.appendChild(img);
+    } else if (url && item.media_type === "Video" &&
+               url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+      const video = document.createElement("video");
+      video.src = url;
+      video.controls = true;
+      card.appendChild(video);
+    } else if (url && item.media_type === "Audio" &&
+               url.match(/\.(mp3|wav|ogg|m4a)(\?.*)?$/i)) {
+      const audio = document.createElement("audio");
+      audio.src = url;
+      audio.controls = true;
+      card.appendChild(audio);
+    } else if (url && item.media_type === "Video" &&
+               /youtube\.com|youtu\.be/i.test(url)) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Watch Video";
+      link.className = "action-link";
+      card.appendChild(link);
+    }
+
+    card.appendChild(description);
+
+    if (url) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Open Work";
+      link.className = "action-link";
+      card.appendChild(link);
+    }
+
+    if (isOwner) {
+      const actions = document.createElement("div");
+      actions.className = "item-actions";
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Delete";
+      remove.className = "secondary";
+      remove.addEventListener("click", () => deleteItem(item.id));
+
+      actions.appendChild(remove);
+      card.appendChild(actions);
+    }
+
+    container.appendChild(card);
+  });
+
+  showMessage("Creator portfolio loaded successfully.");
+}
+
+async function addItem(event) {
+  event.preventDefault();
+
+  if (!isOwner || !currentUser) {
+    showMessage("Sign in to manage your own portfolio.", true);
+    return;
+  }
+
+  const title = $("itemTitle").value.trim();
+  const type = $("itemType").value;
+  const description = $("itemDescription").value.trim();
+  const mediaUrl = validUrl($("itemUrl").value.trim());
+
+  if (!title || !type || !mediaUrl) {
+    showMessage("Complete all required fields and enter a valid link.", true);
+    return;
+  }
+
+  const button = $("saveButton");
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  const { error } = await client
+    .from("creator_portfolio_items")
+    .insert({
+      creator_user_id: currentUser.id,
+      title,
+      description,
+      media_type: type,
+      media_url: mediaUrl
+    });
+
+  button.disabled = false;
+  button.textContent = "Add Portfolio Item";
+
+  if (error) {
+    showMessage("Could not save item: " + error.message, true);
+    return;
+  }
+
+  $("portfolioForm").reset();
+  showMessage("Portfolio item added successfully!");
+  await loadItems();
+}
+
+async function deleteItem(itemId) {
+  if (!isOwner || !confirm("Delete this portfolio item?")) return;
+
+  const { error } = await client
+    .from("creator_portfolio_items")
+    .delete()
+    .eq("id", itemId)
+    .eq("creator_user_id", currentUser.id);
+
+  if (error) {
+    showMessage("Could not delete item: " + error.message, true);
+    return;
+  }
+
+  showMessage("Portfolio item deleted.");
+  await loadItems();
+}
+
+$("portfolioForm").addEventListener("submit", addItem);
+
+loadPortfolio();
+</script>
+
+</body>
+  </html>
+
