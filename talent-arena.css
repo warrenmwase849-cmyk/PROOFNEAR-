@@ -305,7 +305,57 @@ a {
   text-align: left;
   margin-top: 40px;
 }
+/* LIVE APPROVED CREATORS */
 
+.creator-preview-section {
+  padding: 70px 8%;
+  background: #ffffff;
+  text-align: center;
+}
+
+.creator-preview-section h2 {
+  color: var(--green-dark);
+  font-size: clamp(29px, 4vw, 40px);
+  margin-bottom: 12px;
+}
+
+.creator-preview-section p {
+  color: var(--muted);
+}
+
+.creator-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.creator-preview-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 20px;
+  text-align: left;
+}
+
+.creator-preview-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.creator-preview-card h3 {
+  margin-top: 12px;
+  color: var(--green-dark);
+}
+
+.creator-preview-card a {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--green);
+  font-weight: bold;
+}
 .talent-card {
   background: var(--white);
   border: 1px solid var(--border);
