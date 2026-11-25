@@ -1,1 +1,248 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c2e">
+  <title>Creator Dashboard | PROOFNEAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f2f6f3; color: #17352b; }
+    header { background: linear-gradient(135deg,#123c2e,#176b50); color: white; padding: 26px 16px; text-align: center; }
+    header h1 { margin: 0 0 8px; letter-spacing: 1px; }
+    header p { margin: 0; color: #e1eee7; }
+    nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 18px; background: white; padding: 15px; }
+    nav a { color: #176b50; text-decoration: none; font-weight: bold; }
+    .container { width: min(100% - 30px, 980px); margin: 25px auto 40px; }
+    .welcome, .panel, .tile { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 3px 14px #0000000b; }
+    .welcome { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+    .avatar { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; background: #e5eee8; flex: 0 0 auto; }
+    .welcome h2 { margin: 0 0 7px; }
+    .welcome p { margin: 5px 0; color: #60746a; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 15px; margin: 18px 0 22px; }
+    .tile { border: 1px solid #e4ece6; }
+    .tile .symbol { font-size: 27px; }
+    .tile h3 { margin: 10px 0 7px; }
+    .tile p { color: #65766d; line-height: 1.5; min-height: 42px; }
+    .tile a, .action { display: inline-block; background: #176b50; color: white; text-decoration: none; border: 0; border-radius: 8px; padding: 11px 15px; font-weight: bold; cursor: pointer; }
+    .tile a.gold { background: #d6a832; color: #17352b; }
+    .panel { margin-top: 18px; }
+    .panel h2 { margin-top: 0; }
+    .details { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; }
+    .detail { background: #f5f9f6; border-radius: 9px; padding: 13px; }
+    .detail strong { display: block; margin-bottom: 5px; }
+    #message { padding: 14px; background: white; border-radius: 10px; font-weight: bold; }
+    .error { color: #bd3030; }
+    .muted { color: #687a71; }
+    footer { text-align: center; color: #687a71; padding: 24px 12px; }
+    @media (max-width: 520px) { .welcome { align-items: flex-start; } .avatar { width: 60px; height: 60px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PROOFNEAR</h1>
+    <h2>Creator Dashboard</h2>
+    <p>Your creative journey, bookings and opportunities in one place.</p>
+  </header>
+
+  <nav>
+    <a href="talent-arena.html">Talent Arena</a>
+    <a href="talent-creators.html">Explore Creators</a>
+    <a href="creator-inbox.html">Creator Inbox</a>
+    <a href="creator-notifications.html">Notifications</a>
+    <a href="index.html">Marketplace</a>
+  </nav>
+
+  <main class="container">
+    <p id="message">Checking your account...</p>
+
+    <section id="dashboard" hidden>
+      <div class="welcome">
+        <img id="creatorPhoto" class="avatar" alt="Creator profile photo" hidden>
+        <div>
+          <h2 id="welcomeName">Welcome</h2>
+          <p id="welcomeCategory"></p>
+          <p id="welcomeEmail" class="muted"></p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <article class="tile">
+          <div class="symbol">📥</div>
+          <h3>Booking Requests</h3>
+          <p><strong id="requestCount">0</strong> pending request(s) waiting for your response.</p>
+          <a href="creator-inbox.html">Open Creator Inbox</a>
+        </article>
+
+        <article class="tile">
+          <div class="symbol">🔔</div>
+          <h3>Notifications</h3>
+          <p><strong id="notificationCount">0</strong> unread notification(s).</p>
+          <a href="creator-notifications.html">View Notifications</a>
+        </article>
+
+        <article class="tile">
+          <div class="symbol">👤</div>
+          <h3>Public Creator Profile</h3>
+          <p>See how your approved profile appears to people discovering talent.</p>
+          <a id="profileLink" href="talent-creators.html">View My Profile</a>
+        </article>
+
+        <article class="tile">
+          <div class="symbol">🌟</div>
+          <h3>Discover Talent</h3>
+          <p>Explore other approved creators and find people to collaborate with.</p>
+          <a href="talent-creators.html" class="gold">Explore Creators</a>
+        </article>
+
+        <article class="tile">
+          <div class="symbol">🏆</div>
+          <h3>Talent Challenges</h3>
+          <p>Keep an eye on upcoming challenges and opportunities in the Arena.</p>
+          <a href="talent-arena.html#challenges">Explore Challenges</a>
+        </article>
+
+        <article class="tile">
+          <div class="symbol">🛍️</div>
+          <h3>PROOFNEAR Marketplace</h3>
+          <p>Return to the wider PROOFNEAR opportunities marketplace.</p>
+          <a href="index.html" class="gold">Open Marketplace</a>
+        </article>
+      </div>
+
+      <section class="panel">
+        <h2>Your Creator Details</h2>
+        <div class="details">
+          <div class="detail"><strong>Stage name</strong><span id="detailName">—</span></div>
+          <div class="detail"><strong>Talent category</strong><span id="detailCategory">—</span></div>
+          <div class="detail"><strong>District</strong><span id="detailDistrict">—</span></div>
+          <div class="detail"><strong>Profile status</strong><span id="detailStatus">—</span></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>© 2026 PROOFNEAR. All rights reserved.</footer>
+
+  <script>
+    const SUPABASE_URL = "https://hzxaamykvnvfillpkfom.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    const message = document.getElementById("message");
+    const dashboard = document.getElementById("dashboard");
+
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.className = isError ? "error" : "";
+      message.hidden = false;
+    }
+
+    async function initializeDashboard() {
+      const { data: authData, error: authError } =
+        await supabaseClient.auth.getUser();
+
+      if (authError || !authData.user) {
+        showMessage("Please sign in to your PROOFNEAR creator account to open your dashboard.", true);
+        return;
+      }
+
+      const user = authData.user;
+
+      const { data: creator, error: creatorError } =
+        await supabaseClient
+          .from("creator_profiles")
+          .select("user_id,stage_name,talent_category,district,approval_status,profile_photo_url")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+      if (creatorError) {
+        showMessage("Unable to load your creator profile: " + creatorError.message, true);
+        return;
+      }
+
+      if (!creator) {
+        showMessage("No creator profile was found for this account. Register as a creator to continue.", true);
+        return;
+      }
+
+      if (creator.approval_status !== "approved") {
+        showMessage("Your creator profile is awaiting approval. Your dashboard will be available after approval.", true);
+        return;
+      }
+
+      const [requestsResult, notificationsResult] = await Promise.all([
+        supabaseClient
+          .from("creator_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("creator_user_id", user.id)
+          .eq("status", "pending"),
+
+        supabaseClient
+          .from("creator_notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("recipient_user_id", user.id)
+          .eq("is_read", false)
+      ]);
+
+      if (requestsResult.error) {
+        showMessage("Your profile loaded, but booking totals could not be retrieved: " + requestsResult.error.message, true);
+        return;
+      }
+
+      if (notificationsResult.error) {
+        showMessage("Your profile loaded, but notification totals could not be retrieved: " + notificationsResult.error.message, true);
+        return;
+      }
+
+      document.getElementById("welcomeName").textContent =
+        "Welcome, " + (creator.stage_name || "Creator");
+
+      document.getElementById("welcomeCategory").textContent =
+        creator.talent_category || "PROOFNEAR Creator";
+
+      document.getElementById("welcomeEmail").textContent =
+        user.email || "";
+
+      document.getElementById("requestCount").textContent =
+        requestsResult.count || 0;
+
+      document.getElementById("notificationCount").textContent =
+        notificationsResult.count || 0;
+
+      document.getElementById("detailName").textContent =
+        creator.stage_name || "—";
+
+      document.getElementById("detailCategory").textContent =
+        creator.talent_category || "—";
+
+      document.getElementById("detailDistrict").textContent =
+        creator.district || "Not provided";
+
+      document.getElementById("detailStatus").textContent = "Approved";
+
+      document.getElementById("profileLink").href =
+        "talent-profile.html?id=" + encodeURIComponent(creator.user_id);
+
+      if (creator.profile_photo_url) {
+        const photo = document.getElementById("creatorPhoto");
+        photo.src = creator.profile_photo_url;
+        photo.hidden = false;
+        photo.onerror = () => { photo.hidden = true; };
+      }
+
+      message.hidden = true;
+      dashboard.hidden = false;
+    }
+
+    initializeDashboard();
+  </script>
+</body>
+</html>
+
