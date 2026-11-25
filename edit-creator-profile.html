@@ -1,1 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c2e">
+  <title>Edit My Profile | PROOFNEAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f6f3;
+      color: #17352b;
+    }
+
+    header {
+      background: linear-gradient(135deg,#123c2e,#176b50);
+      color: white;
+      padding: 25px 15px;
+      text-align: center;
+    }
+
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; color: #e1eee7; }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 18px;
+      background: white;
+      padding: 15px;
+    }
+
+    nav a {
+      color: #176b50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .container {
+      width: min(100% - 30px, 700px);
+      margin: 25px auto 40px;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 15px;
+      box-shadow: 0 3px 14px #0000000b;
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ccd9d0;
+      border-radius: 8px;
+      font-size: 16px;
+      background: white;
+    }
+
+    textarea { resize: vertical; }
+
+    small {
+      display: block;
+      color: #687a71;
+      margin-top: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 8px;
+      background: #176b50;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #authNotice, #message {
+      padding: 13px;
+      border-radius: 8px;
+      margin-bottom: 17px;
+      background: #e8f4ed;
+    }
+
+    #message.error {
+      background: #fdecec;
+      color: #b42318;
+    }
+
+    .photo-preview {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin-top: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 22px;
+      color: #687a71;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>PROOFNEAR</h1>
+    <h2>Edit My Profile</h2>
+    <p>Keep your creator information up to date.</p>
+  </header>
+
+  <nav>
+    <a href="creator-dashboard.html">Dashboard</a>
+    <a href="creator-inbox.html">Inbox</a>
+    <a href="creator-notifications.html">Notifications</a>
+    <a href="talent-creators.html">Explore Creators</a>
+    <a href="talent-arena.html">Talent Arena</a>
+  </nav>
+
+  <main class="container">
+    <section class="card">
+      <h2>Your Creator Information</h2>
+      <p>Update your details, photo and portfolio link.</p>
+
+      <div id="authNotice">
+        Checking your account...
+      </div>
+
+      <div id="message" role="status" aria-live="polite" hidden></div>
+
+      <form id="editProfileForm" hidden>
+
+        <div class="form-group">
+          <label for="stageName">Stage name / Display name *</label>
+          <input type="text" id="stageName" minlength="2"
+            maxlength="60" required>
+        </div>
+
+        <div class="form-group">
+          <label for="talentCategory">Talent category *</label>
+          <select id="talentCategory" required>
+            <option value="">Select your talent</option>
+            <option value="Singer & Vocalist">Singer & Vocalist</option>
+            <option value="Musician">Musician</option>
+            <option value="Performer & Creator">Performer & Creator</option>
+            <option value="Creative Artist">Creative Artist</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="creatorBio">About you</label>
+          <textarea id="creatorBio" rows="5"
+            maxlength="500"></textarea>
+          <small>Maximum 500 characters.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="creatorDistrict">District</label>
+          <input type="text" id="creatorDistrict">
+        </div>
+
+        <div class="form-group">
+          <label for="profilePhoto">Change profile photo</label>
+          <input type="file" id="profilePhoto"
+            accept="image/jpeg,image/png,image/webp">
+          <small>JPG, PNG or WebP. Maximum 5 MB.</small>
+          <img id="photoPreview" class="photo-preview"
+            alt="Profile photo preview" hidden>
+        </div>
+
+        <div class="form-group">
+          <label for="portfolioUrl">Portfolio / Social media link</label>
+          <input type="url" id="portfolioUrl"
+            placeholder="https://example.com/your-work">
+        </div>
+
+        <button type="submit" id="saveButton">
+          Save Profile Changes
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 PROOFNEAR. All rights reserved.
+  </footer>
+
+  <script src="edit-creator-profile.js"></script>
+</body>
+</html>
