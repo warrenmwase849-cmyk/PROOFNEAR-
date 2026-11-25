@@ -108,7 +108,7 @@ async function loadCreatorProfile() {
   }
 
   existingProfile = profile;
-
+  $("editProfileForm").hidden = false;
   $("stageName").value = profile.stage_name || "";
   $("talentCategory").value = profile.talent_category || "";
   $("creatorBio").value = profile.bio || "";
