@@ -457,7 +457,7 @@
       if (!["http:", "https:"].includes(parsedUrl.protocol)) {
         throw new Error("Invalid link protocol");
       }
-        } catch (error) {
+            } catch (error) {
       console.error("Submission failed:", error);
 
       message.className = "message error-message";
@@ -467,9 +467,6 @@
       submitButton.disabled = false;
       submitButton.textContent = "Try Submission Again";
     }
-
-    submitButton.disabled = true;
-    submitButton.textContent = "Sending Submission...";
 
     try {
       const { data: authData, error: authError } =
