@@ -289,60 +289,93 @@ function validUrl(value) {
   }
 }
 
+
 async function loadPortfolio() {
-  const { data: authData } = await client.auth.getUser();
-  currentUser = authData?.user || null;
+  try {
+    showMessage("Checking creator portfolio...");
 
-  const params = new URLSearchParams(location.search);
-  creatorId = params.get("id") || currentUser?.id || null;
+    const params = new URLSearchParams(location.search);
+    const requestedId = params.get("id");
 
-  if (!creatorId) {
-    showMessage("Please sign in or open a creator portfolio link.", true);
-    return;
-  }
+    let authData = null;
 
-  isOwner = !!currentUser && currentUser.id === creatorId;
+    const authPromise = client.auth.getUser();
 
-  const { data: creator, error } = await client
-    .from("creator_profiles")
-    .select("user_id,stage_name,talent_category,bio,district,profile_photo_url,portfolio_url,approval_status")
-    .eq("user_id", creatorId)
-    .eq("approval_status", "approved")
-    .maybeSingle();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Login check timed out. Please refresh and try again.")), 10000);
+    });
 
-  if (error || !creator) {
-    showMessage("This creator profile is unavailable or not approved.", true);
-    return;
-  }
-
-  $("creatorName").textContent = creator.stage_name || "Creator";
-  $("creatorCategory").textContent = creator.talent_category || "";
-  $("creatorDistrict").textContent =
-    "District: " + (creator.district || "Not provided");
-  $("creatorBio").textContent =
-    creator.bio || "This creator has not added a biography yet.";
-
-  if (creator.profile_photo_url) {
-    const photo = validUrl(creator.profile_photo_url);
-    if (photo) {
-      $("creatorPhoto").src = photo;
-      $("creatorPhoto").hidden = false;
+    try {
+      const result = await Promise.race([authPromise, timeoutPromise]);
+      authData = result.data;
+    } catch (authError) {
+      console.error("Authentication check:", authError);
     }
+
+    currentUser = authData?.user || null;
+    creatorId = requestedId || currentUser?.id || null;
+
+    if (!creatorId) {
+      showMessage("Please sign in or open a creator portfolio link.", true);
+      $("portfolioItems").innerHTML =
+        '<p class="empty">Sign in to view your portfolio.</p>';
+      return;
+    }
+
+    isOwner = !!currentUser && currentUser.id === creatorId;
+
+    showMessage("Loading creator profile...");
+
+    const { data: creator, error } = await client
+      .from("creator_profiles")
+      .select("user_id,stage_name,talent_category,bio,district,profile_photo_url,portfolio_url,approval_status")
+      .eq("user_id", creatorId)
+      .eq("approval_status", "approved")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!creator) {
+      showMessage("This creator profile is unavailable or not approved.", true);
+      return;
+    }
+
+    $("creatorName").textContent = creator.stage_name || "Creator";
+    $("creatorCategory").textContent = creator.talent_category || "";
+    $("creatorDistrict").textContent =
+      "District: " + (creator.district || "Not provided");
+    $("creatorBio").textContent =
+      creator.bio || "This creator has not added a biography yet.";
+
+    if (creator.profile_photo_url) {
+      const photo = validUrl(creator.profile_photo_url);
+      if (photo) {
+        $("creatorPhoto").src = photo;
+        $("creatorPhoto").hidden = false;
+      }
+    }
+
+    const social = validUrl(creator.portfolio_url);
+    if (social) {
+      $("socialLink").href = social;
+      $("socialLink").hidden = false;
+    }
+
+    $("creatorCard").hidden = false;
+
+    if (isOwner) {
+      $("addSection").hidden = false;
+    }
+
+    await loadItems();
+
+  } catch (error) {
+    console.error("Portfolio loading error:", error);
+    showMessage(
+      "Portfolio loading failed: " + (error.message || "Please refresh and try again."),
+      true
+    );
   }
-
-  const social = validUrl(creator.portfolio_url);
-  if (social) {
-    $("socialLink").href = social;
-    $("socialLink").hidden = false;
-  }
-
-  $("creatorCard").hidden = false;
-
-  if (isOwner) {
-    $("addSection").hidden = false;
-  }
-
-  await loadItems();
 }
 
 async function loadItems() {
