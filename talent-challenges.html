@@ -516,14 +516,13 @@ submitButton.disabled = false;
 submitButton.textContent = "Try Submission Again";
     }
   }
-
+ 
   async function loadPublishedChallenges() {
     challengeList.innerHTML =
       '<div class="loading-state">Loading published challenges...</div>';
 
     try {
-      await loadMyRegistrations();
-
+      // Load published challenges first, without waiting for authentication.
       const { data, error } = await supabaseClient
         .from("talent_challenges")
         .select("*")
@@ -534,8 +533,19 @@ submitButton.textContent = "Try Submission Again";
 
       loadedChallenges = data || [];
       renderChallenges(loadedChallenges);
+
+      // Load the creator's registration and submission details separately.
+      loadMyRegistrations()
+        .then(function() {
+          renderChallenges(loadedChallenges);
+        })
+        .catch(function(error) {
+          console.warn("Creator details could not be loaded:", error);
+        });
+
     } catch (error) {
       console.error("Challenge loading error:", error);
+
       challengeList.innerHTML = `
         <div class="empty-state">
           <h3>Challenges could not be loaded</h3>
@@ -544,6 +554,7 @@ submitButton.textContent = "Try Submission Again";
       `;
     }
   }
+
 
   loadPublishedChallenges();
 </script>
