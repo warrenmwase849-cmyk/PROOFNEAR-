@@ -115,7 +115,7 @@
 
   <div class="notice">
     <strong>Competition information:</strong>
-    Only challenges published as open by PROOFNEAR will appear above.
+    Only challenges published by PROOFNEAR will appear above.
     Challenge registration is connected to your signed-in account.
     Submission and judging features will follow in the next development stage.
   </div>
@@ -199,8 +199,8 @@
       challengeList.innerHTML = `
         <div class="empty-state">
           <div class="emoji">🏆</div>
-          <h3>No open challenges yet</h3>
-          <p>New competitions will appear here when they are published.</p>
+          <h3>No published challenges yet</h3>
+          <p>New competitions will appear here when PROOFNEAR publishes them.</p>
         </div>
       `;
       return;
@@ -209,7 +209,7 @@
     challengeList.innerHTML = challenges.map(function(challenge) {
       return `
         <article class="challenge-card">
-          <span class="status">OPEN</span>
+          <span class="status">PUBLISHED</span>
           <h3>${escapeHTML(challenge.title)}</h3>
           <p><strong>Category:</strong> ${escapeHTML(challenge.category || "Open Talent")}</p>
           <p>${escapeHTML(challenge.description || "Discover this creative competition.")}</p>
@@ -327,7 +327,7 @@
     }
   }
 
-  async function loadOpenChallenges() {
+  async function loadPublishedChallenges() {
     challengeList.innerHTML = `
       <div class="loading-state">Loading published challenges...</div>
     `;
@@ -338,7 +338,7 @@
       const { data, error } = await supabaseClient
         .from("talent_challenges")
         .select("id, title, description, category, rules, starts_at, ends_at, status")
-        .eq("status", "open")
+        .eq("status", "published")
         .order("starts_at", { ascending: true });
 
       if (error) {
@@ -364,7 +364,7 @@
     }
   }
 
-  loadOpenChallenges();
+  loadPublishedChallenges();
 </script>
 
 </body>
