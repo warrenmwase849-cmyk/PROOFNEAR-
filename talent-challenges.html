@@ -457,10 +457,15 @@
       if (!["http:", "https:"].includes(parsedUrl.protocol)) {
         throw new Error("Invalid link protocol");
       }
-    } catch (error) {
+        } catch (error) {
+      console.error("Submission failed:", error);
+
       message.className = "message error-message";
-      message.textContent = "Please enter a valid link beginning with https:// or http://.";
-      return;
+      message.textContent =
+        error.message || "Your submission could not be saved. Please try again.";
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Try Submission Again";
     }
 
     submitButton.disabled = true;
