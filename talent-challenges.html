@@ -1,1 +1,226 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c25">
+  <title>Talent Challenges | PROOFNEAR</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7faf8;
+      color: #24342e;
+      line-height: 1.6;
+    }
+    a { text-decoration: none; }
+    header {
+      background: #102c25;
+      color: white;
+      padding: 18px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header a { color: white; font-weight: bold; }
+    nav { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav a { font-size: 13px; }
+    .hero {
+      background: linear-gradient(130deg, #102c25, #176b50);
+      color: white;
+      text-align: center;
+      padding: 75px 7%;
+    }
+    .hero h1 { font-size: clamp(34px, 6vw, 54px); margin: 12px 0; }
+    .hero p { max-width: 650px; margin: auto; color: #d5e7dc; }
+    .eyebrow {
+      color: #e5b94f;
+      font-weight: bold;
+      letter-spacing: 2px;
+      font-size: 12px;
+    }
+    .button {
+      display: inline-block;
+      margin: 22px 6px 0;
+      padding: 13px 21px;
+      border-radius: 8px;
+      background: #e5b94f;
+      color: #102c25;
+      font-weight: bold;
+    }
+    main { max-width: 1100px; margin: auto; padding: 55px 6%; }
+    .intro { text-align: center; margin-bottom: 35px; }
+    h2 { color: #102c25; margin-bottom: 12px; }
+    .intro p { color: #718078; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e4ebe6;
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .emoji { font-size: 35px; margin-bottom: 12px; }
+    .card h3 { color: #176b50; margin-bottom: 9px; }
+    .card p { color: #718078; font-size: 14px; }
+    .status {
+      display: inline-block;
+      margin-top: 17px;
+      padding: 6px 11px;
+      border-radius: 20px;
+      background: #fff4d9;
+      color: #85651c;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .steps {
+      margin-top: 55px;
+      background: #e8f4ed;
+      padding: 28px;
+      border-radius: 14px;
+    }
+    .steps p { margin: 12px 0; }
+    .notice {
+      margin-top: 25px;
+      padding: 18px;
+      background: white;
+      border-left: 4px solid #e5b94f;
+      border-radius: 8px;
+      color: #53645a;
+      font-size: 14px;
+    }
+    .join {
+      margin-top: 45px;
+      text-align: center;
+      background: #102c25;
+      color: white;
+      padding: 38px 20px;
+      border-radius: 16px;
+    }
+    .join h2 { color: white; }
+    .join p { color: #d5e7dc; }
+    footer {
+      text-align: center;
+      padding: 25px;
+      background: #0a201a;
+      color: #c1d1c8;
+      font-size: 12px;
+    }
+    footer a { color: #e5b94f; }
+    @media(max-width: 600px) {
+      header { flex-direction: column; }
+      nav { justify-content: center; }
+      .hero { padding: 55px 6%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="talent-arena.html">P PROOFNEAR</a>
+  <nav>
+    <a href="talent-arena.html">Arena</a>
+    <a href="talent-creators.html">Explore Talent</a>
+    <a href="creator-dashboard.html">Dashboard</a>
+    <a href="creator-inbox.html">Inbox</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <span class="eyebrow">SHOW YOUR TALENT TO THE WORLD</span>
+  <h1>PROOFNEAR Talent Challenges</h1>
+  <p>
+    Discover challenges, develop your creative abilities,
+    showcase your work and build recognition through talent competitions.
+  </p>
+  <a class="button" href="talent-register.html">Join the Arena</a>
+  <a class="button" href="talent-creators.html">Explore Creators</a>
+</section>
+
+<main>
+  <section class="intro">
+    <span class="eyebrow">YOUR TALENT. YOUR OPPORTUNITY.</span>
+    <h2>Choose Your Challenge</h2>
+    <p>Different creative fields. One stage for discovering talent.</p>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <div class="emoji">🎤</div>
+      <h3>Singing Challenge</h3>
+      <p>Showcase your voice, original songs and vocal performance.</p>
+      <span class="status">COMING SOON</span>
+    </article>
+
+    <article class="card">
+      <div class="emoji">🎹</div>
+      <h3>Music Challenge</h3>
+      <p>Show your skills in instruments, songwriting and music creation.</p>
+      <span class="status">COMING SOON</span>
+    </article>
+
+    <article class="card">
+      <div class="emoji">💃</div>
+      <h3>Dance Challenge</h3>
+      <p>Show your movement, choreography and performance creativity.</p>
+      <span class="status">COMING SOON</span>
+    </article>
+
+    <article class="card">
+      <div class="emoji">🎬</div>
+      <h3>Acting & Comedy</h3>
+      <p>Showcase acting, storytelling, comedy and entertainment.</p>
+      <span class="status">COMING SOON</span>
+    </article>
+
+    <article class="card">
+      <div class="emoji">🎨</div>
+      <h3>Visual Arts</h3>
+      <p>Present your artwork, photography, design and creativity.</p>
+      <span class="status">COMING SOON</span>
+    </article>
+
+    <article class="card">
+      <div class="emoji">🌟</div>
+      <h3>Open Talent</h3>
+      <p>Bring forward a unique ability that deserves to be discovered.</p>
+      <span class="status">COMING SOON</span>
+    </article>
+  </section>
+
+  <section class="steps">
+    <h2>How Challenges Will Work</h2>
+    <p><strong>01.</strong> Discover an available challenge.</p>
+    <p><strong>02.</strong> Register and submit your creative work.</p>
+    <p><strong>03.</strong> Participate under the challenge rules.</p>
+    <p><strong>04.</strong> Get recognised for your talent and achievements.</p>
+  </section>
+
+  <div class="notice">
+    <strong>Launch notice:</strong> Challenge registration, submissions,
+    judging and rankings are not yet open. This page introduces the
+    planned competition categories. Official challenge rules and dates
+    will be published when the competition system launches.
+  </div>
+
+  <section class="join">
+    <h2>Your Talent Deserves a Stage</h2>
+    <p>Create your creator profile and prepare to participate.</p>
+    <a class="button" href="talent-register.html">Become a Creator</a>
+  </section>
+</main>
+
+<footer>
+  <p><a href="talent-arena.html">← Back to Talent Arena</a></p>
+  <p>© 2026 PROOFNEAR. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
+
