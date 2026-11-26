@@ -1,7 +1,7 @@
 
 /* =====================================
    PROOFNEAR TALENT ARENA
-   Independent stylesheet
+   Complete responsive stylesheet
 ===================================== */
 
 :root {
@@ -305,7 +305,10 @@ a {
   text-align: left;
   margin-top: 40px;
 }
-/* LIVE APPROVED CREATORS */
+
+/* =====================================
+   FEATURED CREATORS
+===================================== */
 
 .creator-preview-section {
   padding: 70px 8%;
@@ -356,6 +359,11 @@ a {
   color: var(--green);
   font-weight: bold;
 }
+
+/* =====================================
+   TALENT CATEGORY CARDS
+===================================== */
+
 .talent-card {
   background: var(--white);
   border: 1px solid var(--border);
@@ -403,6 +411,10 @@ a {
   font-weight: 800;
 }
 
+/* =====================================
+   LIVE TALENT CHALLENGES
+===================================== */
+
 .challenge-section {
   padding: 80px 9%;
   background: #edf4ef;
@@ -446,15 +458,124 @@ a {
   margin-bottom: 20px;
 }
 
-.status-label {
+.challenge-preview-list {
+  display: grid;
+  gap: 13px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.challenge-preview-card {
+  padding: 17px;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 12px;
+  transition: background .2s, transform .2s;
+}
+
+.challenge-preview-card:hover {
+  background: rgba(255,255,255,.15);
+  transform: translateY(-2px);
+}
+
+.challenge-preview-card h4 {
+  color: var(--gold);
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.challenge-preview-card p {
+  color: #d5e2da;
+  font-size: 12px;
+  margin-bottom: 7px;
+  overflow-wrap: anywhere;
+}
+
+.challenge-preview-card a {
   display: inline-block;
-  padding: 7px 13px;
-  border-radius: 20px;
+  margin-top: 5px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.challenge-box > .primary-button {
+  margin-top: 8px;
   background: var(--gold);
   color: var(--green-dark);
-  font-size: 10px;
+}
+
+.challenge-box > .primary-button:hover {
+  background: #f3cf76;
+}
+
+/* =====================================
+   LIVE TALENT LEADERBOARD
+===================================== */
+
+.leaderboard-section {
+  background: var(--background);
+}
+
+.leaderboard-preview-list {
+  max-width: 760px;
+  margin: 30px auto;
+  display: grid;
+  gap: 13px;
+  text-align: left;
+}
+
+.leaderboard-preview-card {
+  display: grid;
+  grid-template-columns: 55px 1fr auto;
+  align-items: center;
+  gap: 15px;
+  padding: 19px 22px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(16,44,37,.04);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.leaderboard-preview-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(16,44,37,.09);
+}
+
+.leaderboard-preview-card > strong {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #fff4d8;
+  color: #8c681c;
+  font-size: 16px;
   font-weight: 900;
-  letter-spacing: 1px;
+}
+
+.leaderboard-preview-card h3 {
+  color: var(--green-dark);
+  font-size: 16px;
+  margin-bottom: 3px;
+}
+
+.leaderboard-preview-card p {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 2px 0;
+}
+
+.leaderboard-preview-card a {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.leaderboard-section > .primary-button {
+  margin-top: 5px;
 }
 
 .leaderboard-placeholder {
@@ -479,6 +600,10 @@ a {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* =====================================
+   JOIN ARENA
+===================================== */
 
 .join-section {
   padding: 75px 9%;
@@ -538,7 +663,9 @@ a {
   margin-top: 5px;
 }
 
-/* TABLETS */
+/* =====================================
+   TABLETS
+===================================== */
 
 @media (max-width: 950px) {
   .talent-grid {
@@ -554,7 +681,9 @@ a {
   }
 }
 
-/* MOBILE PHONES */
+/* =====================================
+   MOBILE PHONES
+===================================== */
 
 @media (max-width: 650px) {
   .arena-header {
@@ -579,10 +708,12 @@ a {
     gap: 10px;
     padding-top: 8px;
     border-top: 1px solid var(--border);
+    overflow-x: auto;
   }
 
   .main-nav a {
     font-size: 11px;
+    white-space: nowrap;
   }
 
   .header-button {
@@ -649,6 +780,22 @@ a {
     min-height: auto;
   }
 
+  .creator-preview-section {
+    padding: 60px 6%;
+  }
+
+  .creator-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .creator-preview-card {
+    text-align: center;
+  }
+
+  .creator-preview-card img {
+    max-width: 280px;
+  }
+
   .challenge-section {
     grid-template-columns: 1fr;
     padding: 60px 7%;
@@ -657,6 +804,26 @@ a {
 
   .challenge-box {
     padding: 30px 20px;
+  }
+
+  .challenge-preview-card {
+    padding: 15px;
+  }
+
+  .leaderboard-preview-card {
+    grid-template-columns: 45px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .leaderboard-preview-card > strong {
+    width: 40px;
+    height: 40px;
+  }
+
+  .leaderboard-preview-card a {
+    grid-column: 2;
+    text-align: left;
   }
 
   .join-section {
@@ -672,5 +839,30 @@ a {
   .arena-footer {
     padding: 25px 6%;
   }
+}
+
+/* =====================================
+   SMALL MOBILE PHONES
+===================================== */
+
+@media (max-width: 380px) {
+  .hero h1 {
+    font-size: 36px;
   }
-    
+
+  .main-nav {
+    justify-content: flex-start;
+  }
+
+  .main-nav a {
+    font-size: 10px;
+  }
+
+  .challenge-box {
+    padding: 24px 15px;
+  }
+
+  .leaderboard-preview-card h3 {
+    font-size: 14px;
+  }
+}
