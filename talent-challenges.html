@@ -36,11 +36,18 @@
     .status { display: inline-block; padding: 5px 11px; border-radius: 20px; background: #e4f4e9; color: #176b50; font-size: 11px; font-weight: bold; text-transform: uppercase; }
     .challenge-meta { margin-top: 12px; color: #718078; font-size: 12px; }
     .empty-state, .loading-state { background: white; border: 1px solid #e4ebe6; border-radius: 12px; padding: 28px; text-align: center; color: #718078; }
-    .register-button { display: inline-block; margin-top: 17px; padding: 12px 20px; border: 0; border-radius: 8px; background: #176b50; color: white; font-weight: bold; cursor: pointer; }
-    .register-button:disabled { background: #a8b7ae; cursor: not-allowed; }
-    .registration-message { margin-top: 12px; font-size: 13px; font-weight: bold; overflow-wrap: anywhere; }
+    .action-button { display: inline-block; margin-top: 17px; padding: 12px 20px; border: 0; border-radius: 8px; background: #176b50; color: white; font-weight: bold; cursor: pointer; }
+    .action-button:disabled { background: #a8b7ae; cursor: not-allowed; }
+    .message { margin-top: 12px; font-size: 13px; font-weight: bold; overflow-wrap: anywhere; }
     .success-message { color: #176b50; }
     .error-message { color: #b42318; }
+    .submission-form { display: none; margin-top: 20px; padding: 20px; background: #f2f7f3; border: 1px solid #dce9df; border-radius: 12px; }
+    .submission-form.open { display: block; }
+    .submission-form h4 { color: #102c25; margin-bottom: 12px; }
+    .submission-form label { display: block; margin: 12px 0 5px; font-size: 13px; font-weight: bold; color: #34483d; }
+    .submission-form input, .submission-form textarea { display: block; width: 100%; padding: 12px; border: 1px solid #cbd8cf; border-radius: 7px; background: white; font: inherit; font-size: 14px; }
+    .submission-form textarea { min-height: 95px; resize: vertical; }
+    .submission-help { font-size: 12px; color: #718078; margin-top: 6px; }
     .steps { margin-top: 55px; background: #e8f4ed; padding: 28px; border-radius: 14px; }
     .steps p { margin: 12px 0; }
     .notice { margin-top: 25px; padding: 18px; background: white; border-left: 4px solid #e5b94f; border-radius: 8px; color: #53645a; font-size: 14px; }
@@ -110,14 +117,12 @@
     <p><strong>01.</strong> Discover an available challenge.</p>
     <p><strong>02.</strong> Review its description, rules and dates.</p>
     <p><strong>03.</strong> Register for a challenge using your PROOFNEAR account.</p>
-    <p><strong>04.</strong> Submit your creative work when submissions open.</p>
+    <p><strong>04.</strong> Submit your creative work using an accessible link.</p>
   </section>
 
   <div class="notice">
     <strong>Competition information:</strong>
-    Only challenges published by PROOFNEAR will appear above.
-    Challenge registration is connected to your signed-in account.
-    Submission and judging features will follow in the next development stage.
+    Only published challenges appear above. Creators must register before submitting work. Each creator can submit one entry per challenge. Submission review and judging will follow in the next development stage.
   </div>
 
   <section class="join">
@@ -144,6 +149,7 @@
   const challengeList = document.getElementById("challenge-list");
   let currentUser = null;
   let existingRegistrations = {};
+  let existingSubmissions = {};
 
   function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, function(char) {
@@ -169,29 +175,97 @@
     });
   }
 
-  function registrationButton(challenge) {
+  function actionArea(challenge) {
     const registration = existingRegistrations[challenge.id];
+    const submission = existingSubmissions[challenge.id];
 
-    if (registration) {
-      const status = registration.registration_status;
-
-      if (status === "registered" || status === "submitted") {
-        return `<button class="register-button" disabled>
-          ${status === "submitted" ? "Entry Submitted" : "Already Registered"}
-        </button>`;
-      }
-
-      if (status === "cancelled" || status === "disqualified") {
-        return `<button class="register-button" disabled>
-          Registration ${escapeHTML(status)}
-        </button>`;
-      }
+    if (submission) {
+      return `
+        <button class="action-button" disabled>Entry Submitted</button>
+        <p class="message success-message">
+          Your work has been received. Status:
+          ${escapeHTML(submission.submission_status)}
+        </p>
+      `;
     }
 
-    return `<button class="register-button"
-      data-challenge-id="${escapeHTML(challenge.id)}">
-      Register for This Challenge
-    </button>`;
+    if (registration && registration.registration_status === "registered") {
+      return `
+        <button class="action-button"
+          data-open-submission="${escapeHTML(challenge.id)}">
+          Submit Your Work
+        </button>
+
+        <form class="submission-form"
+          id="submission-form-${escapeHTML(challenge.id)}"
+          data-submission-form="${escapeHTML(challenge.id)}">
+
+          <h4>Submit Your Creative Work</h4>
+
+          <label for="submission-title-${escapeHTML(challenge.id)}">
+            Work title
+          </label>
+          <input
+            id="submission-title-${escapeHTML(challenge.id)}"
+            name="title"
+            type="text"
+            maxlength="150"
+            placeholder="Enter the title of your work"
+            required>
+
+          <label for="submission-description-${escapeHTML(challenge.id)}">
+            Description
+          </label>
+          <textarea
+            id="submission-description-${escapeHTML(challenge.id)}"
+            name="description"
+            maxlength="2000"
+            placeholder="Tell us about your creative work"></textarea>
+
+          <label for="submission-url-${escapeHTML(challenge.id)}">
+            Link to your work
+          </label>
+          <input
+            id="submission-url-${escapeHTML(challenge.id)}"
+            name="submission_url"
+            type="url"
+            maxlength="2000"
+            placeholder="https://..."
+            required>
+
+          <p class="submission-help">
+            Use a publicly accessible link to your video, audio, artwork
+            or other creative work. Make sure reviewers can open it.
+          </p>
+
+          <button class="action-button" type="submit">
+            Send My Submission
+          </button>
+
+          <div class="message"
+            id="submission-message-${escapeHTML(challenge.id)}"
+            role="status" aria-live="polite"></div>
+        </form>
+      `;
+    }
+
+    if (registration) {
+      return `
+        <button class="action-button" disabled>
+          Registration ${escapeHTML(registration.registration_status)}
+        </button>
+      `;
+    }
+
+    return `
+      <button class="action-button"
+        data-challenge-id="${escapeHTML(challenge.id)}">
+        Register for This Challenge
+      </button>
+      <div class="message"
+        id="registration-${escapeHTML(challenge.id)}"
+        role="status" aria-live="polite"></div>
+    `;
   }
 
   function renderChallenges(challenges) {
@@ -219,8 +293,7 @@
             &nbsp; | &nbsp;
             Ends: ${formatDate(challenge.ends_at)}
           </div>
-          ${registrationButton(challenge)}
-          <div class="registration-message" id="registration-${escapeHTML(challenge.id)}" role="status" aria-live="polite"></div>
+          ${actionArea(challenge)}
         </article>
       `;
     }).join("");
@@ -228,6 +301,25 @@
     challengeList.querySelectorAll("[data-challenge-id]").forEach(function(button) {
       button.addEventListener("click", function() {
         registerForChallenge(button.dataset.challengeId, button);
+      });
+    });
+
+    challengeList.querySelectorAll("[data-open-submission]").forEach(function(button) {
+      button.addEventListener("click", function() {
+        const form = document.getElementById(
+          "submission-form-" + button.dataset.openSubmission
+        );
+        form.classList.toggle("open");
+        button.textContent = form.classList.contains("open")
+          ? "Close Submission Form"
+          : "Submit Your Work";
+      });
+    });
+
+    challengeList.querySelectorAll("[data-submission-form]").forEach(function(form) {
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
+        submitChallengeWork(form.dataset.submissionForm, form);
       });
     });
   }
@@ -239,27 +331,43 @@
     if (authError || !authData.user) {
       currentUser = null;
       existingRegistrations = {};
+      existingSubmissions = {};
       return;
     }
 
     currentUser = authData.user;
 
-    const { data, error } = await supabaseClient
-      .from("talent_challenge_registrations")
-      .select("challenge_id, registration_status")
-      .eq("user_id", currentUser.id);
+    const { data: registrations, error: registrationError } =
+      await supabaseClient
+        .from("talent_challenge_registrations")
+        .select("challenge_id, registration_status")
+        .eq("user_id", currentUser.id);
 
-    if (error) {
-      console.error("Could not load registrations:", error);
+    if (registrationError) {
+      console.error("Could not load registrations:", registrationError);
       existingRegistrations = {};
-      return;
+    } else {
+      existingRegistrations = {};
+      (registrations || []).forEach(function(registration) {
+        existingRegistrations[registration.challenge_id] = registration;
+      });
     }
 
-    existingRegistrations = {};
+    const { data: submissions, error: submissionError } =
+      await supabaseClient
+        .from("talent_challenge_submissions")
+        .select("id, challenge_id, title, submission_status, submitted_at")
+        .eq("user_id", currentUser.id);
 
-    (data || []).forEach(function(registration) {
-      existingRegistrations[registration.challenge_id] = registration;
-    });
+    if (submissionError) {
+      console.error("Could not load submissions:", submissionError);
+      existingSubmissions = {};
+    } else {
+      existingSubmissions = {};
+      (submissions || []).forEach(function(submission) {
+        existingSubmissions[submission.challenge_id] = submission;
+      });
+    }
   }
 
   async function registerForChallenge(challengeId, button) {
@@ -267,8 +375,6 @@
 
     button.disabled = true;
     button.textContent = "Checking account...";
-    message.textContent = "";
-    message.className = "registration-message";
 
     try {
       const { data: authData, error: authError } =
@@ -277,8 +383,9 @@
       if (authError || !authData.user) {
         button.disabled = false;
         button.textContent = "Register for This Challenge";
-        message.className = "registration-message error-message";
-        message.textContent = "Please sign in to your PROOFNEAR account before registering.";
+        message.className = "message error-message";
+        message.textContent =
+          "Please sign in to your PROOFNEAR account before registering.";
         return;
       }
 
@@ -296,76 +403,109 @@
 
       if (error) {
         if (error.code === "23505") {
-          existingRegistrations[challengeId] = {
-            challenge_id: challengeId,
-            registration_status: "registered"
-          };
-          button.textContent = "Already Registered";
-          message.className = "registration-message success-message";
-          message.textContent = "Your account is already registered for this challenge.";
+          await loadMyRegistrations();
+          loadPublishedChallenges();
           return;
         }
 
         console.error("Challenge registration failed:", error);
         button.disabled = false;
         button.textContent = "Try Registration Again";
-        message.className = "registration-message error-message";
-        message.textContent = error.message || "Registration could not be completed. Please try again.";
+        message.className = "message error-message";
+        message.textContent = error.message || "Registration could not be completed.";
         return;
       }
 
       existingRegistrations[challengeId] = data;
-      button.textContent = "Successfully Registered";
-      message.className = "registration-message success-message";
-      message.textContent = "Your registration has been saved. Good luck!";
+      await loadMyRegistrations();
+      renderChallengesFromCurrentList();
     } catch (error) {
       console.error("Unexpected registration error:", error);
       button.disabled = false;
       button.textContent = "Try Registration Again";
-      message.className = "registration-message error-message";
+      message.className = "message error-message";
       message.textContent = "Something went wrong. Please try again.";
     }
   }
 
-  async function loadPublishedChallenges() {
-    challengeList.innerHTML = `
-      <div class="loading-state">Loading published challenges...</div>
-    `;
+  let loadedChallenges = [];
 
-    try {
-      await loadMyRegistrations();
-
-      const { data, error } = await supabaseClient
-        .from("talent_challenges")
-        .select("id, title, description, category, rules, starts_at, ends_at, status")
-        .eq("status", "published")
-        .order("starts_at", { ascending: true });
-
-      if (error) {
-        console.error("Challenge loading error:", error);
-        challengeList.innerHTML = `
-          <div class="empty-state">
-            <h3>Challenges could not be loaded</h3>
-            <p>Please refresh the page and try again.</p>
-          </div>
-        `;
-        return;
-      }
-
-      renderChallenges(data || []);
-    } catch (error) {
-      console.error("Unexpected challenge error:", error);
-      challengeList.innerHTML = `
-        <div class="empty-state">
-          <h3>Something went wrong</h3>
-          <p>Please try again later.</p>
-        </div>
-      `;
-    }
+  function renderChallengesFromCurrentList() {
+    renderChallenges(loadedChallenges);
   }
 
-  loadPublishedChallenges();
-</script>
+  async function submitChallengeWork(challengeId, form) {
+    const message = document.getElementById(
+      "submission-message-" + challengeId
+    );
+    const submitButton = form.querySelector('button[type="submit"]');
+    const formData = new FormData(form);
 
-</body>
-</html>
+    const title = String(formData.get("title") || "").trim();
+    const description = String(formData.get("description") || "").trim();
+    const submissionUrl = String(formData.get("submission_url") || "").trim();
+
+    if (!title || !submissionUrl) {
+      message.className = "message error-message";
+      message.textContent = "Please enter a work title and a link to your work.";
+      return;
+    }
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(submissionUrl);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        throw new Error("Invalid link protocol");
+      }
+    } catch (error) {
+      message.className = "message error-message";
+      message.textContent = "Please enter a valid link beginning with https:// or http://.";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending Submission...";
+
+    try {
+      const { data: authData, error: authError } =
+        await supabaseClient.auth.getUser();
+
+      if (authError || !authData.user) {
+        throw new Error("Please sign in before submitting your work.");
+      }
+
+      currentUser = authData.user;
+
+      const registration = existingRegistrations[challengeId];
+      if (!registration || registration.registration_status !== "registered") {
+        throw new Error("You must be registered for this challenge before submitting.");
+      }
+
+      const { data, error } = await supabaseClient
+        .from("talent_challenge_submissions")
+        .insert({
+          challenge_id: challengeId,
+          user_id: currentUser.id,
+          title: title,
+          description: description || null,
+          submission_url: parsedUrl.href,
+          submission_status: "submitted"
+        })
+        .select("id, challenge_id, title, submission_status, submitted_at")
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          throw new Error("Your account has already submitted an entry for this challenge.");
+        }
+        throw error;
+      }
+
+      existingSubmissions[challengeId] = data;
+      message.className = "message success-message";
+      message.textContent = "Successfully Submitted! Your creative work has been saved.";
+      renderChallengesFromCurrentList();
+    } catch (error) {
+      console.error("Submission failed:", error);
+      message.className = "message error-message";
+      message.textContent = error.message || "You
