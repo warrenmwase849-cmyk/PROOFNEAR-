@@ -9,143 +9,45 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7faf8;
-      color: #24342e;
-      line-height: 1.6;
-    }
+    body { font-family: Arial, sans-serif; background: #f7faf8; color: #24342e; line-height: 1.6; }
     a { text-decoration: none; }
-    header {
-      background: #102c25;
-      color: white;
-      padding: 18px 6%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+    header { background: #102c25; color: white; padding: 18px 6%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
     header a { color: white; font-weight: bold; }
     nav { display: flex; gap: 16px; flex-wrap: wrap; }
     nav a { font-size: 13px; }
-    .hero {
-      background: linear-gradient(130deg, #102c25, #176b50);
-      color: white;
-      text-align: center;
-      padding: 65px 7%;
-    }
+    .hero { background: linear-gradient(130deg, #102c25, #176b50); color: white; text-align: center; padding: 65px 7%; }
     .hero h1 { font-size: clamp(34px, 6vw, 54px); margin: 12px 0; }
     .hero p { max-width: 650px; margin: auto; color: #d5e7dc; }
-    .eyebrow {
-      color: #e5b94f;
-      font-weight: bold;
-      letter-spacing: 2px;
-      font-size: 12px;
-    }
-    .button {
-      display: inline-block;
-      margin: 22px 6px 0;
-      padding: 13px 21px;
-      border-radius: 8px;
-      background: #e5b94f;
-      color: #102c25;
-      font-weight: bold;
-    }
+    .eyebrow { color: #e5b94f; font-weight: bold; letter-spacing: 2px; font-size: 12px; }
+    .button { display: inline-block; margin: 22px 6px 0; padding: 13px 21px; border-radius: 8px; background: #e5b94f; color: #102c25; font-weight: bold; }
     main { max-width: 1100px; margin: auto; padding: 48px 6%; }
     .intro { text-align: center; margin-bottom: 30px; }
     h2 { color: #102c25; margin-bottom: 12px; }
     .intro p, .muted { color: #718078; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-    }
-    .card {
-      background: white;
-      border: 1px solid #e4ebe6;
-      border-radius: 14px;
-      padding: 22px;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+    .card { background: white; border: 1px solid #e4ebe6; border-radius: 14px; padding: 22px; }
     .emoji { font-size: 35px; margin-bottom: 12px; }
     .card h3 { color: #176b50; margin-bottom: 9px; }
     .card p { color: #718078; font-size: 14px; }
     .section { margin-top: 55px; }
-    .challenge-card {
-      background: white;
-      border: 1px solid #e1eae4;
-      border-left: 5px solid #176b50;
-      border-radius: 12px;
-      padding: 22px;
-      margin-bottom: 16px;
-    }
-    .challenge-card h3 {
-      color: #176b50;
-      font-size: 20px;
-      margin: 8px 0;
-    }
-    .challenge-card p {
-      color: #617168;
-      font-size: 14px;
-      margin-top: 8px;
-      white-space: pre-wrap;
-    }
-    .status {
-      display: inline-block;
-      padding: 5px 11px;
-      border-radius: 20px;
-      background: #e4f4e9;
-      color: #176b50;
-      font-size: 11px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    .challenge-meta {
-      margin-top: 12px;
-      color: #718078;
-      font-size: 12px;
-    }
-    .empty-state, .loading-state {
-      background: white;
-      border: 1px solid #e4ebe6;
-      border-radius: 12px;
-      padding: 28px;
-      text-align: center;
-      color: #718078;
-    }
-    .steps {
-      margin-top: 55px;
-      background: #e8f4ed;
-      padding: 28px;
-      border-radius: 14px;
-    }
+    .challenge-card { background: white; border: 1px solid #e1eae4; border-left: 5px solid #176b50; border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+    .challenge-card h3 { color: #176b50; font-size: 20px; margin: 8px 0; }
+    .challenge-card p { color: #617168; font-size: 14px; margin-top: 8px; white-space: pre-wrap; }
+    .status { display: inline-block; padding: 5px 11px; border-radius: 20px; background: #e4f4e9; color: #176b50; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+    .challenge-meta { margin-top: 12px; color: #718078; font-size: 12px; }
+    .empty-state, .loading-state { background: white; border: 1px solid #e4ebe6; border-radius: 12px; padding: 28px; text-align: center; color: #718078; }
+    .register-button { display: inline-block; margin-top: 17px; padding: 12px 20px; border: 0; border-radius: 8px; background: #176b50; color: white; font-weight: bold; cursor: pointer; }
+    .register-button:disabled { background: #a8b7ae; cursor: not-allowed; }
+    .registration-message { margin-top: 12px; font-size: 13px; font-weight: bold; overflow-wrap: anywhere; }
+    .success-message { color: #176b50; }
+    .error-message { color: #b42318; }
+    .steps { margin-top: 55px; background: #e8f4ed; padding: 28px; border-radius: 14px; }
     .steps p { margin: 12px 0; }
-    .notice {
-      margin-top: 25px;
-      padding: 18px;
-      background: white;
-      border-left: 4px solid #e5b94f;
-      border-radius: 8px;
-      color: #53645a;
-      font-size: 14px;
-    }
-    .join {
-      margin-top: 45px;
-      text-align: center;
-      background: #102c25;
-      color: white;
-      padding: 38px 20px;
-      border-radius: 16px;
-    }
+    .notice { margin-top: 25px; padding: 18px; background: white; border-left: 4px solid #e5b94f; border-radius: 8px; color: #53645a; font-size: 14px; }
+    .join { margin-top: 45px; text-align: center; background: #102c25; color: white; padding: 38px 20px; border-radius: 16px; }
     .join h2 { color: white; }
     .join p { color: #d5e7dc; }
-    footer {
-      text-align: center;
-      padding: 25px;
-      background: #0a201a;
-      color: #c1d1c8;
-      font-size: 12px;
-    }
+    footer { text-align: center; padding: 25px; background: #0a201a; color: #c1d1c8; font-size: 12px; }
     footer a { color: #e5b94f; }
     @media(max-width: 600px) {
       header { flex-direction: column; }
@@ -171,10 +73,7 @@
 <section class="hero">
   <span class="eyebrow">SHOW YOUR TALENT TO THE WORLD</span>
   <h1>PROOFNEAR Talent Challenges</h1>
-  <p>
-    Discover challenges, develop your creative abilities,
-    showcase your work and build recognition through talent competitions.
-  </p>
+  <p>Discover challenges, develop your creative abilities, showcase your work and build recognition through talent competitions.</p>
   <a class="button" href="talent-register.html">Join the Arena</a>
   <a class="button" href="talent-creators.html">Explore Creators</a>
 </section>
@@ -187,41 +86,12 @@
   </section>
 
   <section class="grid">
-    <article class="card">
-      <div class="emoji">🎤</div>
-      <h3>Singing</h3>
-      <p>Showcase your voice, original songs and vocal performance.</p>
-    </article>
-
-    <article class="card">
-      <div class="emoji">🎹</div>
-      <h3>Music</h3>
-      <p>Show your skills in instruments, songwriting and music creation.</p>
-    </article>
-
-    <article class="card">
-      <div class="emoji">💃</div>
-      <h3>Dance</h3>
-      <p>Show your movement, choreography and performance creativity.</p>
-    </article>
-
-    <article class="card">
-      <div class="emoji">🎬</div>
-      <h3>Acting & Comedy</h3>
-      <p>Showcase acting, storytelling, comedy and entertainment.</p>
-    </article>
-
-    <article class="card">
-      <div class="emoji">🎨</div>
-      <h3>Visual Arts</h3>
-      <p>Present your artwork, photography, design and creativity.</p>
-    </article>
-
-    <article class="card">
-      <div class="emoji">🌟</div>
-      <h3>Open Talent</h3>
-      <p>Bring forward a unique ability that deserves to be discovered.</p>
-    </article>
+    <article class="card"><div class="emoji">🎤</div><h3>Singing</h3><p>Showcase your voice, original songs and vocal performance.</p></article>
+    <article class="card"><div class="emoji">🎹</div><h3>Music</h3><p>Show your skills in instruments, songwriting and music creation.</p></article>
+    <article class="card"><div class="emoji">💃</div><h3>Dance</h3><p>Show your movement, choreography and performance creativity.</p></article>
+    <article class="card"><div class="emoji">🎬</div><h3>Acting & Comedy</h3><p>Showcase acting, storytelling, comedy and entertainment.</p></article>
+    <article class="card"><div class="emoji">🎨</div><h3>Visual Arts</h3><p>Present your artwork, photography, design and creativity.</p></article>
+    <article class="card"><div class="emoji">🌟</div><h3>Open Talent</h3><p>Bring forward a unique ability that deserves to be discovered.</p></article>
   </section>
 
   <section class="section">
@@ -230,7 +100,6 @@
       <h2>Published Talent Challenges</h2>
       <p>Explore competitions officially opened on PROOFNEAR Talent Arena.</p>
     </div>
-
     <div id="challenge-list">
       <div class="loading-state">Loading published challenges...</div>
     </div>
@@ -240,15 +109,15 @@
     <h2>How Challenges Work</h2>
     <p><strong>01.</strong> Discover an available challenge.</p>
     <p><strong>02.</strong> Review its description, rules and dates.</p>
-    <p><strong>03.</strong> Register and submit your creative work when registration is available.</p>
-    <p><strong>04.</strong> Participate and work towards recognition.</p>
+    <p><strong>03.</strong> Register for a challenge using your PROOFNEAR account.</p>
+    <p><strong>04.</strong> Submit your creative work when submissions open.</p>
   </section>
 
   <div class="notice">
     <strong>Competition information:</strong>
     Only challenges published as open by PROOFNEAR will appear above.
-    Registration, submissions and judging will be connected to each
-    challenge in the next development stage.
+    Challenge registration is connected to your signed-in account.
+    Submission and judging features will follow in the next development stage.
   </div>
 
   <section class="join">
@@ -273,6 +142,8 @@
   );
 
   const challengeList = document.getElementById("challenge-list");
+  let currentUser = null;
+  let existingRegistrations = {};
 
   function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, function(char) {
@@ -288,18 +159,39 @@
 
   function formatDate(value) {
     if (!value) return "Not specified";
-
     const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return "Not specified";
-    }
+    if (Number.isNaN(date.getTime())) return "Not specified";
 
     return date.toLocaleDateString("en-UG", {
       day: "numeric",
       month: "short",
       year: "numeric"
     });
+  }
+
+  function registrationButton(challenge) {
+    const registration = existingRegistrations[challenge.id];
+
+    if (registration) {
+      const status = registration.registration_status;
+
+      if (status === "registered" || status === "submitted") {
+        return `<button class="register-button" disabled>
+          ${status === "submitted" ? "Entry Submitted" : "Already Registered"}
+        </button>`;
+      }
+
+      if (status === "cancelled" || status === "disqualified") {
+        return `<button class="register-button" disabled>
+          Registration ${escapeHTML(status)}
+        </button>`;
+      }
+    }
+
+    return `<button class="register-button"
+      data-challenge-id="${escapeHTML(challenge.id)}">
+      Register for This Challenge
+    </button>`;
   }
 
   function renderChallenges(challenges) {
@@ -321,17 +213,118 @@
           <h3>${escapeHTML(challenge.title)}</h3>
           <p><strong>Category:</strong> ${escapeHTML(challenge.category || "Open Talent")}</p>
           <p>${escapeHTML(challenge.description || "Discover this creative competition.")}</p>
-          ${challenge.rules ? `
-            <p><strong>Rules:</strong> ${escapeHTML(challenge.rules)}</p>
-          ` : ""}
+          ${challenge.rules ? `<p><strong>Rules:</strong> ${escapeHTML(challenge.rules)}</p>` : ""}
           <div class="challenge-meta">
             Starts: ${formatDate(challenge.starts_at)}
             &nbsp; | &nbsp;
             Ends: ${formatDate(challenge.ends_at)}
           </div>
+          ${registrationButton(challenge)}
+          <div class="registration-message" id="registration-${escapeHTML(challenge.id)}" role="status" aria-live="polite"></div>
         </article>
       `;
     }).join("");
+
+    challengeList.querySelectorAll("[data-challenge-id]").forEach(function(button) {
+      button.addEventListener("click", function() {
+        registerForChallenge(button.dataset.challengeId, button);
+      });
+    });
+  }
+
+  async function loadMyRegistrations() {
+    const { data: authData, error: authError } =
+      await supabaseClient.auth.getUser();
+
+    if (authError || !authData.user) {
+      currentUser = null;
+      existingRegistrations = {};
+      return;
+    }
+
+    currentUser = authData.user;
+
+    const { data, error } = await supabaseClient
+      .from("talent_challenge_registrations")
+      .select("challenge_id, registration_status")
+      .eq("user_id", currentUser.id);
+
+    if (error) {
+      console.error("Could not load registrations:", error);
+      existingRegistrations = {};
+      return;
+    }
+
+    existingRegistrations = {};
+
+    (data || []).forEach(function(registration) {
+      existingRegistrations[registration.challenge_id] = registration;
+    });
+  }
+
+  async function registerForChallenge(challengeId, button) {
+    const message = document.getElementById("registration-" + challengeId);
+
+    button.disabled = true;
+    button.textContent = "Checking account...";
+    message.textContent = "";
+    message.className = "registration-message";
+
+    try {
+      const { data: authData, error: authError } =
+        await supabaseClient.auth.getUser();
+
+      if (authError || !authData.user) {
+        button.disabled = false;
+        button.textContent = "Register for This Challenge";
+        message.className = "registration-message error-message";
+        message.textContent = "Please sign in to your PROOFNEAR account before registering.";
+        return;
+      }
+
+      currentUser = authData.user;
+
+      const { data, error } = await supabaseClient
+        .from("talent_challenge_registrations")
+        .insert({
+          challenge_id: challengeId,
+          user_id: currentUser.id,
+          registration_status: "registered"
+        })
+        .select("challenge_id, registration_status")
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          existingRegistrations[challengeId] = {
+            challenge_id: challengeId,
+            registration_status: "registered"
+          };
+          button.textContent = "Already Registered";
+          message.className = "registration-message success-message";
+          message.textContent = "Your account is already registered for this challenge.";
+          return;
+        }
+
+        console.error("Challenge registration failed:", error);
+        button.disabled = false;
+        button.textContent = "Try Registration Again";
+        message.className = "registration-message error-message";
+        message.textContent = error.message || "Registration could not be completed. Please try again.";
+        return;
+      }
+
+      existingRegistrations[challengeId] = data;
+      button.textContent = "Successfully Registered";
+      message.className = "registration-message success-message";
+      message.textContent = "Your registration has been saved. Good luck!";
+    } catch (error) {
+      console.error("Unexpected registration error:", error);
+      button.disabled = false;
+      button.textContent = "Try Registration Again";
+      message.className = "registration-message error-message";
+      message.textContent = "Something went wrong. Please try again.";
+    }
   }
 
   async function loadOpenChallenges() {
@@ -340,6 +333,8 @@
     `;
 
     try {
+      await loadMyRegistrations();
+
       const { data, error } = await supabaseClient
         .from("talent_challenges")
         .select("id, title, description, category, rules, starts_at, ends_at, status")
@@ -357,7 +352,7 @@
         return;
       }
 
-      renderChallenges(data);
+      renderChallenges(data || []);
     } catch (error) {
       console.error("Unexpected challenge error:", error);
       challengeList.innerHTML = `
