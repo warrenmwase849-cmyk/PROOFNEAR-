@@ -249,6 +249,58 @@ async function loadFeaturedCreators() {
   });
 }
 
+async function loadOpenChallenges() {
+  const list = document.getElementById("challengePreviewList");
+  const message = document.getElementById("challengePreviewMessage");
+
+  if (!list || !message) return;
+
+  const { data, error } = await arenaSupabase
+    .from("talent_challenges")
+    .select("id,title,description,category,starts_at,ends_at")
+    .eq("status", "open")
+    .order("starts_at", { ascending: true })
+    .limit(3);
+
+  list.replaceChildren();
+
+  if (error) {
+    console.error("Challenge loading error:", error);
+    message.textContent = "Challenges are temporarily unavailable.";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    message.textContent =
+      "No open challenges yet. New competitions will appear here when published.";
+    return;
+  }
+
+  message.textContent = "These competitions are currently open:";
+
+  data.forEach(challenge => {
+    const card = document.createElement("article");
+    card.className = "challenge-preview-card";
+
+    const title = document.createElement("h4");
+    title.textContent = challenge.title || "Talent challenge";
+
+    const category = document.createElement("p");
+    category.textContent = challenge.category || "Open category";
+
+    const description = document.createElement("p");
+    description.textContent =
+      challenge.description || "Explore this creative competition.";
+
+    const link = document.createElement("a");
+    link.href = "talent-challenges.html";
+    link.textContent = "Explore challenge";
+
+    card.append(title, category, description, link);
+    list.appendChild(card);
+  });
+  }
+           
 loadFeaturedCreators();
 </script>
   <script src="talent-arena.js"></script>
