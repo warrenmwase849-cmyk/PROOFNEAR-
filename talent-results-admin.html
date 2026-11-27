@@ -7,110 +7,70 @@
 <meta name="theme-color" content="#102c25">
 <title>Talent Results Administration | PROOFNEAR</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;padding:16px;background:#f3f7f4;
-  color:#18352c;font-family:Arial,sans-serif;line-height:1.6
-}
+body{margin:0;padding:16px;background:#f3f7f4;color:#18352c;font-family:Arial,sans-serif;line-height:1.6}
 .container{max-width:1000px;margin:auto}
-header,.challenge-card{
-  background:white;padding:22px;border-radius:13px;
-  margin-bottom:18px;box-shadow:0 3px 15px #0000000a
-}
+header,.challenge-card{background:white;padding:22px;border-radius:13px;margin-bottom:18px;box-shadow:0 3px 15px #0000000a}
 header{background:#102c25;color:white}
 header p{color:#d5e7dc}
 nav{display:flex;flex-wrap:wrap;gap:15px;margin-top:15px}
 nav a{color:#e5b94f;text-decoration:none;font-weight:bold;font-size:13px}
-button{
-  border:0;padding:12px 17px;margin-top:12px;
-  border-radius:7px;cursor:pointer;color:white;
-  font-weight:bold;background:#176b50
-}
+button{border:0;padding:12px 17px;margin:8px 8px 8px 0;border-radius:7px;cursor:pointer;color:white;font-weight:bold;background:#176b50}
 button:disabled{opacity:.55;cursor:not-allowed}
 .refresh{background:#b17a17}
+.publish{background:#087466}
 .message{font-weight:bold;overflow-wrap:anywhere}
 .error{color:#bd3030}
 .success{color:#16834d}
 .muted{color:#718078;font-size:13px}
-.status{
-  display:inline-block;padding:5px 11px;border-radius:20px;
-  background:#e5f3e9;color:#176b50;font-size:12px;
-  font-weight:bold;text-transform:uppercase
-}
-.empty{
-  padding:28px;text-align:center;background:white;
-  border-radius:12px;color:#718078
-}
-.result-box{
-  margin-top:18px;padding:15px;background:#eaf4ed;
-  border-radius:9px;overflow-x:auto
-}
+.status{display:inline-block;padding:5px 11px;border-radius:20px;background:#e5f3e9;color:#176b50;font-size:12px;font-weight:bold;text-transform:uppercase}
+.published{background:#dff2e6;color:#12613c}
+.draft{background:#fff2d8;color:#8b6010}
+.empty{padding:28px;text-align:center;background:white;border-radius:12px;color:#718078}
+.result-box{margin-top:18px;padding:15px;background:#eaf4ed;border-radius:9px;overflow-x:auto}
 table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{
-  padding:11px;text-align:left;
-  border-bottom:1px solid #d8e5dc;font-size:14px
-}
+th,td{padding:11px;text-align:left;border-bottom:1px solid #d8e5dc;font-size:14px}
 th{background:#dcebe0}
 .score{font-weight:bold;color:#176b50}
-@media(max-width:600px){
-  body{padding:10px}
-  header,.challenge-card{padding:15px}
-  th,td{padding:8px;font-size:12px}
-}
+.notice{padding:12px;border-radius:8px;background:#fff5df;color:#765314;font-size:13px;margin-top:12px}
+@media(max-width:600px){body{padding:10px}header,.challenge-card{padding:15px}th,td{padding:8px;font-size:12px}}
 </style>
 </head>
-
 <body>
 <div class="container">
 
 <header>
-  <h1>PROOFNEAR</h1>
-  <h2>Talent Arena Results Administration</h2>
-  <p>
-    Generate and review competition draft rankings using
-    the official 60% judges and 40% public voting formula.
-  </p>
-
-  <p id="identity">Checking administrator access...</p>
-  <button class="refresh" id="refreshButton">Refresh Completed Challenges</button>
-  <p id="message" class="message">Connecting...</p>
-
-  <nav>
-    <a href="talent-arena.html">Arena Home</a>
-    <a href="talent-admin.html">Creator Administration</a>
-    <a href="talent-judge-scoring.html">Judge Scoring</a>
-    <a href="talent-submission-review.html">Submission Review</a>
-    <a href="talent-leaderboard.html">Leaderboard</a>
-  </nav>
+<h1>PROOFNEAR</h1>
+<h2>Talent Arena Results Administration</h2>
+<p>Generate, review and publish competition rankings using the official 60% judges and 40% public voting formula.</p>
+<p id="identity">Checking administrator access...</p>
+<button class="refresh" id="refreshButton">Refresh Completed Challenges</button>
+<p id="message" class="message">Connecting...</p>
+<nav>
+<a href="talent-arena.html">Arena Home</a>
+<a href="talent-admin.html">Creator Administration</a>
+<a href="talent-judge-scoring.html">Judge Scoring</a>
+<a href="talent-submission-review.html">Submission Review</a>
+<a href="talent-leaderboard.html">Leaderboard</a>
+</nav>
 </header>
 
 <section>
-  <h2>Completed Competitions</h2>
-  <p class="muted">
-    Only completed challenges can have draft results generated.
-    Published results cannot be overwritten by this tool.
-  </p>
-
-  <div id="challengeList">
-    <div class="empty">Loading completed challenges...</div>
-  </div>
+<h2>Completed Competitions</h2>
+<p class="muted">Generate draft rankings, review the calculations, then publish the complete competition results. Published results cannot be regenerated.</p>
+<div id="challengeList">
+<div class="empty">Loading completed challenges...</div>
+</div>
 </section>
 
 </div>
 
 <script>
-const SUPABASE_URL =
-  "https://hzxaamykvnvfillpkfom.supabase.co";
+const SUPABASE_URL = "https://hzxaamykvnvfillpkfom.supabase.co";
+const SUPABASE_KEY = "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
 
-const SUPABASE_KEY =
-  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
-
-const client = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const identity = document.getElementById("identity");
 const message = document.getElementById("message");
@@ -142,10 +102,7 @@ async function checkAdmin() {
   const { data, error } = await client.auth.getUser();
 
   if (error || !data.user) {
-    showMessage(
-      "Please sign in to your PROOFNEAR account.",
-      "error"
-    );
+    showMessage("Please sign in to your PROOFNEAR account.", "error");
     return false;
   }
 
@@ -155,208 +112,226 @@ async function checkAdmin() {
     });
 
   if (roleError) {
-    showMessage(
-      "Could not verify administrator access: " +
-      roleError.message,
-      "error"
-    );
+    showMessage("Could not verify administrator access: " + roleError.message, "error");
     return false;
   }
 
   if (isAdmin !== true) {
-    showMessage(
-      "Access denied. Authorised Talent Arena administrators only.",
-      "error"
-    );
+    showMessage("Access denied. Authorised Talent Arena administrators only.", "error");
     return false;
   }
 
-  identity.textContent =
-    "Authorised administrator: " +
-    (data.user.email || "Verified account");
-
+  identity.textContent = "Authorised administrator: " + (data.user.email || "Verified account");
   return true;
 }
 
-function renderResults(container, results) {
+function renderResults(container, results, challengeId) {
   const box = document.createElement("div");
   box.className = "result-box";
 
-  box.appendChild(
-    element("h3", "Generated Draft Rankings")
-  );
-
-  box.appendChild(
-    element(
-      "p",
-      "These results are drafts and are not publicly published.",
-      "muted"
-    )
-  );
+  box.appendChild(element("h3", "Competition Rankings"));
 
   if (!results || results.length === 0) {
-    box.appendChild(
-      element("p", "No results were returned.")
-    );
+    box.appendChild(element("p", "No saved draft or published results were found.", "muted"));
     container.appendChild(box);
     return;
   }
+
+  const isPublished = results.every(r => r.result_status === "published");
+
+  box.appendChild(element(
+    "p",
+    isPublished
+      ? "These competition results have been officially published."
+      : "Review all rankings carefully before publishing.",
+    "muted"
+  ));
 
   const table = document.createElement("table");
   const head = document.createElement("thead");
   const headerRow = document.createElement("tr");
 
-  [
-    "Rank",
-    "Submission",
-    "Judge Average",
-    "Public Votes",
-    "Final Score"
-  ].forEach(function(label) {
-    headerRow.appendChild(element("th", label));
-  });
+  ["Rank", "Submission", "Judge Average", "Public Votes", "Final Score", "Status"]
+    .forEach(label => headerRow.appendChild(element("th", label)));
 
   head.appendChild(headerRow);
   table.appendChild(head);
 
   const body = document.createElement("tbody");
 
-  results.forEach(function(result) {
+  results.forEach(result => {
     const row = document.createElement("tr");
 
-    [
+    const values = [
       "#" + result.rank,
       result.submission_title || "Untitled",
       Number(result.average_judge_score).toFixed(2) + " / 100",
       String(result.public_votes),
       Number(result.final_score).toFixed(2) + " / 100"
-    ].forEach(function(value, index) {
+    ];
+
+    values.forEach((value, index) => {
       const cell = element("td", value);
-
-      if (index === 4) {
-        cell.className = "score";
-      }
-
+      if (index === 4) cell.className = "score";
       row.appendChild(cell);
     });
+
+    const statusCell = document.createElement("td");
+    statusCell.appendChild(element(
+      "span",
+      result.result_status,
+      "status " + (result.result_status === "published" ? "published" : "draft")
+    ));
+    row.appendChild(statusCell);
 
     body.appendChild(row);
   });
 
   table.appendChild(body);
   box.appendChild(table);
+
+  if (isPublished) {
+    box.appendChild(element("p", "Published: " + formatDate(results[0].published_at), "success"));
+  } else {
+    box.appendChild(element(
+      "p",
+      "Official publication will make these rankings available to the public.",
+      "notice"
+    ));
+
+    const publishButton = element("button", "Publish Official Results", "publish");
+
+    publishButton.addEventListener("click", async function() {
+      const confirmed = confirm(
+        "Publish the official results for this completed competition?\n\n" +
+        "This publishes all rankings together. Published results cannot be regenerated."
+      );
+
+      if (!confirmed) return;
+
+      publishButton.disabled = true;
+      publishButton.textContent = "Publishing...";
+      showMessage("Publishing official competition results...");
+
+      const { data, error } = await client.rpc(
+        "publish_talent_challenge_results",
+        { p_challenge_id: challengeId }
+      );
+
+      if (error) {
+        publishButton.disabled = false;
+        publishButton.textContent = "Publish Official Results";
+        showMessage("Publication failed: " + error.message, "error");
+        return;
+      }
+
+      showMessage(
+        "Official results published successfully. " +
+        (data || []).length + " ranking(s) published.",
+        "success"
+      );
+
+      await loadReviewResults(challengeId, container);
+    });
+
+    box.appendChild(publishButton);
+  }
+
   container.appendChild(box);
+}
+
+async function loadReviewResults(challengeId, container) {
+  container.replaceChildren();
+  container.appendChild(element("p", "Loading saved competition rankings...", "muted"));
+
+  const { data, error } = await client.rpc(
+    "get_talent_challenge_results_review",
+    { p_challenge_id: challengeId }
+  );
+
+  container.replaceChildren();
+
+  if (error) {
+    container.appendChild(element("p", "Could not load rankings: " + error.message, "error"));
+    showMessage("Results review failed.", "error");
+    return;
+  }
+
+  renderResults(container, data || [], challengeId);
 }
 
 async function generateResults(challenge, button, output) {
   const confirmed = confirm(
-    "Generate draft rankings for \"" +
-    challenge.title +
-    "\"?\n\nExisting unpublished draft results for this challenge " +
-    "will be recalculated. Published results cannot be overwritten."
+    "Generate draft rankings for \"" + challenge.title +
+    "\"?\n\nExisting unpublished draft results will be recalculated. Published results cannot be overwritten."
   );
 
   if (!confirmed) return;
 
   button.disabled = true;
   button.textContent = "Generating...";
-
   output.replaceChildren();
-
   showMessage("Calculating final competition scores...");
 
   const { data, error } = await client.rpc(
     "generate_talent_challenge_results",
-    {
-      p_challenge_id: challenge.id
-    }
+    { p_challenge_id: challenge.id }
   );
 
   button.disabled = false;
-  button.textContent = "Regenerate Draft Results";
+  button.textContent = "Generate Draft Results";
 
   if (error) {
-    showMessage(
-      "Results generation failed: " + error.message,
-      "error"
-    );
+    showMessage("Results generation failed: " + error.message, "error");
     return;
   }
 
-  renderResults(output, data || []);
-
-  showMessage(
-    "Draft results generated successfully. Review them before publication.",
-    "success"
-  );
+  showMessage("Draft rankings generated. Loading saved results for review...", "success");
+  await loadReviewResults(challenge.id, output);
 }
 
-function renderChallenges(challenges) {
+async function renderChallenges(challenges) {
   challengeList.replaceChildren();
 
   if (!challenges.length) {
-    challengeList.appendChild(
-      element(
-        "div",
-        "No completed challenges are currently available. Challenges must be completed before results can be generated.",
-        "empty"
-      )
-    );
+    challengeList.appendChild(element(
+      "div",
+      "No completed challenges are currently available. Challenges must be completed before results can be generated.",
+      "empty"
+    ));
     return;
   }
 
-  challenges.forEach(function(challenge) {
+  for (const challenge of challenges) {
     const card = document.createElement("article");
     card.className = "challenge-card";
 
-    card.appendChild(
-      element("h3", challenge.title)
-    );
-
-    card.appendChild(
-      element(
-        "p",
-        "Category: " + (challenge.category || "Not specified")
-      )
-    );
-
-    card.appendChild(
-      element(
-        "p",
-        "Challenge ended: " + formatDate(challenge.ends_at),
-        "muted"
-      )
-    );
-
-    card.appendChild(
-      element("span", "Completed", "status")
-    );
+    card.appendChild(element("h3", challenge.title));
+    card.appendChild(element("p", "Category: " + (challenge.category || "Not specified")));
+    card.appendChild(element("p", "Challenge ended: " + formatDate(challenge.ends_at), "muted"));
+    card.appendChild(element("span", "Completed", "status"));
 
     const output = document.createElement("div");
+    const controls = document.createElement("div");
 
-    const button = element(
-      "button",
-      "Generate Draft Results"
-    );
+    const generateButton = element("button", "Generate Draft Results");
 
-    button.addEventListener("click", function() {
-      generateResults(challenge, button, output);
+    generateButton.addEventListener("click", function() {
+      generateResults(challenge, generateButton, output);
     });
 
-    card.appendChild(document.createElement("br"));
-    card.appendChild(button);
+    controls.appendChild(generateButton);
+    card.appendChild(controls);
     card.appendChild(output);
-
     challengeList.appendChild(card);
-  });
+
+    await loadReviewResults(challenge.id, output);
+  }
 }
 
 async function loadCompletedChallenges() {
   challengeList.replaceChildren();
-  challengeList.appendChild(
-    element("div", "Loading completed challenges...", "empty")
-  );
-
+  challengeList.appendChild(element("div", "Loading completed challenges...", "empty"));
   showMessage("Loading completed competitions...");
 
   const { data, error } = await client
@@ -366,24 +341,15 @@ async function loadCompletedChallenges() {
     .order("ends_at", { ascending: false });
 
   if (error) {
-    showMessage(
-      "Could not load completed challenges: " + error.message,
-      "error"
-    );
-
+    showMessage("Could not load completed challenges: " + error.message, "error");
     challengeList.replaceChildren();
-    challengeList.appendChild(
-      element("div", "Challenge loading failed.", "empty")
-    );
+    challengeList.appendChild(element("div", "Challenge loading failed.", "empty"));
     return;
   }
 
-  renderChallenges(data || []);
+  await renderChallenges(data || []);
 
-  showMessage(
-    "Completed challenges loaded: " + (data || []).length,
-    "success"
-  );
+  showMessage("Completed challenges loaded: " + (data || []).length, "success");
 }
 
 async function startPage() {
@@ -391,32 +357,25 @@ async function startPage() {
 
   if (!authorised) {
     challengeList.replaceChildren();
-    challengeList.appendChild(
-      element(
-        "div",
-        "Sign in with an authorised Talent Arena administrator account to continue.",
-        "empty"
-      )
-    );
+    challengeList.appendChild(element(
+      "div",
+      "Sign in with an authorised Talent Arena administrator account to continue.",
+      "empty"
+    ));
     return;
   }
 
   await loadCompletedChallenges();
 }
 
-document
-  .getElementById("refreshButton")
-  .addEventListener("click", async function() {
-    if (!authorised) return;
-
-    this.disabled = true;
-    await loadCompletedChallenges();
-    this.disabled = false;
-  });
+document.getElementById("refreshButton").addEventListener("click", async function() {
+  if (!authorised) return;
+  this.disabled = true;
+  await loadCompletedChallenges();
+  this.disabled = false;
+});
 
 startPage();
 </script>
-
 </body>
-  </html>
-
+</html>
