@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c25">
+<title>My Competition Results | PROOFNEAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f7f4;color:#18352c;font-family:Arial,sans-serif;line-height:1.6}
+header{background:linear-gradient(135deg,#102c25,#176b50);color:white;padding:25px 16px;text-align:center}
+header h1{margin:0}
+header p{color:#d5e9dd}
+nav{display:flex;justify-content:center;flex-wrap:wrap;gap:12px 20px;background:white;padding:15px}
+nav a{color:#176b50;text-decoration:none;font-weight:bold;font-size:14px}
+.container{max-width:900px;margin:30px auto;padding:0 15px}
+.intro,.result-card,.empty{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 3px 14px #00000009}
+.intro h2{margin-top:0}
+.muted{color:#718078}
+#message{padding:15px;background:white;border-radius:10px;font-weight:bold;overflow-wrap:anywhere}
+.error{color:#bd3030}
+.result-card{border:1px solid #e0eae3}
+.result-card h3{margin:0 0 5px}
+.challenge-category{color:#718078;font-size:13px}
+.status{display:inline-block;background:#e0f2e6;color:#176b50;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:bold}
+.details{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:17px}
+.detail{background:#f2f7f3;border-radius:9px;padding:13px}
+.detail strong{display:block;font-size:12px;color:#718078}
+.detail span{font-size:19px;font-weight:bold;color:#176b50;overflow-wrap:anywhere}
+.date{font-size:12px;color:#718078;margin-top:14px}
+.empty{text-align:center;padding:35px 20px}
+.empty .symbol{font-size:42px}
+.button{display:inline-block;background:#176b50;color:white;text-decoration:none;padding:11px 17px;border-radius:8px;font-weight:bold;margin:8px 4px}
+.button.secondary{background:#102c25}
+footer{text-align:center;padding:25px 12px;color:#718078;font-size:13px}
+@media(max-width:520px){.container{padding:0 10px}.intro,.result-card{padding:15px}.details{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
 
+<header>
+<h1>PROOFNEAR</h1>
+<h2>My Competition Results</h2>
+<p>Your performance. Your recognition. Your progress.</p>
+</header>
+
+<nav>
+<a href="creator-dashboard.html">Dashboard</a>
+<a href="talent-arena.html">Talent Arena</a>
+<a href="talent-challenges.html">Challenges</a>
+<a href="talent-leaderboard.html">Public Leaderboard</a>
+<a href="talent-creators.html">Explore Creators</a>
+</nav>
+
+<main class="container">
+<section class="intro">
+<h2>Your Official Competition Record</h2>
+<p class="muted">View your final scores and rankings after PROOFNEAR administrators officially publish competition results.</p>
+</section>
+
+<p id="message">Checking your account...</p>
+<div id="results"></div>
+
+<section id="emptyState" class="empty" hidden>
+<div class="symbol">🏆</div>
+<h2>No published results yet</h2>
+<p class="muted">Your competition results will appear here after a challenge is completed, reviewed and officially published.</p>
+<p class="muted">Any draft or unpublished results remain private until official publication.</p>
+<a class="button" href="talent-challenges.html">Explore Challenges</a>
+<a class="button secondary" href="talent-leaderboard.html">View Leaderboard</a>
+</section>
+</main>
+
+<footer>
+<a href="creator-dashboard.html">← Back to Creator Dashboard</a>
+<p>© 2026 PROOFNEAR. Connecting people to opportunities.</p>
+</footer>
+
+<script>
+const SUPABASE_URL="https://hzxaamykvnvfillpkfom.supabase.co";
+const SUPABASE_KEY="sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const message=document.getElementById("message");
+const resultsContainer=document.getElementById("results");
+const emptyState=document.getElementById("emptyState");
+
+function showMessage(value,isError=false){
+  message.textContent=value;
+  message.className=isError?"error":"";
+  message.hidden=false;
+}
+
+function make(tag,value,className){
+  const node=document.createElement(tag);
+  node.textContent=value??"";
+  if(className)node.className=className;
+  return node;
+}
+
+function formatDate(value){
+  if(!value)return "Not available";
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())
+    ?"Not available"
+    :date.toLocaleString("en-UG");
+}
+
+function renderResult(result){
+  const card=document.createElement("article");
+  card.className="result-card";
+
+  card.appendChild(make("h3",result.challenge_title||"Talent Arena Competition"));
+  card.appendChild(make(
+    "p",
+    "Category: "+(result.challenge_category||"Not specified"),
+    "challenge-category"
+  ));
+
+  card.appendChild(make(
+    "p",
+    "Submission: "+(result.submission_title||"Untitled submission")
+  ));
+
+  card.appendChild(make("span","OFFICIALLY PUBLISHED","status"));
+
+  const details=document.createElement("div");
+  details.className="details";
+
+  const values=[
+    ["Competition Rank","#"+result.rank],
+    ["Final Score",Number(result.final_score).toFixed(2)+"/100"]
+  ];
+
+  values.forEach(item=>{
+    const detail=document.createElement("div");
+    detail.className="detail";
+    detail.appendChild(make("strong",item[0]));
+    detail.appendChild(make("span",item[1]));
+    details.appendChild(detail);
+  });
+
+  card.appendChild(details);
+
+  card.appendChild(make(
+    "p",
+    "Published: "+formatDate(result.published_at),
+    "date"
+  ));
+
+  resultsContainer.appendChild(card);
+}
+
+async function loadMyResults(){
+  showMessage("Checking your signed-in creator account...");
+  emptyState.hidden=true;
+  resultsContainer.replaceChildren();
+
+  const {data:authData,error:authError}=await client.auth.getUser();
+
+  if(authError||!authData.user){
+    showMessage(
+      "Please sign in to your creator account to view your competition results.",
+      true
+    );
+    return;
+  }
+
+  showMessage("Loading your officially published results...");
+
+  const {data,error}=await client.rpc(
+    "get_public_talent_leaderboard",
+    {p_challenge_id:null}
+  );
+
+  if(error){
+    showMessage("Unable to load your competition results: "+error.message,true);
+    return;
+  }
+
+  const myResults=(data||[])
+    .filter(row=>row.creator_user_id===authData.user.id)
+    .sort((a,b)=>{
+      const dateDifference=
+        new Date(b.published_at||0)-new Date(a.published_at||0);
+      return dateDifference||Number(a.rank)-Number(b.rank);
+    });
+
+  if(myResults.length===0){
+    showMessage("Your account is connected. No published competition results were found.");
+    emptyState.hidden=false;
+    return;
+  }
+
+  myResults.forEach(renderResult);
+
+  showMessage(
+    "Your published competition results: "+myResults.length
+  );
+}
+
+loadMyResults();
+</script>
+</body>
+</html>
