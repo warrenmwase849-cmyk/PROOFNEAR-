@@ -1,1 +1,771 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c25">
+<title>Judge Scoring | PROOFNEAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:18px;background:#f3f7f4;
+  color:#18352c;font-family:Arial,sans-serif;line-height:1.6
+}
+.container{max-width:1000px;margin:auto}
+header,.score-card{
+  background:white;padding:22px;border-radius:13px;
+  margin-bottom:18px;box-shadow:0 3px 15px #0000000a
+}
+header{background:#102c25;color:white}
+header h1,header h2{margin-top:0}
+header p{color:#d5e7dc}
+nav{display:flex;flex-wrap:wrap;gap:15px;margin-top:15px}
+nav a{color:#e5b94f;text-decoration:none;font-weight:bold;font-size:13px}
+button{
+  border:0;padding:12px 17px;margin-top:12px;border-radius:7px;
+  cursor:pointer;color:white;font-weight:bold;background:#176b50
+}
+button:disabled{opacity:.55;cursor:not-allowed}
+.refresh{background:#b17a17}
+.score-card h3{color:#176b50;margin-top:0}
+.muted{color:#718078;font-size:13px}
+.status{
+  display:inline-block;padding:5px 11px;border-radius:20px;
+  background:#e5f3e9;color:#176b50;font-size:12px;
+  font-weight:bold;text-transform:uppercase
+}
+.work-link{
+  display:inline-block;margin:10px 0;color:#176b50;
+  font-weight:bold;overflow-wrap:anywhere
+}
+.criteria{
+  border-top:1px solid #e5ebe7;padding-top:14px;margin-top:14px
+}
+.criteria label{display:block;font-weight:bold;margin-bottom:5px}
+.criteria p{font-size:13px;color:#718078;margin:3px 0 9px}
+.criteria input{
+  width:100%;padding:12px;border:1px solid #ccd8d0;
+  border-radius:7px;font-size:17px
+}
+.total{
+  background:#eaf4ed;padding:15px;border-radius:9px;
+  margin-top:16px;font-weight:bold
+}
+.total strong{font-size:25px;color:#176b50}
+.feedback{
+  width:100%;min-height:95px;padding:12px;
+  border:1px solid #ccd8d0;border-radius:7px;
+  font-family:Arial,sans-serif;font-size:14px
+}
+.message{font-weight:bold;overflow-wrap:anywhere}
+.error{color:#bd3030}
+.success{color:#16834d}
+.empty{
+  padding:28px;text-align:center;background:white;
+  border-radius:12px;color:#718078
+}
+.saved-score{
+  background:#eaf4ed;padding:15px;border-radius:9px;
+  margin-top:15px
+}
+.saved-score strong{color:#176b50}
+.score-row{
+  display:flex;justify-content:space-between;
+  gap:12px;border-bottom:1px solid #dce8df;padding:5px 0
+}
+@media(max-width:600px){
+  body{padding:10px}
+  header,.score-card{padding:16px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Talent Arena Judge Scoring</h2>
+  <p>
+    Evaluate accepted creative entries fairly and independently.
+    Each judging submission receives a score out of 100.
+  </p>
+
+  <p id="identity">Checking staff access...</p>
+  <button class="refresh" id="refreshButton">Refresh Entries</button>
+  <p id="message" class="message">Connecting...</p>
+
+  <nav>
+    <a href="talent-arena.html">Arena Home</a>
+    <a href="talent-challenges.html">Challenges</a>
+    <a href="talent-submission-review.html">Submission Review</a>
+    <a href="talent-leaderboard.html">Leaderboard</a>
+    <a href="creator-dashboard.html">Dashboard</a>
+  </nav>
+</header>
+
+<section>
+  <h2>Entries Ready for Judging</h2>
+  <p class="muted">
+    Only accepted submissions appear here. Each criterion is worth
+    a maximum of 25 points. Submitted scores cannot be edited by judges.
+  </p>
+
+  <div id="submissionList">
+    <div class="empty">Loading entries...</div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const message = document.getElementById("message");
+const identity = document.getElementById("identity");
+const submissionList = document.getElementById("submissionList");
+
+let staffUser = null;
+let savedScores = {};
+
+const criteria = [
+  {
+    key: "creativity_originality",
+    title: "Creativity & Originality",
+    description: "Original ideas, uniqueness and creative expression."
+  },
+  {
+    key: "skill_performance",
+    title: "Skill & Performance",
+    description: "Technical ability, execution and performance."
+  },
+  {
+    key: "quality_presentation",
+    title: "Quality & Presentation",
+    description: "Overall quality, preparation and presentation."
+  },
+  {
+    key: "impact_engagement",
+    title: "Impact & Engagement",
+    description: "Audience connection, impression and overall impact."
+  }
+];
+
+function showMessage(text, type = "") {
+  message.textContent = text;
+  message.className = "message " + type;
+}
+
+function makeElement(tag, text, className) {
+  const element = document.createElement(tag);
+  element.textContent = text || "";
+
+  if (className) element.className = className;
+
+  return element;
+}
+
+function safeLink(value) {
+  try {
+    const url = new URL(value);
+
+    if (!["http:", "https:"].includes(url.protocol)) {
+      return null;
+    }
+
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+function formatDate(value) {
+  if (!value) return "Not available";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not available";
+  }
+
+  return date.toLocaleString("en-UG");
+}
+
+async function checkStaffAccess() {
+  const { data, error } = await client.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage(
+      "Please sign in to your PROOFNEAR account.",
+      "error"
+    );
+    return false;
+  }
+
+  staffUser = data.user;
+
+  const { data: authorised, error: staffError } =
+    await client.rpc("is_talent_arena_staff", {
+      required_role: "judge"
+    });
+
+  if (staffError) {
+    showMessage(
+      "Could not verify staff permissions: " +
+      staffError.message,
+      "error"
+    );
+    return false;
+  }
+
+  if (authorised !== true) {
+    showMessage(
+      "Access denied. Authorised Talent Arena staff only.",
+      "error"
+    );
+    return false;
+  }
+
+  identity.textContent =
+    "Authorised staff: " +
+    (staffUser.email || "Verified account");
+
+  return true;
+}
+
+function getChallenge(item) {
+  const challenge = item.talent_challenges;
+
+  return Array.isArray(challenge)
+    ? challenge[0] || {}
+    : challenge || {};
+}
+
+function calculateTotal(card) {
+  let total = 0;
+
+  criteria.forEach(function(item) {
+    const input = card.querySelector(
+      '[data-criterion="' + item.key + '"]'
+    );
+
+    if (!input) return;
+
+    const value = Number(input.value);
+
+    if (
+      input.value.trim() !== "" &&
+      Number.isFinite(value) &&
+      value >= 0 &&
+      value <= 25
+    ) {
+      total += value;
+    }
+  });
+
+  return total;
+}
+
+function renderSavedScore(card, score) {
+  const saved = document.createElement("div");
+  saved.className = "saved-score";
+
+  saved.appendChild(
+    makeElement("h3", "Score Submitted")
+  );
+
+  const total = makeElement(
+    "p",
+    "FINAL SCORE: " + score.score + " / 100"
+  );
+
+  total.style.fontSize = "22px";
+  total.style.fontWeight = "bold";
+  saved.appendChild(total);
+
+  const values = score.criteria_scores || {};
+
+  criteria.forEach(function(item) {
+    const row = document.createElement("div");
+    row.className = "score-row";
+
+    row.appendChild(
+      makeElement("span", item.title)
+    );
+
+    const value = values[item.key];
+
+    row.appendChild(
+      makeElement(
+        "strong",
+        (value === undefined ? "—" : value) + " / 25"
+      )
+    );
+
+    saved.appendChild(row);
+  });
+
+  if (score.feedback) {
+    saved.appendChild(
+      makeElement("p", "Judge feedback: " + score.feedback)
+    );
+  }
+
+  saved.appendChild(
+    makeElement(
+      "p",
+      "Submitted: " + formatDate(score.created_at),
+      "muted"
+    )
+  );
+
+  card.appendChild(saved);
+}
+
+function createScoringForm(card, item) {
+  const inputs = [];
+
+  criteria.forEach(function(criterion) {
+    const section = document.createElement("div");
+    section.className = "criteria";
+
+    const label = makeElement(
+      "label",
+      criterion.title + " (out of 25)"
+    );
+
+    const description = makeElement(
+      "p",
+      criterion.description
+    );
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = "0";
+    input.max = "25";
+    input.step = "1";
+    input.placeholder = "Enter score from 0 to 25";
+    input.dataset.criterion = criterion.key;
+    input.required = true;
+
+    input.addEventListener("input", function() {
+      updateTotal();
+    });
+
+    section.appendChild(label);
+    section.appendChild(description);
+    section.appendChild(input);
+
+    card.appendChild(section);
+    inputs.push(input);
+  });
+
+  const totalBox = document.createElement("div");
+  totalBox.className = "total";
+
+  const totalLabel = document.createElement("div");
+  totalLabel.textContent = "LIVE TOTAL SCORE";
+
+  const totalValue = document.createElement("strong");
+  totalValue.textContent = "0 / 100";
+
+  totalBox.appendChild(totalLabel);
+  totalBox.appendChild(totalValue);
+  card.appendChild(totalBox);
+
+  const feedbackLabel = makeElement(
+    "label",
+    "Written Feedback (optional)"
+  );
+  feedbackLabel.style.display = "block";
+  feedbackLabel.style.fontWeight = "bold";
+  feedbackLabel.style.marginTop = "18px";
+
+  const feedback = document.createElement("textarea");
+  feedback.className = "feedback";
+  feedback.placeholder =
+    "Write constructive feedback for this creator...";
+
+  card.appendChild(feedbackLabel);
+  card.appendChild(feedback);
+
+  const saveButton = makeElement(
+    "button",
+    "Submit Judge Score"
+  );
+
+  card.appendChild(saveButton);
+
+  function updateTotal() {
+    const total = calculateTotal(card);
+    totalValue.textContent = total + " / 100";
+  }
+
+  saveButton.addEventListener("click", async function() {
+    const criteriaScores = {};
+
+    for (const criterion of criteria) {
+      const input = card.querySelector(
+        '[data-criterion="' + criterion.key + '"]'
+      );
+
+      const raw = input.value.trim();
+      const value = Number(raw);
+
+      if (
+        raw === "" ||
+        !Number.isInteger(value) ||
+        value < 0 ||
+        value > 25
+      ) {
+        showMessage(
+          "Enter a whole-number score from 0 to 25 for every criterion.",
+          "error"
+        );
+
+        input.focus();
+        return;
+      }
+
+      criteriaScores[criterion.key] = value;
+    }
+
+    const total = Object.values(criteriaScores)
+      .reduce(function(sum, value) {
+        return sum + value;
+      }, 0);
+
+    if (total < 0 || total > 100) {
+      showMessage("Invalid total score.", "error");
+      return;
+    }
+
+    if (item.user_id === staffUser.id) {
+      showMessage(
+        "You cannot judge your own submission.",
+        "error"
+      );
+      return;
+    }
+
+    const confirmed = confirm(
+      "Submit your final score of " + total +
+      " out of 100? You cannot edit it after submission."
+    );
+
+    if (!confirmed) return;
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Submitting...";
+
+    showMessage("Saving your judge score...");
+
+    const { data: inserted, error } = await client
+      .from("talent_challenge_scores")
+      .insert({
+        submission_id: item.id,
+        judge_id: staffUser.id,
+        score: total,
+        criteria_scores: criteriaScores,
+        feedback: feedback.value.trim() || null
+      })
+      .select(
+        "submission_id,score,criteria_scores,feedback,created_at"
+      )
+      .single();
+
+    if (error) {
+      saveButton.disabled = false;
+      saveButton.textContent = "Submit Judge Score";
+
+      if (error.code === "23505") {
+        showMessage(
+          "You have already scored this submission. Refreshing your entries.",
+          "error"
+        );
+        await loadSubmissions();
+        return;
+      }
+
+      showMessage(
+        "Could not save score: " + error.message,
+        "error"
+      );
+      return;
+    }
+
+    savedScores[item.id] = inserted;
+
+    card.querySelectorAll("input, textarea").forEach(
+      function(control) {
+        control.disabled = true;
+      }
+    );
+
+    saveButton.remove();
+
+    renderSavedScore(card, inserted);
+
+    showMessage(
+      "Your score was successfully submitted.",
+      "success"
+    );
+  });
+}
+
+function renderSubmissions(submissions) {
+  submissionList.replaceChildren();
+
+  if (!submissions || submissions.length === 0) {
+    submissionList.appendChild(
+      makeElement(
+        "div",
+        "No accepted submissions are currently available for judging.",
+        "empty"
+      )
+    );
+    return;
+  }
+
+  let visibleCount = 0;
+
+  submissions.forEach(function(item) {
+    if (item.user_id === staffUser.id) {
+      return;
+    }
+
+    visibleCount++;
+
+    const card = document.createElement("article");
+    card.className = "score-card";
+
+    const challenge = getChallenge(item);
+
+    card.appendChild(
+      makeElement(
+        "h3",
+        item.title || "Untitled submission"
+      )
+    );
+
+    card.appendChild(
+      makeElement(
+        "p",
+        "Challenge: " + (challenge.title || item.challenge_id)
+      )
+    );
+
+    if (challenge.category) {
+      card.appendChild(
+        makeElement(
+          "p",
+          "Category: " + challenge.category
+        )
+      );
+    }
+
+    card.appendChild(
+      makeElement(
+        "p",
+        "Creator ID: " + item.user_id,
+        "muted"
+      )
+    );
+
+    card.appendChild(
+      makeElement(
+        "p",
+        "Description: " + (item.description || "Not provided")
+      )
+    );
+
+    card.appendChild(
+      makeElement(
+        "p",
+        "Submitted: " + formatDate(item.submitted_at),
+        "muted"
+      )
+    );
+
+    card.appendChild(
+      makeElement(
+        "span",
+        item.submission_status,
+        "status"
+      )
+    );
+
+    const linkUrl = safeLink(item.submission_url);
+
+    if (linkUrl) {
+      const link = document.createElement("a");
+
+      link.href = linkUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Open Creator's Work";
+      link.className = "work-link";
+
+      card.appendChild(document.createElement("br"));
+      card.appendChild(link);
+    } else {
+      card.appendChild(
+        makeElement(
+          "p",
+          "The submitted work link is invalid.",
+          "error"
+        )
+      );
+    }
+
+    if (savedScores[item.id]) {
+      renderSavedScore(card, savedScores[item.id]);
+    } else {
+      createScoringForm(card, item);
+    }
+
+    submissionList.appendChild(card);
+  });
+
+  if (visibleCount === 0) {
+    submissionList.appendChild(
+      makeElement(
+        "div",
+        "There are no other creators' accepted submissions available for judging.",
+        "empty"
+      )
+    );
+  }
+}
+
+async function loadSubmissions() {
+  submissionList.replaceChildren();
+
+  submissionList.appendChild(
+    makeElement("div", "Loading accepted entries...", "empty")
+  );
+
+  showMessage("Loading submissions and your saved scores...");
+
+  const { data: submissions, error: submissionError } =
+    await client
+      .from("talent_challenge_submissions")
+      .select(`
+        id,
+        challenge_id,
+        user_id,
+        title,
+        description,
+        submission_url,
+        submission_status,
+        submitted_at,
+        talent_challenges (
+          title,
+          category
+        )
+      `)
+      .eq("submission_status", "accepted")
+      .order("submitted_at", {
+        ascending: false
+      });
+
+  if (submissionError) {
+    showMessage(
+      "Could not load submissions: " + submissionError.message,
+      "error"
+    );
+
+    submissionList.replaceChildren();
+    submissionList.appendChild(
+      makeElement(
+        "div",
+        "Submission loading failed. Check the message above.",
+        "empty"
+      )
+    );
+
+    return;
+  }
+
+  const { data: scores, error: scoreError } = await client
+    .from("talent_challenge_scores")
+    .select(`
+      submission_id,
+      score,
+      criteria_scores,
+      feedback,
+      created_at
+    `)
+    .eq("judge_id", staffUser.id);
+
+  if (scoreError) {
+    showMessage(
+      "Could not load your existing scores: " + scoreError.message,
+      "error"
+    );
+    return;
+  }
+
+  savedScores = {};
+
+  (scores || []).forEach(function(score) {
+    savedScores[score.submission_id] = score;
+  });
+
+  renderSubmissions(submissions || []);
+
+  showMessage(
+    "Entries loaded: " + (submissions || []).length,
+    "success"
+  );
+}
+
+document
+  .getElementById("refreshButton")
+  .addEventListener("click", async function() {
+    const button = this;
+    button.disabled = true;
+
+    if (await checkStaffAccess()) {
+      await loadSubmissions();
+    }
+
+    button.disabled = false;
+  });
+
+async function startScoringPage() {
+  const authorised = await checkStaffAccess();
+
+  if (authorised) {
+    await loadSubmissions();
+  } else {
+    submissionList.replaceChildren();
+
+    submissionList.appendChild(
+      makeElement(
+        "div",
+        "Sign in with an authorised Talent Arena staff account to continue.",
+        "empty"
+      )
+    );
+  }
+}
+
+startScoringPage();
+</script>
+
+</body>
+</html>
+
