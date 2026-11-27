@@ -1,1 +1,422 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c25">
+<title>Talent Results Administration | PROOFNEAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:16px;background:#f3f7f4;
+  color:#18352c;font-family:Arial,sans-serif;line-height:1.6
+}
+.container{max-width:1000px;margin:auto}
+header,.challenge-card{
+  background:white;padding:22px;border-radius:13px;
+  margin-bottom:18px;box-shadow:0 3px 15px #0000000a
+}
+header{background:#102c25;color:white}
+header p{color:#d5e7dc}
+nav{display:flex;flex-wrap:wrap;gap:15px;margin-top:15px}
+nav a{color:#e5b94f;text-decoration:none;font-weight:bold;font-size:13px}
+button{
+  border:0;padding:12px 17px;margin-top:12px;
+  border-radius:7px;cursor:pointer;color:white;
+  font-weight:bold;background:#176b50
+}
+button:disabled{opacity:.55;cursor:not-allowed}
+.refresh{background:#b17a17}
+.message{font-weight:bold;overflow-wrap:anywhere}
+.error{color:#bd3030}
+.success{color:#16834d}
+.muted{color:#718078;font-size:13px}
+.status{
+  display:inline-block;padding:5px 11px;border-radius:20px;
+  background:#e5f3e9;color:#176b50;font-size:12px;
+  font-weight:bold;text-transform:uppercase
+}
+.empty{
+  padding:28px;text-align:center;background:white;
+  border-radius:12px;color:#718078
+}
+.result-box{
+  margin-top:18px;padding:15px;background:#eaf4ed;
+  border-radius:9px;overflow-x:auto
+}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{
+  padding:11px;text-align:left;
+  border-bottom:1px solid #d8e5dc;font-size:14px
+}
+th{background:#dcebe0}
+.score{font-weight:bold;color:#176b50}
+@media(max-width:600px){
+  body{padding:10px}
+  header,.challenge-card{padding:15px}
+  th,td{padding:8px;font-size:12px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>PROOFNEAR</h1>
+  <h2>Talent Arena Results Administration</h2>
+  <p>
+    Generate and review competition draft rankings using
+    the official 60% judges and 40% public voting formula.
+  </p>
+
+  <p id="identity">Checking administrator access...</p>
+  <button class="refresh" id="refreshButton">Refresh Completed Challenges</button>
+  <p id="message" class="message">Connecting...</p>
+
+  <nav>
+    <a href="talent-arena.html">Arena Home</a>
+    <a href="talent-admin.html">Creator Administration</a>
+    <a href="talent-judge-scoring.html">Judge Scoring</a>
+    <a href="talent-submission-review.html">Submission Review</a>
+    <a href="talent-leaderboard.html">Leaderboard</a>
+  </nav>
+</header>
+
+<section>
+  <h2>Completed Competitions</h2>
+  <p class="muted">
+    Only completed challenges can have draft results generated.
+    Published results cannot be overwritten by this tool.
+  </p>
+
+  <div id="challengeList">
+    <div class="empty">Loading completed challenges...</div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const identity = document.getElementById("identity");
+const message = document.getElementById("message");
+const challengeList = document.getElementById("challengeList");
+
+let authorised = false;
+
+function showMessage(text, type = "") {
+  message.textContent = text;
+  message.className = "message " + type;
+}
+
+function element(tag, text, className) {
+  const node = document.createElement(tag);
+  node.textContent = text || "";
+  if (className) node.className = className;
+  return node;
+}
+
+function formatDate(value) {
+  if (!value) return "Not available";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Not available"
+    : date.toLocaleString("en-UG");
+}
+
+async function checkAdmin() {
+  const { data, error } = await client.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage(
+      "Please sign in to your PROOFNEAR account.",
+      "error"
+    );
+    return false;
+  }
+
+  const { data: isAdmin, error: roleError } =
+    await client.rpc("is_talent_arena_staff", {
+      required_role: "admin"
+    });
+
+  if (roleError) {
+    showMessage(
+      "Could not verify administrator access: " +
+      roleError.message,
+      "error"
+    );
+    return false;
+  }
+
+  if (isAdmin !== true) {
+    showMessage(
+      "Access denied. Authorised Talent Arena administrators only.",
+      "error"
+    );
+    return false;
+  }
+
+  identity.textContent =
+    "Authorised administrator: " +
+    (data.user.email || "Verified account");
+
+  return true;
+}
+
+function renderResults(container, results) {
+  const box = document.createElement("div");
+  box.className = "result-box";
+
+  box.appendChild(
+    element("h3", "Generated Draft Rankings")
+  );
+
+  box.appendChild(
+    element(
+      "p",
+      "These results are drafts and are not publicly published.",
+      "muted"
+    )
+  );
+
+  if (!results || results.length === 0) {
+    box.appendChild(
+      element("p", "No results were returned.")
+    );
+    container.appendChild(box);
+    return;
+  }
+
+  const table = document.createElement("table");
+  const head = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+
+  [
+    "Rank",
+    "Submission",
+    "Judge Average",
+    "Public Votes",
+    "Final Score"
+  ].forEach(function(label) {
+    headerRow.appendChild(element("th", label));
+  });
+
+  head.appendChild(headerRow);
+  table.appendChild(head);
+
+  const body = document.createElement("tbody");
+
+  results.forEach(function(result) {
+    const row = document.createElement("tr");
+
+    [
+      "#" + result.rank,
+      result.submission_title || "Untitled",
+      Number(result.average_judge_score).toFixed(2) + " / 100",
+      String(result.public_votes),
+      Number(result.final_score).toFixed(2) + " / 100"
+    ].forEach(function(value, index) {
+      const cell = element("td", value);
+
+      if (index === 4) {
+        cell.className = "score";
+      }
+
+      row.appendChild(cell);
+    });
+
+    body.appendChild(row);
+  });
+
+  table.appendChild(body);
+  box.appendChild(table);
+  container.appendChild(box);
+}
+
+async function generateResults(challenge, button, output) {
+  const confirmed = confirm(
+    "Generate draft rankings for \"" +
+    challenge.title +
+    "\"?\n\nExisting unpublished draft results for this challenge " +
+    "will be recalculated. Published results cannot be overwritten."
+  );
+
+  if (!confirmed) return;
+
+  button.disabled = true;
+  button.textContent = "Generating...";
+
+  output.replaceChildren();
+
+  showMessage("Calculating final competition scores...");
+
+  const { data, error } = await client.rpc(
+    "generate_talent_challenge_results",
+    {
+      p_challenge_id: challenge.id
+    }
+  );
+
+  button.disabled = false;
+  button.textContent = "Regenerate Draft Results";
+
+  if (error) {
+    showMessage(
+      "Results generation failed: " + error.message,
+      "error"
+    );
+    return;
+  }
+
+  renderResults(output, data || []);
+
+  showMessage(
+    "Draft results generated successfully. Review them before publication.",
+    "success"
+  );
+}
+
+function renderChallenges(challenges) {
+  challengeList.replaceChildren();
+
+  if (!challenges.length) {
+    challengeList.appendChild(
+      element(
+        "div",
+        "No completed challenges are currently available. Challenges must be completed before results can be generated.",
+        "empty"
+      )
+    );
+    return;
+  }
+
+  challenges.forEach(function(challenge) {
+    const card = document.createElement("article");
+    card.className = "challenge-card";
+
+    card.appendChild(
+      element("h3", challenge.title)
+    );
+
+    card.appendChild(
+      element(
+        "p",
+        "Category: " + (challenge.category || "Not specified")
+      )
+    );
+
+    card.appendChild(
+      element(
+        "p",
+        "Challenge ended: " + formatDate(challenge.ends_at),
+        "muted"
+      )
+    );
+
+    card.appendChild(
+      element("span", "Completed", "status")
+    );
+
+    const output = document.createElement("div");
+
+    const button = element(
+      "button",
+      "Generate Draft Results"
+    );
+
+    button.addEventListener("click", function() {
+      generateResults(challenge, button, output);
+    });
+
+    card.appendChild(document.createElement("br"));
+    card.appendChild(button);
+    card.appendChild(output);
+
+    challengeList.appendChild(card);
+  });
+}
+
+async function loadCompletedChallenges() {
+  challengeList.replaceChildren();
+  challengeList.appendChild(
+    element("div", "Loading completed challenges...", "empty")
+  );
+
+  showMessage("Loading completed competitions...");
+
+  const { data, error } = await client
+    .from("talent_challenges")
+    .select("id,title,category,status,ends_at")
+    .eq("status", "completed")
+    .order("ends_at", { ascending: false });
+
+  if (error) {
+    showMessage(
+      "Could not load completed challenges: " + error.message,
+      "error"
+    );
+
+    challengeList.replaceChildren();
+    challengeList.appendChild(
+      element("div", "Challenge loading failed.", "empty")
+    );
+    return;
+  }
+
+  renderChallenges(data || []);
+
+  showMessage(
+    "Completed challenges loaded: " + (data || []).length,
+    "success"
+  );
+}
+
+async function startPage() {
+  authorised = await checkAdmin();
+
+  if (!authorised) {
+    challengeList.replaceChildren();
+    challengeList.appendChild(
+      element(
+        "div",
+        "Sign in with an authorised Talent Arena administrator account to continue.",
+        "empty"
+      )
+    );
+    return;
+  }
+
+  await loadCompletedChallenges();
+}
+
+document
+  .getElementById("refreshButton")
+  .addEventListener("click", async function() {
+    if (!authorised) return;
+
+    this.disabled = true;
+    await loadCompletedChallenges();
+    this.disabled = false;
+  });
+
+startPage();
+</script>
+
+</body>
+  </html>
+
