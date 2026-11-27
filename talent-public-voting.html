@@ -1,1 +1,668 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c25">
+  <title>Public Voting | PROOFNEAR Talent Arena</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f8f6;
+      color: #24342e;
+      line-height: 1.6;
+    }
+    a { text-decoration: none; }
+    header {
+      background: #102c25;
+      color: white;
+      padding: 17px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    header a { color: white; font-weight: bold; }
+    nav { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav a { font-size: 13px; }
+    nav a.active { color: #e5b94f; }
+    .hero {
+      background: linear-gradient(130deg, #102c25, #176b50);
+      color: white;
+      text-align: center;
+      padding: 58px 6%;
+    }
+    .eyebrow {
+      color: #e5b94f;
+      font-weight: bold;
+      letter-spacing: 2px;
+      font-size: 12px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 48px);
+      margin: 12px 0;
+    }
+    .hero p {
+      max-width: 680px;
+      margin: auto;
+      color: #d5e7dc;
+    }
+    main {
+      max-width: 1050px;
+      margin: auto;
+      padding: 38px 6%;
+    }
+    .intro { text-align: center; margin-bottom: 28px; }
+    h2 { color: #102c25; margin-bottom: 9px; }
+    .muted { color: #718078; font-size: 14px; }
+    .notice {
+      background: #fff9e9;
+      border-left: 4px solid #e5b94f;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 25px;
+      font-size: 14px;
+      color: #5c5137;
+    }
+    .status-box, .empty-state, .loading-state {
+      background: white;
+      border: 1px solid #e1eae4;
+      border-radius: 12px;
+      padding: 23px;
+      text-align: center;
+      color: #718078;
+      margin-bottom: 20px;
+    }
+    .challenge-card {
+      background: white;
+      border: 1px solid #e1eae4;
+      border-left: 5px solid #176b50;
+      border-radius: 13px;
+      padding: 22px;
+      margin-bottom: 25px;
+      box-shadow: 0 3px 12px rgba(16,44,37,.04);
+    }
+    .challenge-card h3 {
+      color: #176b50;
+      font-size: 21px;
+      margin: 8px 0;
+    }
+    .challenge-description {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: #617168;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .meta {
+      color: #718078;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .pill {
+      display: inline-block;
+      background: #e4f4e9;
+      color: #176b50;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .entries-title {
+      color: #102c25;
+      font-size: 17px;
+      margin: 22px 0 13px;
+    }
+    .entry {
+      border: 1px solid #e4ebe6;
+      background: #fbfdfb;
+      border-radius: 10px;
+      padding: 17px;
+      margin-top: 12px;
+    }
+    .entry h4 {
+      color: #176b50;
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+    .entry p {
+      color: #617168;
+      font-size: 14px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin-top: 7px;
+    }
+    .entry-link {
+      display: inline-block;
+      color: #176b50;
+      font-weight: bold;
+      font-size: 13px;
+      margin-top: 12px;
+      text-decoration: underline;
+      overflow-wrap: anywhere;
+    }
+    .vote-button, .sign-in-link {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 11px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #176b50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .vote-button:disabled {
+      background: #a8b7ae;
+      cursor: not-allowed;
+    }
+    .sign-in-link {
+      background: #e5b94f;
+      color: #102c25;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+    .success { color: #176b50; }
+    .error { color: #b42318; }
+    .small-note {
+      color: #718078;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    footer {
+      text-align: center;
+      padding: 25px;
+      background: #0a201a;
+      color: #c1d1c8;
+      font-size: 12px;
+    }
+    footer a { color: #e5b94f; }
+    @media(max-width:600px) {
+      header { flex-direction: column; }
+      nav { justify-content: center; }
+      .hero { padding: 45px 6%; }
+      .challenge-card { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="talent-arena.html">P PROOFNEAR</a>
+  <nav>
+    <a href="talent-arena.html">Arena</a>
+    <a href="talent-challenges.html">Challenges</a>
+    <a href="talent-creators.html">Explore Talent</a>
+    <a href="talent-public-voting.html" class="active">Public Voting</a>
+    <a href="talent-leaderboard.html">Leaderboard</a>
+    <a href="creator-dashboard.html">Dashboard</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <span class="eyebrow">YOUR VOICE. YOUR VOTE.</span>
+  <h1>Public Voting</h1>
+  <p>Discover accepted creative entries and support the talent you believe deserves recognition in PROOFNEAR Talent Arena.</p>
+</section>
+
+<main>
+  <section class="intro">
+    <span class="eyebrow">SUPPORT GREAT TALENT</span>
+    <h2>Vote for Your Favourite Entry</h2>
+    <p class="muted">Each signed-in account can cast one vote per challenge.</p>
+  </section>
+
+  <div class="notice">
+    <strong>Voting rules:</strong>
+    Only accepted submissions in published challenges currently within their voting dates are displayed. You cannot vote for your own submission. Your vote is private, and public vote totals are not displayed on this page.
+  </div>
+
+  <div id="account-status" class="status-box">
+    Checking your PROOFNEAR account...
+  </div>
+
+  <div id="challenge-list">
+    <div class="loading-state">Loading active challenges...</div>
+  </div>
+</main>
+
+<footer>
+  <p><a href="talent-arena.html">← Back to Talent Arena</a></p>
+  <p>© 2026 PROOFNEAR. Connecting people to opportunities.</p>
+</footer>
+
+<script>
+  const SUPABASE_URL = "https://hzxaamykvnvfillpkfom.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const challengeList = document.getElementById("challenge-list");
+  const accountStatus = document.getElementById("account-status");
+
+  let currentUser = null;
+  const votedChallenges = new Set();
+
+  function formatDate(value) {
+    if (!value) return "Not specified";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Not specified";
+    }
+
+    return date.toLocaleString();
+  }
+
+  function safeHttpUrl(value) {
+    try {
+      const url = new URL(value);
+
+      if (url.protocol === "https:" || url.protocol === "http:") {
+        return url.href;
+      }
+    } catch (error) {
+      return null;
+    }
+
+    return null;
+  }
+
+  function showMessage(element, message, type) {
+    element.textContent = message;
+    element.className = "message " + (type || "");
+  }
+
+  function createElement(tag, className, text) {
+    const element = document.createElement(tag);
+
+    if (className) {
+      element.className = className;
+    }
+
+    if (text !== undefined && text !== null) {
+      element.textContent = text;
+    }
+
+    return element;
+  }
+
+  function updateAccountStatus() {
+    accountStatus.replaceChildren();
+
+    if (currentUser) {
+      accountStatus.appendChild(
+        createElement("strong", "", "You are signed in.")
+      );
+
+      accountStatus.appendChild(
+        createElement(
+          "p",
+          "muted",
+          "You can vote once in each active challenge."
+        )
+      );
+    } else {
+      accountStatus.appendChild(
+        createElement("strong", "", "Sign in to cast your vote.")
+      );
+
+      accountStatus.appendChild(
+        createElement(
+          "p",
+          "muted",
+          "Open PROOFNEAR, sign in to your account, then return to this page."
+        )
+      );
+
+      const link = createElement("a", "sign-in-link", "Open PROOFNEAR");
+      link.href = "index.html";
+      accountStatus.appendChild(link);
+    }
+  }
+
+  async function loadCurrentUser() {
+    const { data, error } = await supabaseClient.auth.getUser();
+
+    if (error) {
+      console.warn("Could not check current account:", error.message);
+      currentUser = null;
+    } else {
+      currentUser = data.user || null;
+    }
+
+    updateAccountStatus();
+  }
+
+  function renderEntry(submission, challengeId) {
+    const card = createElement("article", "entry");
+
+    card.appendChild(
+      createElement("h4", "", submission.title || "Untitled submission")
+    );
+
+    if (submission.description) {
+      card.appendChild(
+        createElement("p", "", submission.description)
+      );
+    }
+
+    card.appendChild(
+      createElement(
+        "div",
+        "small-note",
+        "Submitted: " + formatDate(submission.submitted_at)
+      )
+    );
+
+    const workUrl = safeHttpUrl(submission.submission_url);
+
+    if (workUrl) {
+      const link = createElement("a", "entry-link", "View creative submission ↗");
+      link.href = workUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      card.appendChild(link);
+    } else {
+      card.appendChild(
+        createElement("p", "small-note", "No valid public work link is available.")
+      );
+    }
+
+    const voteButton = createElement("button", "vote-button", "Vote for this entry");
+    voteButton.type = "button";
+
+    const message = createElement("div", "message", "");
+
+    const isOwnEntry =
+      currentUser && submission.user_id === currentUser.id;
+
+    if (isOwnEntry) {
+      voteButton.disabled = true;
+      voteButton.textContent = "Your own submission";
+      message.textContent = "You cannot vote for your own entry.";
+    } else if (!currentUser) {
+      voteButton.disabled = true;
+      voteButton.textContent = "Sign in to vote";
+    } else if (votedChallenges.has(challengeId)) {
+      voteButton.disabled = true;
+      voteButton.textContent = "Already voted in this challenge";
+    }
+
+    voteButton.addEventListener("click", async function() {
+      await castVote(submission, challengeId, voteButton, message);
+    });
+
+    card.appendChild(voteButton);
+    card.appendChild(message);
+
+    return card;
+  }
+
+  async function castVote(submission, challengeId, button, message) {
+    if (!currentUser) {
+      showMessage(
+        message,
+        "Please sign in to your PROOFNEAR account before voting.",
+        "error"
+      );
+      return;
+    }
+
+    if (submission.user_id === currentUser.id) {
+      showMessage(message, "You cannot vote for your own submission.", "error");
+      return;
+    }
+
+    if (votedChallenges.has(challengeId)) {
+      showMessage(
+        message,
+        "You have already voted in this challenge.",
+        "error"
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Cast your one vote for this entry? You cannot change your vote afterwards."
+    );
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = "Submitting vote...";
+
+    const { error } = await supabaseClient
+      .from("talent_challenge_votes")
+      .insert({
+        challenge_id: challengeId,
+        submission_id: submission.id,
+        voter_id: currentUser.id
+      });
+
+    if (error) {
+      if (error.code === "23505") {
+        votedChallenges.add(challengeId);
+        button.textContent = "Already voted in this challenge";
+        showMessage(
+          message,
+          "Our records show that your account has already voted in this challenge.",
+          "error"
+        );
+        disableOtherChallengeButtons(challengeId);
+        return;
+      }
+
+      console.error("Vote submission failed:", error);
+
+      button.disabled = false;
+      button.textContent = "Vote for this entry";
+
+      showMessage(
+        message,
+        "Your vote could not be submitted. " + error.message,
+        "error"
+      );
+      return;
+    }
+
+    votedChallenges.add(challengeId);
+    button.textContent = "Vote submitted successfully";
+    showMessage(
+      message,
+      "Thank you! Your vote has been recorded.",
+      "success"
+    );
+
+    disableOtherChallengeButtons(challengeId);
+  }
+
+  function disableOtherChallengeButtons(challengeId) {
+    const section = document.querySelector(
+      '[data-challenge-id="' + challengeId + '"]'
+    );
+
+    if (!section) return;
+
+    const buttons = section.querySelectorAll(".vote-button");
+
+    buttons.forEach(function(button) {
+      button.disabled = true;
+
+      if (button.textContent !== "Vote submitted successfully") {
+        button.textContent = "Already voted in this challenge";
+      }
+    });
+  }
+
+  async function loadVotingPage() {
+    challengeList.replaceChildren(
+      createElement("div", "loading-state", "Loading active challenges...")
+    );
+
+    const now = new Date().toISOString();
+
+    const { data: challenges, error: challengeError } =
+      await supabaseClient
+        .from("talent_challenges")
+        .select("id,title,description,category,rules,starts_at,ends_at")
+        .eq("status", "published")
+        .lte("starts_at", now)
+        .order("starts_at", { ascending: false });
+
+    if (challengeError) {
+      console.error("Challenge loading error:", challengeError);
+
+      challengeList.replaceChildren(
+        createElement(
+          "div",
+          "empty-state",
+          "Challenges could not be loaded. Please refresh and try again. " +
+          challengeError.message
+        )
+      );
+      return;
+    }
+
+    const activeChallenges = (challenges || []).filter(function(challenge) {
+      return !challenge.ends_at ||
+        new Date(challenge.ends_at).getTime() >= Date.now();
+    });
+
+    if (!activeChallenges.length) {
+      challengeList.replaceChildren(
+        createElement(
+          "div",
+          "empty-state",
+          "No published challenges are currently open for public voting. Please check again later."
+        )
+      );
+      return;
+    }
+
+    const challengeIds = activeChallenges.map(function(challenge) {
+      return challenge.id;
+    });
+
+    const { data: submissions, error: submissionError } =
+      await supabaseClient
+        .from("talent_challenge_submissions")
+        .select("id,challenge_id,user_id,title,description,submission_url,submitted_at")
+        .in("challenge_id", challengeIds)
+        .eq("submission_status", "accepted")
+        .order("submitted_at", { ascending: true });
+
+    if (submissionError) {
+      console.error("Submission loading error:", submissionError);
+
+      challengeList.replaceChildren(
+        createElement(
+          "div",
+          "empty-state",
+          "Accepted entries could not be loaded. " + submissionError.message
+        )
+      );
+      return;
+    }
+
+    challengeList.replaceChildren();
+
+    activeChallenges.forEach(function(challenge) {
+      const section = createElement("section", "challenge-card");
+      section.dataset.challengeId = challenge.id;
+
+      section.appendChild(
+        createElement("span", "pill", "Voting open")
+      );
+
+      section.appendChild(
+        createElement("h3", "", challenge.title || "Untitled challenge")
+      );
+
+      section.appendChild(
+        createElement(
+          "div",
+          "meta",
+          "Category: " + (challenge.category || "General")
+        )
+      );
+
+      section.appendChild(
+        createElement(
+          "div",
+          "meta",
+          "Voting closes: " +
+          (challenge.ends_at ? formatDate(challenge.ends_at) : "No closing date specified")
+        )
+      );
+
+      if (challenge.description) {
+        section.appendChild(
+          createElement("p", "challenge-description", challenge.description)
+        );
+      }
+
+      const entriesTitle = createElement(
+        "h4",
+        "entries-title",
+        "Accepted entries"
+      );
+
+      section.appendChild(entriesTitle);
+
+      const challengeSubmissions = (submissions || []).filter(function(item) {
+        return item.challenge_id === challenge.id;
+      });
+
+      if (!challengeSubmissions.length) {
+        section.appendChild(
+          createElement(
+            "div",
+            "empty-state",
+            "There are no accepted entries available for voting in this challenge yet."
+          )
+        );
+      } else {
+        challengeSubmissions.forEach(function(submission) {
+          section.appendChild(renderEntry(submission, challenge.id));
+        });
+      }
+
+      challengeList.appendChild(section);
+    });
+  }
+
+  supabaseClient.auth.onAuthStateChange(function(event, session) {
+    currentUser = session ? session.user : null;
+    updateAccountStatus();
+
+    if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+      loadVotingPage();
+    }
+  });
+
+  async function initialisePage() {
+    await loadCurrentUser();
+    await loadVotingPage();
+  }
+
+  initialisePage();
+</script>
+
+</body>
+  </html>
+  
