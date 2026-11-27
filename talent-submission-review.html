@@ -1,0 +1,580 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c25">
+  <title>Submission Review | PROOFNEAR</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f3f7f4;
+      color: #18352c;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    header, .submission-card {
+      background: white;
+      padding: 22px;
+      border-radius: 13px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 15px #0000000a;
+    }
+
+    header {
+      background: #102c25;
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    header p {
+      color: #d5e7dc;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    nav a {
+      color: #e5b94f;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    button {
+      border: 0;
+      padding: 11px 15px;
+      margin: 7px 5px 0 0;
+      border-radius: 7px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .refresh {
+      background: #176b50;
+    }
+
+    .review {
+      background: #b17a17;
+    }
+
+    .accept {
+      background: #16834d;
+    }
+
+    .reject {
+      background: #bd3030;
+    }
+
+    .work-link {
+      display: inline-block;
+      margin-top: 12px;
+      color: #176b50;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 11px;
+      border-radius: 20px;
+      background: #e5f3e9;
+      color: #176b50;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .muted {
+      color: #718078;
+      font-size: 13px;
+    }
+
+    #message {
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .error {
+      color: #bd3030;
+    }
+
+    .success {
+      color: #16834d;
+    }
+
+    .empty {
+      padding: 30px;
+      text-align: center;
+      background: white;
+      border-radius: 12px;
+      color: #718078;
+    }
+
+    .submission-card h3 {
+      color: #176b50;
+      margin-bottom: 8px;
+    }
+
+    .submission-card p {
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>PROOFNEAR</h1>
+    <h2>Talent Arena Submission Review</h2>
+
+    <p>
+      Review creator entries, inspect creative work
+      and manage submission decisions.
+    </p>
+
+    <p id="identity">Checking staff access...</p>
+
+    <button class="refresh" id="refreshButton">
+      Refresh Submissions
+    </button>
+
+    <p id="message">Connecting...</p>
+
+    <nav>
+      <a href="talent-arena.html">Arena Home</a>
+      <a href="talent-challenges.html">Challenges</a>
+      <a href="talent-leaderboard.html">Leaderboard</a>
+      <a href="creator-dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <section>
+    <h2>Submitted Creative Work</h2>
+    <p class="muted">
+      Only authorised Talent Arena staff can review submissions.
+    </p>
+
+    <div id="submissionList">
+      <div class="empty">Loading submissions...</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const SUPABASE_URL =
+  "https://hzxaamykvnvfillpkfom.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const message = document.getElementById("message");
+const submissionList = document.getElementById("submissionList");
+const identity = document.getElementById("identity");
+
+let staffUser = null;
+
+function showMessage(text, type = "") {
+  message.textContent = text;
+  message.className = type;
+}
+
+function safeLink(value) {
+  try {
+    const url = new URL(value);
+
+    if (!["http:", "https:"].includes(url.protocol)) {
+      return null;
+    }
+
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+function formatDate(value) {
+  if (!value) return "Not available";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not available";
+  }
+
+  return date.toLocaleString("en-UG");
+}
+
+async function checkStaffAccess() {
+  const { data, error } = await client.auth.getUser();
+
+  if (error || !data.user) {
+    showMessage(
+      "Please sign in to your PROOFNEAR account.",
+      "error"
+    );
+    return false;
+  }
+
+  staffUser = data.user;
+
+  const { data: authorised, error: staffError } =
+    await client.rpc("is_talent_arena_staff", {
+      required_role: "judge"
+    });
+
+  if (staffError) {
+    showMessage(
+      "Could not verify staff permissions: " + staffError.message,
+      "error"
+    );
+    return false;
+  }
+
+  if (authorised !== true) {
+    showMessage(
+      "Access denied. Authorised Talent Arena staff only.",
+      "error"
+    );
+    return false;
+  }
+
+  identity.textContent =
+    "Signed in: " + (staffUser.email || "Authorised staff");
+
+  return true;
+}
+
+function createTextElement(tag, text, className) {
+  const element = document.createElement(tag);
+  element.textContent = text || "";
+
+  if (className) {
+    element.className = className;
+  }
+
+  return element;
+}
+
+function createActionButton(label, status, submissionId, className) {
+  const button = document.createElement("button");
+
+  button.textContent = label;
+  button.className = className;
+
+  button.addEventListener("click", function() {
+    updateSubmissionStatus(
+      submissionId,
+      status,
+      button
+    );
+  });
+
+  return button;
+}
+
+function renderSubmissions(submissions) {
+  submissionList.replaceChildren();
+
+  if (!submissions || submissions.length === 0) {
+    submissionList.appendChild(
+      createTextElement(
+        "div",
+        "No creative submissions are available for review.",
+        "empty"
+      )
+    );
+    return;
+  }
+
+  submissions.forEach(function(item) {
+    const card = document.createElement("article");
+    card.className = "submission-card";
+
+    const title = createTextElement(
+      "h3",
+      item.title || "Untitled submission"
+    );
+
+    const challenge = item.talent_challenges;
+
+    const challengeTitle = Array.isArray(challenge)
+      ? challenge[0]?.title
+      : challenge?.title;
+
+    const category = Array.isArray(challenge)
+      ? challenge[0]?.category
+      : challenge?.category;
+
+    card.appendChild(title);
+
+    card.appendChild(
+      createTextElement(
+        "p",
+        "Challenge: " + (challengeTitle || item.challenge_id)
+      )
+    );
+
+    if (category) {
+      card.appendChild(
+        createTextElement("p", "Category: " + category)
+      );
+    }
+
+    card.appendChild(
+      createTextElement(
+        "p",
+        "Creator ID: " + item.user_id,
+        "muted"
+      )
+    );
+
+    card.appendChild(
+      createTextElement(
+        "p",
+        "Description: " + (item.description || "Not provided")
+      )
+    );
+
+    card.appendChild(
+      createTextElement(
+        "p",
+        "Submitted: " + formatDate(item.submitted_at),
+        "muted"
+      )
+    );
+
+    card.appendChild(
+      createTextElement(
+        "span",
+        item.submission_status,
+        "status"
+      )
+    );
+
+    const linkUrl = safeLink(item.submission_url);
+
+    if (linkUrl) {
+      const link = document.createElement("a");
+
+      link.href = linkUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Open Creator's Work";
+
+      link.className = "work-link";
+
+      card.appendChild(document.createElement("br"));
+      card.appendChild(link);
+    } else {
+      card.appendChild(
+        createTextElement(
+          "p",
+          "The submitted work link is invalid.",
+          "error"
+        )
+      );
+    }
+
+    if (
+      item.submission_status === "submitted" ||
+      item.submission_status === "under_review"
+    ) {
+      card.appendChild(
+        createActionButton(
+          "Mark Under Review",
+          "under_review",
+          item.id,
+          "review"
+        )
+      );
+
+      card.appendChild(
+        createActionButton(
+          "Accept Entry",
+          "accepted",
+          item.id,
+          "accept"
+        )
+      );
+
+      card.appendChild(
+        createActionButton(
+          "Reject Entry",
+          "rejected",
+          item.id,
+          "reject"
+        )
+      );
+    }
+
+    submissionList.appendChild(card);
+  });
+}
+
+async function loadSubmissions() {
+  submissionList.replaceChildren();
+
+  showMessage("Loading submitted creative work...");
+
+  const { data, error } = await client
+    .from("talent_challenge_submissions")
+    .select(`
+      id,
+      challenge_id,
+      user_id,
+      title,
+      description,
+      submission_url,
+      submission_status,
+      submitted_at,
+      talent_challenges (
+        title,
+        category
+      )
+    `)
+    .order("submitted_at", {
+      ascending: false
+    });
+
+  if (error) {
+    showMessage(
+      "Could not load submissions: " + error.message,
+      "error"
+    );
+
+    submissionList.appendChild(
+      createTextElement(
+        "div",
+        "Submission loading failed. Check the message above.",
+        "empty"
+      )
+    );
+
+    return;
+  }
+
+  renderSubmissions(data || []);
+
+  showMessage(
+    "Submissions loaded: " + (data || []).length,
+    "success"
+  );
+}
+
+async function updateSubmissionStatus(
+  submissionId,
+  newStatus,
+  button
+) {
+  const labels = {
+    under_review: "mark this entry as under review",
+    accepted: "accept this entry",
+    rejected: "reject this entry"
+  };
+
+  if (!labels[newStatus]) {
+    return;
+  }
+
+  if (!confirm("Are you sure you want to " + labels[newStatus] + "?")) {
+    return;
+  }
+
+  button.disabled = true;
+
+  showMessage("Updating submission status...");
+
+  const { error } = await client
+    .from("talent_challenge_submissions")
+    .update({
+      submission_status: newStatus
+    })
+    .eq("id", submissionId);
+
+  if (error) {
+    button.disabled = false;
+
+    showMessage(
+      "Update failed: " + error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  showMessage(
+    "Submission status updated to " + newStatus + ".",
+    "success"
+  );
+
+  await loadSubmissions();
+}
+
+document
+  .getElementById("refreshButton")
+  .addEventListener("click", async function() {
+    if (await checkStaffAccess()) {
+      await loadSubmissions();
+    }
+  });
+
+async function startReviewPage() {
+  const authorised = await checkStaffAccess();
+
+  if (authorised) {
+    await loadSubmissions();
+  } else {
+    submissionList.replaceChildren();
+
+    submissionList.appendChild(
+      createTextElement(
+        "div",
+        "Sign in with an authorised Talent Arena staff account to continue.",
+        "empty"
+      )
+    );
+  }
+}
+
+startReviewPage();
+</script>
+
+</body>
+</html>
