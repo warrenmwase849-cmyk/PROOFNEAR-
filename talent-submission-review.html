@@ -254,10 +254,14 @@ async function checkStaffAccess() {
 
   staffUser = data.user;
 
-  const { data: authorised, error: staffError } =
-    await client.rpc("is_talent_arena_staff", {
-      required_role: "judge"
-    });
+identity.textContent =
+  "Signed in: " + (staffUser.email || "Email unavailable") +
+  " | User ID: " + staffUser.id;
+
+const { data: authorised, error: staffError } =
+  await client.rpc("is_talent_arena_staff", {
+    required_role: "judge"
+  });
 
   if (staffError) {
     showMessage(
