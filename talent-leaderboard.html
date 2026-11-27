@@ -2,435 +2,286 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#102c25">
-  <meta name="description" content="Discover and celebrate outstanding creative talent on the PROOFNEAR Talent Leaderboard.">
-  <title>Talent Leaderboard | PROOFNEAR</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c25">
+<meta name="description" content="Official PROOFNEAR Talent Arena competition rankings.">
+<title>Talent Leaderboard | PROOFNEAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f7f5;
-      color: #18352c;
-      line-height: 1.6;
-    }
-
-    a {
-      text-decoration: none;
-    }
-
-    .header {
-      background: #102c25;
-      color: white;
-      padding: 17px 6%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    .brand {
-      color: white;
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .brand small {
-      display: block;
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: #b6d9c5;
-    }
-
-    .nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 17px;
-    }
-
-    .nav a {
-      color: #e1eee7;
-      font-size: 13px;
-    }
-
-    .nav a:hover {
-      color: #7de0a8;
-    }
-
-    .hero {
-      background: linear-gradient(135deg, #102c25, #1e6248);
-      color: white;
-      text-align: center;
-      padding: 75px 20px;
-    }
-
-    .eyebrow {
-      color: #8ce5b0;
-      font-size: 12px;
-      font-weight: bold;
-      letter-spacing: 2px;
-    }
-
-    .hero h1 {
-      font-size: clamp(32px, 6vw, 54px);
-      margin: 15px 0;
-    }
-
-    .hero p {
-      max-width: 680px;
-      margin: auto;
-      color: #d5e9dd;
-    }
-
-    .trophy {
-      font-size: 65px;
-      margin-bottom: 10px;
-    }
-
-    .section {
-      max-width: 1100px;
-      margin: auto;
-      padding: 55px 20px;
-    }
-
-    .section h2 {
-      font-size: 27px;
-      margin-bottom: 10px;
-    }
-
-    .section-intro {
-      color: #66776e;
-      margin-bottom: 25px;
-    }
-
-    .ranking-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 17px;
-      margin-top: 25px;
-    }
-
-    .ranking-card {
-      background: white;
-      border: 1px solid #e1eae4;
-      border-radius: 14px;
-      padding: 24px;
-      box-shadow: 0 5px 18px rgba(16,44,37,0.04);
-    }
-
-    .ranking-card .icon {
-      font-size: 35px;
-      margin-bottom: 10px;
-    }
-
-    .ranking-card h3 {
-      margin-bottom: 7px;
-    }
-
-    .ranking-card p {
-      color: #718078;
-      font-size: 14px;
-    }
-
-    .leaderboard {
-      background: white;
-      border: 1px solid #e1eae4;
-      border-radius: 15px;
-      overflow: hidden;
-      margin-top: 25px;
-    }
-
-    .leaderboard-heading {
-      background: #eaf3ed;
-      padding: 18px;
-      font-weight: bold;
-    }
-
-    .empty-state {
-      padding: 45px 20px;
-      text-align: center;
-    }
-
-    .empty-state .star {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    .empty-state h3 {
-      margin-bottom: 8px;
-    }
-
-    .empty-state p {
-      color: #718078;
-      max-width: 530px;
-      margin: auto;
-      font-size: 14px;
-    }
-
-    .coming {
-      display: inline-block;
-      margin-top: 18px;
-      padding: 7px 14px;
-      background: #fff2d9;
-      color: #96600c;
-      border-radius: 30px;
-      font-size: 11px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-
-    .how-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 18px;
-      margin-top: 25px;
-    }
-
-    .how-card {
-      padding: 22px;
-      background: white;
-      border-radius: 13px;
-      border: 1px solid #e1eae4;
-    }
-
-    .number {
-      color: #198653;
-      font-size: 25px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .how-card p {
-      color: #718078;
-      font-size: 14px;
-      margin-top: 7px;
-    }
-
-    .join {
-      background: #e4f1e8;
-      text-align: center;
-      padding: 55px 20px;
-    }
-
-    .join h2 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .join p {
-      color: #61736a;
-      max-width: 580px;
-      margin: 0 auto 22px;
-    }
-
-    .button {
-      display: inline-block;
-      background: #167b4d;
-      color: white;
-      padding: 13px 23px;
-      border-radius: 8px;
-      font-weight: bold;
-      margin: 5px;
-    }
-
-    .button:hover {
-      background: #105d3a;
-    }
-
-    .button.secondary {
-      background: #102c25;
-    }
-
-    .footer {
-      background: #102c25;
-      color: #cbded3;
-      text-align: center;
-      padding: 30px 15px;
-      font-size: 13px;
-    }
-
-    .footer a {
-      color: #8ce5b0;
-    }
-
-    .footer p {
-      margin-top: 7px;
-    }
-
-    @media (max-width: 650px) {
-      .header {
-        justify-content: center;
-        text-align: center;
-      }
-
-      .nav {
-        justify-content: center;
-      }
-
-      .hero {
-        padding: 55px 18px;
-      }
-    }
-  </style>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f7f4;color:#18352c;font-family:Arial,sans-serif;line-height:1.6}
+a{text-decoration:none}
+.header{background:#102c25;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.brand{color:white;font-size:21px;font-weight:800}
+.brand small{display:block;font-size:10px;letter-spacing:3px;color:#b6d9c5}
+nav{display:flex;gap:16px;flex-wrap:wrap}
+nav a{color:#e1eee7;font-size:13px}
+nav a:hover{color:#e5b94f}
+.hero{background:linear-gradient(135deg,#102c25,#1e6248);color:white;text-align:center;padding:60px 18px}
+.hero .trophy{font-size:55px}
+.eyebrow{color:#d6a84b;font-size:12px;font-weight:bold;letter-spacing:2px}
+.hero h1{font-size:clamp(30px,6vw,48px);margin:10px 0}
+.hero p{max-width:650px;margin:auto;color:#d5e9dd}
+.container{max-width:1050px;margin:auto;padding:38px 16px}
+.section-title{margin-bottom:8px}
+.intro{color:#718078;margin-bottom:25px}
+#message{padding:18px;background:white;border-radius:10px;margin:18px 0;color:#53675d;font-weight:bold}
+.challenge{background:white;border:1px solid #e1eae4;border-radius:15px;padding:20px;margin:25px 0;box-shadow:0 4px 16px #00000008}
+.challenge h2{margin:0 0 4px}
+.meta{font-size:13px;color:#718078}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0}
+.podium-card{background:#f1f6f2;border:1px solid #e1eae4;border-radius:12px;padding:15px 8px;text-align:center;min-width:0}
+.podium-card.first{background:#fff6df;border-color:#e8ce85}
+.medal{font-size:28px}
+.podium-card img{width:65px;height:65px;border-radius:50%;object-fit:cover;background:#dce9df;margin:8px auto}
+.podium-card h3{font-size:14px;overflow-wrap:anywhere;margin:5px 0}
+.podium-card p{font-size:12px;color:#718078;margin:3px 0}
+.points{font-size:19px;font-weight:bold;color:#176b50}
+.rank-list{width:100%;border-collapse:collapse;margin-top:18px}
+.rank-list th,.rank-list td{padding:12px 9px;border-bottom:1px solid #e4ebe6;text-align:left;font-size:13px}
+.rank-list th{background:#eaf3ed;color:#365648}
+.creator-link{color:#176b50;font-weight:bold}
+.score{font-weight:bold;color:#176b50;white-space:nowrap}
+.empty{text-align:center;background:white;border-radius:14px;padding:42px 20px;margin-top:20px}
+.empty .star{font-size:45px}
+.empty p{max-width:550px;margin:10px auto;color:#718078}
+.button{display:inline-block;background:#176b50;color:white;padding:11px 18px;border-radius:8px;font-weight:bold;margin:8px 5px}
+.button.secondary{background:#102c25}
+.footer{background:#102c25;color:#cbded3;text-align:center;padding:28px 15px;font-size:13px}
+.footer a{color:#8ce5b0}
+@media(max-width:600px){
+.header{justify-content:center;text-align:center}
+nav{justify-content:center}
+.container{padding:25px 10px}
+.challenge{padding:13px}
+.podium{gap:6px}
+.podium-card{padding:10px 4px}
+.podium-card img{width:48px;height:48px}
+.rank-list th,.rank-list td{padding:9px 5px;font-size:11px}
+}
+</style>
 </head>
 
 <body>
-
 <header class="header">
-  <a href="talent-arena.html" class="brand">
-    P PROOFNEAR
-    <small>TALENT ARENA</small>
-  </a>
-
-  <nav class="nav">
-  <a href="talent-arena.html">Arena</a>
-  <a href="talent-creators.html">Explore Talent</a>
-  <a href="creator-dashboard.html">Dashboard</a>
-  <a href="creator-inbox.html">Inbox</a>
-  <a href="talent-challenges.html">Challenges</a>
-  <a href="talent-public-voting.html">Public Voting</a>
+<a href="talent-arena.html" class="brand">
+P PROOFNEAR
+<small>TALENT ARENA</small>
+</a>
+<nav>
+<a href="talent-arena.html">Arena</a>
+<a href="talent-creators.html">Explore Talent</a>
+<a href="creator-dashboard.html">Dashboard</a>
+<a href="talent-challenges.html">Challenges</a>
+<a href="talent-public-voting.html">Public Voting</a>
 </nav>
 </header>
 
-<main>
+<section class="hero">
+<div class="trophy">🏆</div>
+<span class="eyebrow">RECOGNITION • ACHIEVEMENT • EXCELLENCE</span>
+<h1>PROOFNEAR Talent Leaderboard</h1>
+<p>Celebrating outstanding creativity and recognising creators through official competition results.</p>
+</section>
 
-  <section class="hero">
-    <div class="trophy">🏆</div>
-    <span class="eyebrow">RECOGNITION • ACHIEVEMENT • EXCELLENCE</span>
-    <h1>PROOFNEAR Talent Leaderboard</h1>
-    <p>
-      Celebrating creativity, discovering outstanding abilities
-      and recognising the people making their mark through talent.
-    </p>
-  </section>
+<main class="container">
+<span class="eyebrow">OFFICIAL COMPETITION RESULTS</span>
+<h2 class="section-title">Creator Rankings</h2>
+<p class="intro">Rankings are displayed only after competition results have been officially published by PROOFNEAR administrators.</p>
 
-  <section class="section">
-    <span class="eyebrow">THE ARENA RANKINGS</span>
-    <h2>Discover Outstanding Talent</h2>
-    <p class="section-intro">
-      Different creative fields. One platform for recognising excellence.
-    </p>
+<div id="message" role="status" aria-live="polite">Loading official rankings...</div>
+<div id="leaderboards"></div>
 
-    <div class="ranking-grid">
-
-      <article class="ranking-card">
-        <div class="icon">🎤</div>
-        <h3>Top Singers</h3>
-        <p>Recognising outstanding vocal performances and singing talent.</p>
-      </article>
-
-      <article class="ranking-card">
-        <div class="icon">🎹</div>
-        <h3>Top Musicians</h3>
-        <p>Celebrating instrumentalists, songwriters and music creators.</p>
-      </article>
-
-      <article class="ranking-card">
-        <div class="icon">💃</div>
-        <h3>Top Performers</h3>
-        <p>Highlighting dancers, actors, comedians and performers.</p>
-      </article>
-
-      <article class="ranking-card">
-        <div class="icon">🎨</div>
-        <h3>Top Creative Artists</h3>
-        <p>Recognising visual artists, photographers and designers.</p>
-      </article>
-
-    </div>
-  </section>
-
-  <section class="section">
-    <span class="eyebrow">THE OFFICIAL RANKINGS</span>
-    <h2>Talent Rankings</h2>
-    <p class="section-intro">
-      Follow creators as they earn recognition and achievements.
-    </p>
-
-    <div class="leaderboard">
-      <div class="leaderboard-heading">
-        ⭐ PROOFNEAR Creator Rankings
-      </div>
-
-      <div class="empty-state">
-        <div class="star">🌟</div>
-        <h3>The leaderboard is being prepared.</h3>
-        <p>
-          Official creator rankings will appear here when the
-          competition and scoring system launches. Rankings will
-          be based on published competition rules and verified results.
-        </p>
-        <span class="coming">RANKINGS COMING SOON</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <span class="eyebrow">YOUR JOURNEY TO RECOGNITION</span>
-    <h2>How Recognition Will Work</h2>
-
-    <div class="how-grid">
-
-      <article class="how-card">
-        <div class="number">01</div>
-        <h3>Create Your Profile</h3>
-        <p>Introduce yourself and showcase your creative abilities.</p>
-      </article>
-
-      <article class="how-card">
-        <div class="number">02</div>
-        <h3>Join Challenges</h3>
-        <p>Participate in available competitions and follow their rules.</p>
-      </article>
-
-      <article class="how-card">
-        <div class="number">03</div>
-        <h3>Earn Recognition</h3>
-        <p>Build achievements through verified competition results.</p>
-      </article>
-
-      <article class="how-card">
-        <div class="number">04</div>
-        <h3>Get Discovered</h3>
-        <p>Build visibility and opportunities through your talent journey.</p>
-      </article>
-
-    </div>
-  </section>
-
-  <section class="join">
-    <span class="eyebrow">YOUR TALENT MATTERS</span>
-    <h2>Your Name Could Be Here.</h2>
-    <p>
-      Start building your creator profile today.
-      Prepare to showcase your abilities and become part
-      of the PROOFNEAR Talent Arena.
-    </p>
-
-    <a href="talent-register.html" class="button">
-      Become a Creator
-    </a>
-
-    <a href="talent-creators.html" class="button secondary">
-      Explore Creators
-    </a>
-  </section>
-
+<section class="empty" id="emptyState" hidden>
+<div class="star">🌟</div>
+<h2>No published rankings yet</h2>
+<p>Official competition rankings will appear here after a completed competition has been reviewed and its results published.</p>
+<a class="button" href="talent-challenges.html">Explore Challenges</a>
+<a class="button secondary" href="talent-creators.html">Explore Creators</a>
+</section>
 </main>
 
 <footer class="footer">
-  <a href="talent-arena.html">← Back to Talent Arena</a>
-  <p>© 2026 PROOFNEAR. All rights reserved.</p>
-  <p>Discover talent. Create opportunities. Build recognition.</p>
+<a href="talent-arena.html">← Back to Talent Arena</a>
+<p>© 2026 PROOFNEAR. Connecting people to opportunities.</p>
+<p>Discover talent. Create opportunities. Build recognition.</p>
 </footer>
 
+<script>
+const SUPABASE_URL="https://hzxaamykvnvfillpkfom.supabase.co";
+const SUPABASE_KEY="sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const message=document.getElementById("message");
+const board=document.getElementById("leaderboards");
+const emptyState=document.getElementById("emptyState");
+
+function safeLink(value){
+  if(!value)return null;
+  try{
+    const url=new URL(value);
+    if(url.protocol==="https:"||url.protocol==="http:")return url.href;
+  }catch{}
+  return null;
+}
+
+function make(tag,text,className){
+  const node=document.createElement(tag);
+  node.textContent=text??"";
+  if(className)node.className=className;
+  return node;
+}
+
+function creatorProfile(row){
+  return "talent-profile.html?id="+encodeURIComponent(row.creator_user_id);
+}
+
+function makeCreatorImage(row){
+  const url=safeLink(row.creator_photo_url);
+  if(!url)return null;
+  const img=document.createElement("img");
+  img.src=url;
+  img.alt=row.creator_name||"Creator";
+  img.loading="lazy";
+  img.onerror=()=>img.remove();
+  return img;
+}
+
+function renderPodium(rows){
+  const podium=document.createElement("div");
+  podium.className="podium";
+
+  const medals=["🥇","🥈","🥉"];
+
+  rows.slice(0,3).forEach((row,index)=>{
+    const card=document.createElement("article");
+    card.className="podium-card"+(index===0?" first":"");
+    card.appendChild(make("div",medals[index],"medal"));
+
+    const image=makeCreatorImage(row);
+    if(image)card.appendChild(image);
+
+    const name=make("h3",row.creator_name||"PROOFNEAR Creator");
+    const link=document.createElement("a");
+    link.className="creator-link";
+    link.href=creatorProfile(row);
+    link.textContent=name.textContent;
+    card.appendChild(link);
+
+    card.appendChild(make("p",row.submission_title||"Competition entry"));
+    card.appendChild(make("div",Number(row.final_score).toFixed(2)+"/100","points"));
+    podium.appendChild(card);
+  });
+
+  return podium;
+}
+
+function renderTable(rows){
+  const wrapper=document.createElement("div");
+  wrapper.style.overflowX="auto";
+
+  const table=document.createElement("table");
+  table.className="rank-list";
+
+  const thead=document.createElement("thead");
+  const header=document.createElement("tr");
+
+  ["Rank","Creator","Submission","Category","District","Final Score"]
+    .forEach(label=>header.appendChild(make("th",label)));
+
+  thead.appendChild(header);
+  table.appendChild(thead);
+
+  const tbody=document.createElement("tbody");
+
+  rows.forEach(row=>{
+    const tr=document.createElement("tr");
+
+    tr.appendChild(make("td","#"+row.rank));
+
+    const creatorCell=document.createElement("td");
+    const creator=document.createElement("a");
+    creator.className="creator-link";
+    creator.href=creatorProfile(row);
+    creator.textContent=row.creator_name||"PROOFNEAR Creator";
+    creatorCell.appendChild(creator);
+    tr.appendChild(creatorCell);
+
+    tr.appendChild(make("td",row.submission_title||"Untitled"));
+    tr.appendChild(make("td",row.creator_category||"Not specified"));
+    tr.appendChild(make("td",row.creator_district||"Not provided"));
+    tr.appendChild(make("td",Number(row.final_score).toFixed(2)+"/100","score"));
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  return wrapper;
+}
+
+function renderResults(rows){
+  board.replaceChildren();
+
+  const groups=new Map();
+
+  rows.forEach(row=>{
+    if(!groups.has(row.challenge_id)){
+      groups.set(row.challenge_id,[]);
+    }
+    groups.get(row.challenge_id).push(row);
+  });
+
+  groups.forEach((results)=>{
+    results.sort((a,b)=>Number(a.rank)-Number(b.rank));
+
+    const first=results[0];
+    const section=document.createElement("section");
+    section.className="challenge";
+
+    section.appendChild(make("h2",first.challenge_title));
+    section.appendChild(make("p","Category: "+(first.challenge_category||"Not specified"),"meta"));
+
+    section.appendChild(make("p","Officially published: "+new Date(first.published_at).toLocaleString("en-UG"),"meta"));
+
+    section.appendChild(renderPodium(results));
+    section.appendChild(make("h3","Complete Competition Rankings"));
+
+    section.appendChild(renderTable(results));
+    board.appendChild(section);
+  });
+}
+
+async function loadLeaderboard(){
+  message.textContent="Loading officially published competition results...";
+  emptyState.hidden=true;
+  board.replaceChildren();
+
+  const {data,error}=await client.rpc(
+    "get_public_talent_leaderboard",
+    {p_challenge_id:null}
+  );
+
+  if(error){
+    message.textContent="Unable to load official rankings: "+error.message;
+    return;
+  }
+
+  const results=data||[];
+
+  if(results.length===0){
+    message.textContent="The public leaderboard is connected.";
+    emptyState.hidden=false;
+    return;
+  }
+
+  renderResults(results);
+  message.textContent="Official published rankings loaded: "+results.length+" result(s) across "+new Set(results.map(r=>r.challenge_id)).size+" competition(s).";
+}
+
+loadLeaderboard();
+</script>
 </body>
 </html>
