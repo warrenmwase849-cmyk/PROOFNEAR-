@@ -174,7 +174,18 @@
       }
 
       const user = authData.user;
+const { data: isArenaAdmin, error: adminCheckError } =
+  await supabaseClient.rpc("is_talent_arena_staff", {
+    required_role: "admin"
+  });
 
+if (adminCheckError) {
+  showMessage(
+    "Unable to verify administrator access: " + adminCheckError.message,
+    true
+  );
+  return;
+        }
       const { data: creator, error: creatorError } =
         await supabaseClient
           .from("creator_profiles")
