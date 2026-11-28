@@ -1,1 +1,414 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c25">
+<title>My Competition History | PROOFNEAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f7f4;color:#18352c;font-family:Arial,sans-serif;line-height:1.6}
+a{text-decoration:none}
+header{background:#102c25;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.brand{color:white;font-size:21px;font-weight:800}
+.brand small{display:block;font-size:10px;letter-spacing:3px;color:#b6d9c5}
+nav{display:flex;gap:15px;flex-wrap:wrap}
+nav a{color:#e1eee7;font-size:13px}
+.hero{background:linear-gradient(135deg,#102c25,#1e6248);color:white;text-align:center;padding:48px 18px}
+.eyebrow{color:#d6a84b;font-size:12px;font-weight:bold;letter-spacing:2px}
+.hero h1{font-size:clamp(28px,6vw,42px);margin:10px 0}
+.hero p{max-width:620px;margin:auto;color:#d5e9dd}
+.container{max-width:900px;margin:auto;padding:30px 16px 45px}
+#message{padding:16px;background:white;border-radius:10px;margin-bottom:20px;color:#53675d;font-weight:bold;overflow-wrap:anywhere}
+.error{color:#b52f2f!important}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+.stat{background:white;border:1px solid #e1eae4;border-radius:12px;padding:16px;text-align:center}
+.stat strong{display:block;font-size:26px;color:#176b50}
+.stat span{font-size:12px;color:#718078}
+.entry{background:white;border:1px solid #e1eae4;border-radius:14px;padding:20px;margin:16px 0;box-shadow:0 4px 16px #00000008}
+.entry h2{margin:0 0 5px;font-size:21px}
+.meta{color:#718078;font-size:13px;margin:5px 0}
+.status-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.status{display:inline-block;padding:6px 11px;border-radius:20px;background:#eaf3ed;color:#176b50;font-size:12px;font-weight:bold}
+.status.pending{background:#fff4dc;color:#8a6412}
+.status.rejected{background:#fdebea;color:#a12c2c}
+.status.accepted{background:#e2f4e8;color:#176b50}
+.status.neutral{background:#edf0ee;color:#58665e}
+.submission{margin-top:15px;padding-top:14px;border-top:1px solid #e5ece7}
+.submission p{margin:6px 0;color:#53675d}
+.submission a{color:#176b50;font-weight:bold;overflow-wrap:anywhere}
+.empty{text-align:center;background:white;border-radius:14px;padding:38px 20px}
+.empty .symbol{font-size:44px}
+.empty p{color:#718078;max-width:540px;margin:10px auto 18px}
+.button{display:inline-block;background:#176b50;color:white;padding:11px 17px;border-radius:8px;font-weight:bold;margin:5px}
+.button.secondary{background:#102c25}
+.actions{text-align:center;margin:25px 0}
+footer{background:#102c25;color:#cbded3;text-align:center;padding:25px 15px;font-size:13px}
+footer a{color:#8ce5b0}
+@media(max-width:600px){
+header{justify-content:center;text-align:center}
+nav{justify-content:center}
+.container{padding:22px 12px 35px}
+.entry{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+<a href="talent-arena.html" class="brand">
+P PROOFNEAR
+<small>TALENT ARENA</small>
+</a>
+<nav>
+<a href="talent-arena.html">Arena</a>
+<a href="talent-challenges.html">Challenges</a>
+<a href="talent-leaderboard.html">Leaderboard</a>
+<a href="creator-dashboard.html">Dashboard</a>
+</nav>
+</header>
+
+<section class="hero">
+<span class="eyebrow">YOUR PARTICIPATION • YOUR PROGRESS</span>
+<h1>My Competition History</h1>
+<p>Keep track of the competitions you've joined, the creative work you've submitted and the status of your entries.</p>
+</section>
+
+<main class="container">
+<div id="message" role="status" aria-live="polite">
+Checking your account...
+</div>
+
+<div class="summary" id="summary" hidden>
+<div class="stat"><strong id="totalJoined">0</strong><span>Challenges Joined</span></div>
+<div class="stat"><strong id="totalSubmitted">0</strong><span>Entries Submitted</span></div>
+<div class="stat"><strong id="totalAccepted">0</strong><span>Accepted Entries</span></div>
+</div>
+
+<div id="history"></div>
+
+<section class="empty" id="emptyState" hidden>
+<div class="symbol">🎨</div>
+<h2>Your competition journey starts here</h2>
+<p>You haven't registered for a challenge or submitted an entry yet. Explore the Talent Arena and find a competition to join.</p>
+<a class="button" href="talent-challenges.html">Explore Challenges</a>
+</section>
+
+<div class="actions">
+<a class="button secondary" href="creator-dashboard.html">← Back to Dashboard</a>
+<a class="button" href="creator-results.html">My Official Results</a>
+</div>
+</main>
+
+<footer>
+<a href="talent-arena.html">← Back to Talent Arena</a>
+<p>© 2026 PROOFNEAR. Connecting people to opportunities.</p>
+</footer>
+
+<script>
+const SUPABASE_URL = "https://hzxaamykvnvfillpkfom.supabase.co";
+const SUPABASE_KEY = "sb_publishable_G2EnYQpTGlkQkGVWn6yqlQ_2gaKnvbH";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const message = document.getElementById("message");
+const historyContainer = document.getElementById("history");
+const emptyState = document.getElementById("emptyState");
+const summary = document.getElementById("summary");
+
+function showMessage(text, isError = false) {
+  message.textContent = text;
+  message.className = isError ? "error" : "";
+  message.hidden = false;
+}
+
+function addText(parent, tag, value, className) {
+  const element = document.createElement(tag);
+  element.textContent = value ?? "";
+  if (className) element.className = className;
+  parent.appendChild(element);
+  return element;
+}
+
+function formatDate(value) {
+  if (!value) return "Not recorded";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not recorded";
+  }
+
+  return date.toLocaleDateString("en-UG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function statusClass(value) {
+  const status = String(value || "").toLowerCase();
+
+  if (["accepted", "approved"].includes(status)) return "accepted";
+  if (["pending", "under_review", "submitted"].includes(status)) return "pending";
+  if (["rejected", "declined"].includes(status)) return "rejected";
+
+  return "neutral";
+}
+
+function renderHistory(registrations, submissions, challenges) {
+  const registrationMap = new Map(
+    registrations.map(item => [item.challenge_id, item])
+  );
+
+  const submissionMap = new Map(
+    submissions.map(item => [item.challenge_id, item])
+  );
+
+  const challengeIds = new Set([
+    ...registrations.map(item => item.challenge_id),
+    ...submissions.map(item => item.challenge_id)
+  ]);
+
+  const challengeMap = new Map(
+    challenges.map(item => [item.id, item])
+  );
+
+  const entries = Array.from(challengeIds).map(id => ({
+    id,
+    registration: registrationMap.get(id) || null,
+    submission: submissionMap.get(id) || null,
+    challenge: challengeMap.get(id) || null
+  }));
+
+  document.getElementById("totalJoined").textContent = registrations.length;
+  document.getElementById("totalSubmitted").textContent = submissions.length;
+  document.getElementById("totalAccepted").textContent =
+    submissions.filter(item => item.submission_status === "accepted").length;
+
+  summary.hidden = false;
+  historyContainer.replaceChildren();
+
+  entries.sort((a, b) => {
+    const dateA = new Date(
+      a.submission?.submitted_at || 0
+    ).getTime();
+
+    const dateB = new Date(
+      b.submission?.submitted_at || 0
+    ).getTime();
+
+    return dateB - dateA;
+  });
+
+  entries.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "entry";
+
+    const challenge = item.challenge;
+    const submission = item.submission;
+    const registration = item.registration;
+
+    addText(
+      card,
+      "h2",
+      challenge?.title || "PROOFNEAR Challenge"
+    );
+
+    addText(
+      card,
+      "p",
+      "Category: " + (challenge?.category || "Not specified"),
+      "meta"
+    );
+
+    if (challenge?.status) {
+      addText(
+        card,
+        "p",
+        "Competition status: " + challenge.status,
+        "meta"
+      );
+    }
+
+    const statusRow = document.createElement("div");
+    statusRow.className = "status-row";
+
+    if (registration) {
+      const regStatus = document.createElement("span");
+      regStatus.className =
+        "status " + statusClass(registration.registration_status);
+      regStatus.textContent =
+        "Registration: " + registration.registration_status;
+      statusRow.appendChild(regStatus);
+    }
+
+    if (submission) {
+      const subStatus = document.createElement("span");
+      subStatus.className =
+        "status " + statusClass(submission.submission_status);
+      subStatus.textContent =
+        "Entry: " + submission.submission_status;
+      statusRow.appendChild(subStatus);
+    } else {
+      const noEntry = document.createElement("span");
+      noEntry.className = "status neutral";
+      noEntry.textContent = "No entry submitted yet";
+      statusRow.appendChild(noEntry);
+    }
+
+    card.appendChild(statusRow);
+
+    if (submission) {
+      const submissionBox = document.createElement("div");
+      submissionBox.className = "submission";
+
+      addText(submissionBox, "strong", "Your submitted work");
+
+      addText(
+        submissionBox,
+        "p",
+        submission.title || "Untitled entry"
+      );
+
+      if (submission.submitted_at) {
+        addText(
+          submissionBox,
+          "p",
+          "Submitted: " + formatDate(submission.submitted_at),
+          "meta"
+        );
+      }
+
+      if (submission.submission_url) {
+        try {
+          const url = new URL(submission.submission_url);
+
+          if (url.protocol === "https:" || url.protocol === "http:") {
+            const link = document.createElement("a");
+            link.href = url.href;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "Open my submitted work";
+            submissionBox.appendChild(link);
+          }
+        } catch (error) {
+          // Do not display invalid submission links.
+        }
+      }
+
+      card.appendChild(submissionBox);
+    }
+
+    historyContainer.appendChild(card);
+  });
+
+  if (entries.length === 0) {
+    emptyState.hidden = false;
+    summary.hidden = true;
+    return;
+  }
+
+  emptyState.hidden = true;
+}
+
+async function loadHistory() {
+  try {
+    showMessage("Checking your signed-in account...");
+
+    const { data: authData, error: authError } =
+      await client.auth.getUser();
+
+    if (authError || !authData.user) {
+      showMessage(
+        "Please sign in to view your personal competition history.",
+        true
+      );
+      return;
+    }
+
+    const userId = authData.user.id;
+
+    showMessage("Loading your registrations and submissions...");
+
+    const [registrationResult, submissionResult] = await Promise.all([
+      client
+        .from("talent_challenge_registrations")
+        .select("challenge_id, registration_status")
+        .eq("user_id", userId),
+
+      client
+        .from("talent_challenge_submissions")
+        .select("id, challenge_id, title, submission_url, submission_status, submitted_at")
+        .eq("user_id", userId)
+    ]);
+
+    if (registrationResult.error) {
+      showMessage(
+        "Unable to load your challenge registrations: " +
+        registrationResult.error.message,
+        true
+      );
+      return;
+    }
+
+    if (submissionResult.error) {
+      showMessage(
+        "Unable to load your challenge submissions: " +
+        submissionResult.error.message,
+        true
+      );
+      return;
+    }
+
+    const registrations = registrationResult.data || [];
+    const submissions = submissionResult.data || [];
+
+    const ids = [...new Set([
+      ...registrations.map(item => item.challenge_id),
+      ...submissions.map(item => item.challenge_id)
+    ])];
+
+    let challenges = [];
+
+    if (ids.length > 0) {
+      const { data, error } = await client
+        .from("talent_challenges")
+        .select("id, title, category, status, starts_at, ends_at")
+        .in("id", ids);
+
+      if (error) {
+        showMessage(
+          "Your participation records loaded, but challenge details could not be retrieved: " +
+          error.message,
+          true
+        );
+        return;
+      }
+
+      challenges = data || [];
+    }
+
+    renderHistory(registrations, submissions, challenges);
+
+    message.textContent =
+      "Your personal competition history is up to date.";
+
+  } catch (error) {
+    showMessage(
+      "Something went wrong while loading your competition history. Please refresh and try again.",
+      true
+    );
+  }
+}
+
+loadHistory();
+</script>
+</body>
+  </html>
+
