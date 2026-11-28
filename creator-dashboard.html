@@ -193,23 +193,21 @@ if (adminCheckError) {
           .eq("user_id", user.id)
           .maybeSingle();
 
-      if (creator.approval_status !== "approved" && isArenaAdmin !== true) {
+      if (!creator) {
+  showMessage(
+    "No creator profile was found for this account. Register as a creator to continue.",
+    true
+  );
+  return;
+}
+
+if (creator.approval_status !== "approved" && isArenaAdmin !== true) {
   showMessage(
     "Your creator profile is awaiting approval. Your dashboard will be available after approval.",
     true
   );
   return;
 }
-
-      if (!creator) {
-        showMessage("No creator profile was found for this account. Register as a creator to continue.", true);
-        return;
-      }
-
-      if (creator.approval_status !== "approved") {
-        showMessage("Your creator profile is awaiting approval. Your dashboard will be available after approval.", true);
-        return;
-      }
 
       const [requestsResult, notificationsResult] = await Promise.all([
         supabaseClient
