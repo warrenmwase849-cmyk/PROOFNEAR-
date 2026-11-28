@@ -259,7 +259,12 @@ if (adminCheckError) {
       document.getElementById("detailDistrict").textContent =
         creator.district || "Not provided";
 
-      document.getElementById("detailStatus").textContent = "Approved";
+      const creatorStatus = creator.approval_status || "unknown";
+
+document.getElementById("detailStatus").textContent =
+  isArenaAdmin && creatorStatus !== "approved"
+    ? creatorStatus.toUpperCase() + " — ADMIN ACCESS"
+    : creatorStatus.charAt(0).toUpperCase() + creatorStatus.slice(1);
 
       document.getElementById("profileLink").href =
         "talent-profile.html?id=" + encodeURIComponent(creator.user_id);
