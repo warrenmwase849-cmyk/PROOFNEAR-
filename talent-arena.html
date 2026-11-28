@@ -280,7 +280,7 @@ async function loadOpenChallenges() {
   const { data, error } = await arenaSupabase
     .from("talent_challenges")
     .select("id,title,description,category,starts_at,ends_at")
-    .eq("status", "open")
+    .eq("status", "published")
     .order("starts_at", { ascending: true })
     .limit(3);
 
